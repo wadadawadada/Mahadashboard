@@ -37,14 +37,18 @@ def retrieve_context(
         seen.add(key)
         if key in interpretations:
             entry = interpretations[key]
+            text_en = entry.get("text_en") or entry.get("text", "")
+            text_ru = entry.get("text_ru") or text_en
             if language == "en":
-                text = entry.get("text_en") or entry.get("text", "")
+                text = text_en
             else:
-                text = entry.get("text_ru") or entry.get("text_en") or entry.get("text", "")
+                text = text_ru
             items.append({
                 "key": key,
                 "source_id": entry["source_id"],
                 "text": text,
+                "text_ru": text_ru,
+                "text_en": text_en,
             })
         else:
             missing.append({"key": key, "message": _MISSING_MSG})

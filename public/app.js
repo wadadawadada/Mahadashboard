@@ -100,7 +100,8 @@ const t = {
     settingsLoading: "Загрузка настроек...",
     settingsSaving: "Сохранение...",
     settingsSaved: "Настройки сохранены в .env",
-    lifePathTab: "Life Path",
+    lifePathTab: "Жизненный путь",
+    aiTab: "ИИ",
     lifePathTitle: "Жизненный путь",
     lifePathNow: "сейчас",
     lifePathBirth: "Рождение",
@@ -114,7 +115,7 @@ const t = {
     dashaModalDuration: "Длительность",
     dashaModalStart: "Начало",
     dashaModalEnd: "Конец",
-    geoTab: "Geo",
+    geoTab: "Гео",
     geoLines: "Линии планет",
     geoParans: "Параны",
     geoLoading: "Расчет астрокартографии...",
@@ -125,6 +126,9 @@ const t = {
     geoFilterAll: "Все",
     geoToggleHint: "Нажми на планету чтобы скрыть/показать",
     geoParansHint: "Пересечения линий — зоны усиленного влияния",
+    geoCities: "Города",
+    geoCitiesHint: "Рейтинг по близости к линиям планет",
+    newProfile: "Новый профиль",
   },
   en: {
     subtitle: "precise calculation, live report",
@@ -217,6 +221,7 @@ const t = {
     settingsSaving: "Saving...",
     settingsSaved: "Settings saved to .env",
     lifePathTab: "Life Path",
+    aiTab: "AI",
     lifePathTitle: "Life Path",
     lifePathNow: "now",
     lifePathBirth: "Birth",
@@ -241,6 +246,9 @@ const t = {
     geoFilterAll: "All",
     geoToggleHint: "Click a planet to show/hide its lines",
     geoParansHint: "Line intersections — zones of combined influence",
+    geoCities: "Cities",
+    geoCitiesHint: "Ranked by proximity to planet lines",
+    newProfile: "New profile",
   },
 };
 
@@ -372,7 +380,7 @@ const DASHA_INTERP = {
       essence: "Шестнадцать лет роста, мудрости и благодати. Юпитер — Гуру, Брихаспати — главный благотворец в Джйотиш. Его дашa считается одной из самых благоприятных: она расширяет горизонты и приносит плоды прошлых добродетелей.",
       themes: ["Мудрость, учителя, философия", "Дети, беременность, потомки", "Закон, религия, высшее образование", "Финансовый рост, процветание", "Здоровье: печень, жир, рост"],
       favorable: "Духовный расцвет, удача в делах, рождение детей. Хорошо для обучения, юридических дел, религиозной деятельности. Встречи с мудрыми наставниками, международные связи.",
-      challenging: "Чрезмерный оптимизм, расточительность, религиозный догматизм. При afflicted Юпитере — ожирение, проблемы с печенью, высокомерие. Риск упустить важные детали из-за видения 'большой картины'.",
+      challenging: "Чрезмерный оптимизм, расточительность, религиозный догматизм. При поражённом Юпитере — ожирение, проблемы с печенью, высокомерие. Риск упустить важные детали из-за видения 'большой картины'.",
       spiritual: "Юпитерова дашa — кульминация духовного пути. Ищите настоящего гуру, углубляйте сатсанг. Это время передавать знания другим. Практики: брахмачарья, чтение Вед и Упанишад, пуджа Брихаспати.",
       antardasha_note: "Антардаши Юпитера длинные и трансформирующие. Подпериод Раху (около 2.5 лет) может принести иностранные связи и нетрадиционные знания.",
     },
@@ -393,7 +401,7 @@ const DASHA_INTERP = {
       essence: "Двадцать лет — самая длинная дашa в системе. Венера — Шукра — планета желаний, красоты, любви и материального процветания. Этот период ставит вопрос: что для вас по-настоящему ценно?",
       themes: ["Любовь, отношения, брак", "Искусство, красота, творчество", "Комфорт, удовольствия, роскошь", "Финансы, накопления, ювелирные изделия", "Здоровье: репродуктивная система, почки, лицо"],
       favorable: "Брак или углубление отношений, финансовый рост, успех в искусстве. Хорошо для торговли предметами роскоши, моды, развлечений. Венус в силе даёт магнетизм и эстетический вкус.",
-      challenging: "Гедонизм, зависимость от удовольствий, финансовые потери через роскошь. Ревность, измены в отношениях. При afflicted Венере — проблемы с почками, гормональные нарушения.",
+      challenging: "Гедонизм, зависимость от удовольствий, финансовые потери через роскошь. Ревность, измены в отношениях. При поражённой Венере — проблемы с почками, гормональные нарушения.",
       spiritual: "Венерова дашa раскрывает природу желания. Шукра — гуру асуров, владеющий тайной бессмертия. Практики: лакшми-пуджа, янтра Шукры, почитание красоты как проявления Брахмана.",
       antardasha_note: "20 лет Венеры содержат самые длинные антардаши. Подпериод Сатурна (около 3.2 лет) — трудовые усилия и ограничения; Юпитера — духовная трансформация через отношения.",
     },
@@ -432,9 +440,9 @@ const DASHA_INTERP = {
     years: 18,
     ru: {
       title: "Махадаша Раху",
-      essence: "Восемнадцать лет амбиций, нарушения границ и кармических уроков северного узла. Раху — теневая планета без физического тела — действует через obsession и иллюзии. Он усиливает всё, к чему прикасается, вызывая нездоровое желание.",
+      essence: "Восемнадцать лет амбиций, нарушения границ и кармических уроков северного узла. Раху — теневая планета без физического тела — действует через одержимость и иллюзии. Он усиливает всё, к чему прикасается, вызывая нездоровое желание.",
       themes: ["Иностранное, чужое, нетрадиционное", "Амбиции, материализм, манипуляции", "Технологии, массмедиа, политика", "Карма прошлых жизней, неожиданные изменения", "Здоровье: нервная система, яды, загадочные болезни"],
-      favorable: "При сильном и хорошо расположенном Раху — стремительный взлёт, неожиданный успех. Умение работать с иностранцами, нестандартное мышление. Раху даёт worldly success через нетрадиционные пути.",
+      favorable: "При сильном и хорошо расположенном Раху — стремительный взлёт, неожиданный успех. Умение работать с иностранцами, нестандартное мышление. Раху даёт мирской успех через нетрадиционные пути.",
       challenging: "Иллюзии и самообман. Потеря нравственных ориентиров, скандалы. Зависимости, тяга к запрещённому. Предательства. Невротические страхи и паранойя.",
       spiritual: "Раху-дашa раскрывает, где вы ищете бесконечное в конечном. Вся эта тяга — указатель на духовный голод. Практики: раху-шанти пуджа, гомам, работа с тенью, медитации на иллюзорность.",
       antardasha_note: "Антардашa Юпитера внутри Раху (около 2.5 лет) — наиболее благоприятна: мудрость укрощает теневые желания. Кету — интенсивная развязка кармических узлов.",
@@ -494,6 +502,11 @@ const DIGNITY_LABEL = {
 
 function tr(key) {
   return t[state.lang][key] || t.ru[key] || key;
+}
+
+function itemText(item) {
+  if (state.lang === "en") return item.text_en || item.text || "";
+  return item.text_ru || item.text || "";
 }
 
 function escapeHtml(value) {
@@ -1338,7 +1351,7 @@ function openPlanetInterpretationModal(payload) {
   const dedupedSources = [];
   const seen = new Set();
   for (const item of foundItems) {
-    const signature = `${item.key}::${item.source_id}::${item.text}`;
+    const signature = `${item.key}::${item.source_id}`;
     if (seen.has(signature)) continue;
     seen.add(signature);
     dedupedSources.push(item);
@@ -1397,7 +1410,7 @@ function openPlanetInterpretationModal(payload) {
           '<span class="pim-interp-key">' + escapeHtml(item.key) + '</span>' +
           '<span class="pim-interp-src">' + escapeHtml(item.source_id) + '</span>' +
           '</div>' +
-          '<p class="pim-card-text">' + escapeHtml(item.text) + '</p>' +
+          '<p class="pim-card-text">' + escapeHtml(itemText(item)) + '</p>' +
           '</div>'
         ).join("") +
         '</div>' +
@@ -1546,7 +1559,7 @@ function renderOverview(chart, context) {
   ];
   const sourcePreview = (context.items || [])
     .slice(0, 6)
-    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><p>${escapeHtml(item.text)}</p></div>`)
+    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><p>${escapeHtml(itemText(item))}</p></div>`)
     .join("");
   $("#overviewPanel").innerHTML = `
     <div class="overview-grid">
@@ -1598,7 +1611,7 @@ function renderTables(chart) {
         <span>${escapeHtml(sl(p.sign))}</span>
         <span class="tbl-pc-house">${isRu ? "дом" : "house"} ${p.house}</span>
       </div>
-      <div class="tbl-pc-nk">${escapeHtml(p.nakshatra)} <span class="tbl-pc-pada">п.${p.pada}</span></div>
+      <div class="tbl-pc-nk">${escapeHtml(p.nakshatra)} <span class="tbl-pc-pada">${isRu ? "п." : "p."}${p.pada}</span></div>
       <div class="tbl-pc-bottom">
         <span class="tbl-dignity ${dignityClass}">${escapeHtml(dl(p.dignity))}</span>
         ${rulerHtml ? `<span class="tbl-ruler-label">${isRu?"упр.":"rules"}</span>${rulerHtml}` : ""}
@@ -1930,7 +1943,7 @@ function renderSources(context) {
   const row = (item) =>
     `<div class="src-row">
       <span class="src-tag src-tag--${escapeHtml(tagType(item.key))}">${escapeHtml(tagLabel(item.key))}</span>
-      <span class="src-text">${escapeHtml(item.text)}</span>
+      <span class="src-text">${escapeHtml(itemText(item))}</span>
     </div>`;
 
   // ── Lagna block ───────────────────────────────────────────
