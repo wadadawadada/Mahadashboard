@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mahadashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three.module.js",
+          "three/addons/": "/vendor/three/addons/"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body>
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 15.4A8.5 8.5 0 0 1 8.6 4 8.5 8.5 0 1 0 20 15.4Z"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16M3 21v-5h5M3 12A9 9 0 0 1 18.4 5.6L21 8M21 3v5h-5"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-7M20 16v-3"/></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 10h16M4 15h16M10 5v14M16 5v14"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 0-4-4z"/><path d="M5 4v12"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 5h14v10H8l-3 4z"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 0 1 .16-1.53L2.6 9.28l1.5-2.6 2.2.64a7.56 7.56 0 0 1 1.32-1.32l-.64-2.2 2.6-1.5 1.19 2.06A7.5 7.5 0 0 1 12 4.5c.52 0 1.03.053 1.53.16l1.19-2.06 2.6 1.5-.64 2.2c.49.38.94.83 1.32 1.32l2.2-.64 1.5 2.6-2.06 1.19c.107.5.16 1.01.16 1.53s-.053 1.03-.16 1.53l2.06 1.19-1.5 2.6-2.2-.64a7.56 7.56 0 0 1-1.32 1.32l.64 2.2-2.6 1.5-1.19-2.06A7.5 7.5 0 0 1 12 19.5a7.5 7.5 0 0 1-1.53-.16l-1.19 2.06-2.6-1.5.64-2.2a7.56 7.56 0 0 1-1.32-1.32l-2.2.64-1.5-2.6 2.06-1.19A7.5 7.5 0 0 1 4.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14"/><path d="m21 3-7 18-4-7-7-4z"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></symbol>
+    </svg>
+
+    <div class="app-shell">
+      <aside class="side-panel">
+        <div class="brand-row">
+          <div class="brand-mark">
+            <svg viewBox="0 0 32 32" width="32" height="32" style="display:block">
+              <rect width="32" height="32" rx="7" fill="#07060f"/>
+              <circle cx="16" cy="16" r="13" fill="none" stroke="#d8b764" stroke-width="1" stroke-opacity="0.5"/>
+              <circle cx="16" cy="16" r="2.5" fill="#d8b764"/>
+              <path d="M9 22 L9 10 L16 18 L23 10 L23 22" fill="none" stroke="#d8b764" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="brand-name">Mahadashboard</div>
+            <div class="brand-subtitle" data-i18n="subtitle">точный расчет, живой отчет</div>
+          </div>
+        </div>
+
+        <div class="toolbar-row">
+          <button class="segmented" type="button" data-lang="en">EN</button>
+          <button class="segmented active" type="button" data-lang="ru">RU</button>
+          <button class="icon-button" id="openSettingsBtn" type="button" data-i18n-title="aiSettings" title="AI settings">
+            <svg class="icon"><use href="#i-gear"></use></svg>
+          </button>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2 data-i18n="profiles">Профили</h2>
+            <div style="display:flex;gap:4px;align-items:center">
+              <button class="icon-button" id="newProfileBtn" type="button" title="Новый профиль" style="font-size:18px;line-height:1;padding:2px 7px;">+</button>
+              <button class="icon-button" id="refreshProfiles" type="button" title="Refresh"><svg class="icon"><use href="#i-refresh"></use></svg></button>
+            </div>
+          </div>
+          <div class="profile-list" id="profileList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2 data-i18n="birthData">Данные рождения</h2>
+            <span class="profile-mode-badge" id="profileModeBadge"></span>
+          </div>
+          <form id="birthForm" class="birth-form">
+            <label>
+              <span data-i18n="name">Имя</span>
+              <input name="name" autocomplete="name" data-i18n-placeholder="namePlaceholder" placeholder="Имя профиля" />
+            </label>
+            <div class="two-col">
+              <label>
+                <span data-i18n="date">Дата</span>
+                <input name="birth_date" type="date" required />
+              </label>
+              <label>
+                <span data-i18n="time">Время</span>
+                <input name="birth_time" type="time" required />
+              </label>
+            </div>
+            <label class="place-search">
+              <span data-i18n="place">Место</span>
+              <input id="placeQuery" autocomplete="off" data-i18n-placeholder="placePlaceholder" placeholder="Город, страна" />
+              <div class="suggestions" id="placeSuggestions"></div>
+            </label>
+            <div class="two-col">
+              <label>
+                <span data-i18n="city">Город</span>
+                <input name="city" required />
+              </label>
+              <label>
+                <span data-i18n="country">Страна</span>
+                <input name="country" required />
+              </label>
+            </div>
+
+            <details class="settings-box">
+              <summary data-i18n="precisePlace">Точные координаты</summary>
+              <div class="two-col">
+                <label>
+                  <span>Latitude</span>
+                  <input name="latitude" inputmode="decimal" placeholder="59.9343" />
+                </label>
+                <label>
+                  <span>Longitude</span>
+                  <input name="longitude" inputmode="decimal" placeholder="30.3351" />
+                </label>
+              </div>
+              <label>
+                <span>Timezone</span>
+                <input name="timezone" placeholder="Europe/Moscow" />
+              </label>
+            </details>
+
+            <details class="settings-box" open>
+              <summary data-i18n="settings">Настройки расчета</summary>
+              <div class="two-col">
+                <label>
+                  <span>Ayanamsa</span>
+                  <select name="ayanamsa">
+                    <option value="lahiri">Lahiri</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Zodiac</span>
+                  <select name="zodiac">
+                    <option value="sidereal">Sidereal</option>
+                  </select>
+                </label>
+              </div>
+              <div class="two-col">
+                <label>
+                  <span>House</span>
+                  <select name="house_system">
+                    <option value="whole_sign">Whole sign</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Dasha</span>
+                  <select name="dasha_system">
+                    <option value="vimshottari_from_moon">Vimshottari Moon</option>
+                  </select>
+                </label>
+              </div>
+              <label class="toggle-line">
+                <input name="include_navamsa" type="checkbox" checked />
+                <span>D9 Navamsa</span>
+              </label>
+              <label class="toggle-line">
+                <input name="include_aspects" type="checkbox" checked />
+                <span data-i18n="aspects">Аспекты</span>
+              </label>
+              <label class="toggle-line">
+                <input name="include_interpretation" type="checkbox" checked />
+                <span data-i18n="interpretations">Интерпретации</span>
+              </label>
+              <label class="toggle-line">
+                <input name="enable_node_aspects" type="checkbox" />
+                <span data-i18n="nodeAspects">Аспекты узлов</span>
+              </label>
+            </details>
+
+            <button class="primary-button" id="generateBtn" type="submit">
+              <svg class="icon button-icon"><use href="#i-chart"></use></svg>
+              <span data-i18n="generate">Сгенерировать отчет</span>
+            </button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <section class="hero-panel" id="emptyState">
+          <div class="orbital-visual" aria-hidden="true">
+            <div class="orbit orbit-a"></div>
+            <div class="orbit orbit-b"></div>
+            <div class="orbit orbit-c"></div>
+            <div class="center-sun"></div>
+          </div>
+          <div>
+            <h2 data-i18n="emptyTitle">Введите данные и создайте первый расчет</h2>
+            <p data-i18n="emptyText">Сервис сохранит профиль, запустит локальный расчетный движок и покажет карту, таблицы, источники и отчет в одном интерфейсе.</p>
+          </div>
+        </section>
+
+        <section class="result-layout hidden" id="resultLayout">
+          <div class="summary-grid" id="summaryGrid"></div>
+
+          <div class="tab-shell">
+            <nav class="tabs" id="tabs" aria-label="Sections">
+              <button class="tab active" type="button" data-tab="chart" title="Chart"><svg class="icon"><use href="#i-chart"></use></svg><span data-i18n="chartTab">Карта</span></button>
+              <button class="tab" type="button" data-tab="dashas" title="Life Path"><svg class="icon"><use href="#i-clock"></use></svg><span data-i18n="lifePathTab">Life Path</span></button>
+              <button class="tab" type="button" data-tab="ai" title="AI"><svg class="icon"><use href="#i-chat"></use></svg><span>AI</span></button>
+              <button class="tab" type="button" data-tab="geo" title="Geo"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 2c-2.8 3-4 6-4 10s1.2 7 4 10M12 2c2.8 3 4 6 4 10s-1.2 7-4 10M2 12h20"/></svg><span data-i18n="geoTab">Geo</span></button>
+              <button class="tab" type="button" data-tab="report" title="Report"><svg class="icon"><use href="#i-file"></use></svg><span data-i18n="report">Отчет</span></button>
+            </nav>
+
+            <div class="tab-content">
+              <section class="tab-view active" id="tab-chart">
+                <div class="visual-grid">
+                  <section class="panel visual-panel">
+                    <div class="panel-head d1-panel-head">
+                      <h2>D1 Rashi</h2>
+                      <div class="chart-view-toggle">
+                        <button class="chart-view-btn active" id="btn2d" type="button">2D</button>
+                        <button class="chart-view-btn" id="btn3d" type="button">3D</button>
+                      </div>
+                    </div>
+                    <div id="d1Chart" class="chart-wheel">
+                      <div class="chart-inner-modal hidden" id="chartInnerModal">
+                        <div class="chart-inner-modal-backdrop" id="chartInnerModalBackdrop"></div>
+                        <div class="chart-inner-modal-card">
+                          <div class="chart-inner-modal-head">
+                            <h3 id="chartInnerModalTitle"></h3>
+                            <button class="chart-inner-modal-close" type="button" id="chartInnerModalClose">×</button>
+                          </div>
+                          <div class="chart-inner-modal-body" id="chartInnerModalBody"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="panel visual-panel navamsa-panel">
+                    <div class="panel-head">
+                      <h2>D9 Navamsa</h2>
+                      <span class="panel-tag" id="d9Badge">9 placements</span>
+                    </div>
+                    <div id="d9Chart" class="navamsa-shell"></div>
+                  </section>
+                </div>
+              </section>
+
+              <section class="tab-view" id="tab-dashas">
+                <div class="dasha-layout">
+                  <div class="panel dasha-timeline-panel">
+                    <div class="panel-head"><h2 data-i18n="lifePathTitle">Life Path</h2></div>
+                    <div id="dashaTable"></div>
+                  </div>
+                  <div class="panel dasha-detail-panel hidden" id="dashaDetailPanel">
+                    <div class="dasha-detail-inner" id="dashaDetailInner"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="tab-view" id="tab-report">
+                <div class="unified-report">
+                  <nav class="report-nav" id="reportNav" aria-label="Report sections">
+                    <a class="report-nav-link active" href="#rsec-overview" data-i18n="overview">Обзор</a>
+                    <a class="report-nav-link" href="#rsec-sources" data-i18n="sources">Источники</a>
+                    <a class="report-nav-link" href="#rsec-tables" data-i18n="tables">Таблицы</a>
+                    <a class="report-nav-link" href="#rsec-export" data-i18n="exportNav">Export</a>
+                  </nav>
+
+                  <div class="unified-report-body">
+                    <section class="report-section" id="rsec-overview">
+                      <div class="panel" id="overviewPanel"></div>
+                    </section>
+
+                    <section class="report-section" id="rsec-sources">
+                      <div class="panel">
+                        <div class="panel-head"><h2 data-i18n="foundSources">Найденные источники</h2></div>
+                        <div id="sourceList" class="source-list"></div>
+                      </div>
+                      <details class="missing-sources-details" id="missingSourcesDetails">
+                        <summary><span data-i18n="missingSources">Недостающие ключи</span> <span class="missing-count" id="missingCount"></span></summary>
+                        <div id="missingList" class="source-list compact missing-list-inner"></div>
+                      </details>
+                    </section>
+
+                    <section class="report-section" id="rsec-tables">
+                      <div class="table-stack">
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="planetTable">Планеты</h2></div>
+                          <div class="table-wrap" id="planetTable"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="houseTable">Дома</h2></div>
+                          <div class="table-wrap" id="houseTable"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="aspectTable">Аспекты</h2></div>
+                          <div class="table-wrap" id="aspectTable"></div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="report-section" id="rsec-export">
+                      <div class="panel export-panel">
+                        <div class="panel-head">
+                          <h2 data-i18n="exportTitle">Export для AI</h2>
+                        </div>
+                        <div class="export-body">
+                          <div class="export-info">
+                            <p class="export-desc" data-i18n="exportDesc">Единый Markdown-файл с полными данными карты, интерпретациями и дашас — готов к загрузке в любой AI-ассистент.</p>
+                            <div class="export-meta" id="exportMeta"></div>
+                            <ul class="export-contents">
+                              <li data-i18n="exportContents1">Данные рождения и настройки расчёта</li>
+                              <li data-i18n="exportContents2">Лагна, планеты, дома, аспекты, D9</li>
+                              <li data-i18n="exportContents3">Интерпретации по каждому элементу карты</li>
+                              <li data-i18n="exportContents4">Хронология Вимшоттари Даша</li>
+                            </ul>
+                          </div>
+                          <a class="export-download-btn" id="exportDownloadBtn" href="#" download>
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M5 16l7 5 7-5M3 21h18"/></svg>
+                            <span data-i18n="exportDownload">Скачать гороскоп .md</span>
+                          </a>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </section>
+
+              <section class="tab-view" id="tab-geo">
+                <div class="geo-layout">
+                  <div class="geo-map-wrap">
+                    <div id="geoMap" class="geo-map"></div>
+                    <div class="geo-loading hidden" id="geoLoading">
+                      <div class="geo-loading-spinner"></div>
+                      <span data-i18n="geoLoading">Расчет астрокартографии...</span>
+                    </div>
+                  </div>
+                  <aside class="geo-sidebar">
+                    <div class="geo-sidebar-head">
+                      <h3 data-i18n="geoLines">Линии планет</h3>
+                      <p class="geo-sidebar-hint" data-i18n="geoToggleHint">Нажми на планету чтобы скрыть/показать</p>
+                    </div>
+                    <div class="geo-legend" id="geoLegend"></div>
+                    <div class="geo-parans-section">
+                      <h4 data-i18n="geoParans">Параны</h4>
+                      <p class="geo-sidebar-hint" data-i18n="geoParansHint">Пересечения линий — зоны усиленного влияния</p>
+                      <div class="geo-parans-list" id="geoParansList"></div>
+                    </div>
+                    <div class="geo-cities-section">
+                      <h4 data-i18n="geoCities">Города</h4>
+                      <p class="geo-sidebar-hint" data-i18n="geoCitiesHint">Рейтинг по близости к линиям планет</p>
+                      <div id="geoCityRankings"></div>
+                    </div>
+                  </aside>
+                </div>
+              </section>
+
+              <section class="tab-view" id="tab-ai">
+                <div class="panel ai-panel">
+                  <div class="ai-header">
+                    <div class="ai-title-mark"><svg class="icon"><use href="#i-spark"></use></svg></div>
+                    <div>
+                      <h2 data-i18n="aiTitle">Вопрос по карте</h2>
+                      <p data-i18n="aiSubtitle">ИИ отвечает только по рассчитанной карте и локальным источникам</p>
+                    </div>
+                    <button class="chat-clear-button" id="clearChatBtn" type="button" title="Clear chat">
+                      <svg class="icon"><use href="#i-trash"></use></svg>
+                      <span data-i18n="clearChat">Очистить</span>
+                    </button>
+                  </div>
+                  <div class="prompt-row">
+                    <button type="button" class="prompt-chip" data-prompt-key="promptCareer" data-i18n="promptCareer">Карьера</button>
+                    <button type="button" class="prompt-chip" data-prompt-key="promptDasha" data-i18n="promptDasha">Текущий период</button>
+                    <button type="button" class="prompt-chip" data-prompt-key="promptRelationships" data-i18n="promptRelationships">Отношения</button>
+                    <button type="button" class="prompt-chip" data-prompt-key="promptStrengths" data-i18n="promptStrengths">Сильные стороны</button>
+                    <button type="button" class="prompt-chip" data-prompt-key="promptRisks" data-i18n="promptRisks">Риски</button>
+                    <button type="button" class="prompt-chip" data-prompt-key="promptMoney" data-i18n="promptMoney">Деньги</button>
+                  </div>
+                  <div class="chat-log" id="chatLog"></div>
+                  <form id="chatForm" class="chat-form">
+                    <input id="chatQuestion" data-i18n-placeholder="askPlaceholder" placeholder="Спроси о карте, периоде, домах или источниках" />
+                    <button class="send-button" type="submit" title="Send"><svg class="icon"><use href="#i-send"></use></svg></button>
+                  </form>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="planet-modal hidden" id="planetModal" role="dialog" aria-modal="true" aria-labelledby="planetModalTitle">
+      <div class="planet-modal-backdrop" data-modal-close="1"></div>
+      <article class="planet-modal-card">
+        <button class="planet-modal-close" type="button" id="planetModalClose" aria-label="Close">×</button>
+        <h3 id="planetModalTitle"></h3>
+        <div id="planetModalBody"></div>
+      </article>
+    </div>
+
+    <div class="settings-modal hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="settings-modal-backdrop" id="settingsModalBackdrop"></div>
+      <article class="settings-modal-card">
+        <div class="settings-modal-head">
+          <h3 id="settingsModalTitle" data-i18n="aiSettings">AI settings</h3>
+          <button class="settings-modal-close" type="button" id="settingsModalClose" aria-label="Close">×</button>
+        </div>
+        <div class="settings-welcome hidden" id="settingsWelcome">
+          <div class="settings-welcome-logo">
+            <svg viewBox="0 0 32 32" width="36" height="36">
+              <rect width="32" height="32" rx="7" fill="#07060f"/>
+              <circle cx="16" cy="16" r="13" fill="none" stroke="#d8b764" stroke-width="1" stroke-opacity="0.5"/>
+              <circle cx="16" cy="16" r="2.5" fill="#d8b764"/>
+              <path d="M9 22 L9 10 L16 18 L23 10 L23 22" fill="none" stroke="#d8b764" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+            <span class="settings-welcome-title">Mahadashboard</span>
+          </div>
+          <p class="settings-welcome-text" data-lang-only="ru">Для работы AI-ассистента нужен ключ <strong>OpenRouter</strong>. Получи бесплатный ключ на <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/keys</a> и вставь ниже.</p>
+          <p class="settings-welcome-text" data-lang-only="en">To use the AI assistant you need an <strong>OpenRouter</strong> key. Get a free key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/keys</a> and paste it below.</p>
+        </div>
+        <form id="settingsForm" class="settings-form">
+          <label>
+            <span data-lang-only="ru">API ключ</span>
+            <span data-lang-only="en">API Key</span>
+            <input id="openrouterApiKey" autocomplete="off" spellcheck="false" placeholder="sk-or-v1-…" />
+          </label>
+          <label>
+            <span data-lang-only="ru">Модель</span>
+            <span data-lang-only="en">Model</span>
+            <input id="openrouterModel" autocomplete="off" spellcheck="false" placeholder="openai/gpt-4o-mini" />
+          </label>
+          <div class="settings-help">
+            <p data-lang-only="ru">Ключ: <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/keys</a>. Модель: <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">openrouter.ai/models</a> (копируйте id, например <code>openai/gpt-4o-mini</code>).</p>
+            <p data-lang-only="en">Key: <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/keys</a>. Model: <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">openrouter.ai/models</a> (copy model id, e.g. <code>openai/gpt-4o-mini</code>).</p>
+          </div>
+          <div class="settings-modal-actions">
+            <span id="settingsModalStatus" class="settings-modal-status"></span>
+            <button class="segmented" type="button" id="settingsCancelBtn" data-i18n="cancel">Cancel</button>
+            <button class="primary-button small" type="submit" id="settingsSaveBtn" data-i18n="save">Save</button>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

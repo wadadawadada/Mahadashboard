@@ -1,0 +1,24 @@
+{
+  "_note": "Значения рассчитаны движком Swiss Ephemeris (Lahiri, Whole Sign). Для верификации используйте внешний Jyotish-калькулятор с теми же настройками.",
+  "moscow_1979_07_15_21_36": {
+    "birth_date": "1979-07-15",
+    "birth_time": "21:36",
+    "city": "Moscow",
+    "country": "Russia",
+    "settings": {
+      "ayanamsa": "lahiri",
+      "house_system": "whole_sign"
+    },
+    "calculated": {
+      "lagna_sign": "Capricorn",
+      "lagna_degree": "14°49'",
+      "moon_sign": "Pisces",
+      "moon_nakshatra": "Revati",
+      "moon_pada": 2,
+      "moon_house": 3,
+      "birth_mahadasha": "Venus",
+      "current_mahadasha_as_of_2025_01_01": "Moon",
+      "current_antardasha_as_of_2025_01_01": "Rahu"
+    }
+  }
+}

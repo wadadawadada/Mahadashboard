@@ -1,0 +1,215 @@
+# Отчёт по карте Джйотиш
+
+## Данные рождения
+
+- **Имя:** {{ chart.birth.name or "не указано" }}
+- **Дата:** {{ chart.birth.local_date }}
+- **Время:** {{ chart.birth.local_time }}
+- **Место:** {{ chart.birth.city }}, {{ chart.birth.country }}
+- **Координаты:** {{ chart.birth.latitude }}° с.ш. / {{ chart.birth.longitude }}° в.д.
+- **Часовой пояс:** {{ chart.birth.timezone }}
+- **UTC:** {{ chart.birth.utc_datetime }}
+- **Юлианский день:** {{ chart.birth.julian_day }}
+- **Аянамша:** {{ chart.meta.ayanamsa }}
+- **Зодиак:** {{ chart.meta.zodiac }}
+- **Система домов:** {{ chart.meta.house_system }}
+- **Система Даши:** {{ chart.meta.dasha_system }}
+
+---
+
+## Предупреждения расчёта
+
+{% if chart.warnings %}
+{% for w in chart.warnings %}
+- {{ w }}
+{% endfor %}
+{% else %}
+Предупреждений нет.
+{% endif %}
+
+---
+
+## Основная карта
+
+### Лагна (Асцендент)
+
+Расчётные факты:
+
+- **Знак:** {{ chart.lagna.sign }}
+- **Градус:** {{ chart.lagna.degree_formatted }}
+- **Накшатра:** {{ chart.lagna.nakshatra }}
+- **Пада:** {{ chart.lagna.pada }}
+
+Интерпретация:
+
+{% set lagna_key = "lagna:" + chart.lagna.sign | lower %}
+{% set lagna_item = context_map.get(lagna_key) %}
+{% if lagna_item %}
+{{ lagna_item.text }}
+
+ID источников: `{{ lagna_item.source_id }}`
+{% else %}
+Источник интерпретации не найден.
+{% endif %}
+
+---
+
+### Таблица планет
+
+| Планета | Знак | Градус | Дом | Накшатра | Пада | Ретро | Достоинство |
+|---------|------|-------:|----:|----------|-----:|-------|-------------|
+{% for key, p in chart.planets.items() %}
+| {{ p.name }} | {{ p.sign }} | {{ p.degree_formatted }}{% if p.retrograde %} R{% endif %} | {{ p.house }} | {{ p.nakshatra }} | {{ p.pada }} | {{ "да" if p.retrograde else "нет" }} | {{ p.dignity }} |
+{% endfor %}
+
+---
+
+### Интерпретации планет
+
+{% for key, p in chart.planets.items() %}
+#### {{ p.name }}
+
+Расчётные факты:
+
+- **Знак:** {{ p.sign }}
+- **Дом:** {{ p.house }}
+- **Накшатра:** {{ p.nakshatra }}
+- **Пада:** {{ p.pada }}
+- **Ретроградность:** {{ "да" if p.retrograde else "нет" }}
+- **Управитель домов:** {{ p.ruler_of_houses | join(", ") or "нет" }}
+- **Достоинство:** {{ p.dignity }}
+
+Интерпретация:
+
+{% set pkey = "planet:" + key %}
+{% set pitem = context_map.get(pkey) %}
+{% if pitem %}
+{{ pitem.text }}
+
+ID источников: `{{ pitem.source_id }}`
+{% else %}
+Источник интерпретации не найден.
+{% endif %}
+
+{% endfor %}
+
+---
+
+### Дома (Whole Sign)
+
+| Дом | Знак | Управитель | Планеты |
+|----:|------|------------|---------|
+{% for num in range(1, 13) %}
+{% set h = chart.houses[num | string] %}
+| {{ h.number }} | {{ h.sign }} | {{ h.lord }} | {{ h.planets | join(", ") or "—" }} |
+{% endfor %}
+
+---
+
+### Ведические аспекты (Граха Дришти)
+
+Аспекты Раху/Кету: {{ "включены" if chart.meta.ayanamsa else "выключены" }}
+{% if chart.aspects %}
+
+| От планеты | Дом (от) | Аспект | Дом (к) | Знак (к) |
+|------------|--------:|--------|--------:|----------|
+{% for a in chart.aspects %}
+| {{ a.from_planet }} | {{ a.from_house }} | {{ a.aspect }} | {{ a.to_house }} | {{ a.to_sign }} |
+{% endfor %}
+{% else %}
+Аспекты не рассчитаны или отключены.
+{% endif %}
+
+---
+
+### D9 Навамша
+
+{% if chart.divisional_charts.D9 and chart.divisional_charts.D9.planets %}
+| Планета | Знак в D9 |
+|---------|-----------|
+{% for key, d9 in chart.divisional_charts.D9.planets.items() %}
+| {{ chart.planets[key].name }} | {{ d9.sign }} |
+{% endfor %}
+{% else %}
+Навамша не рассчитана.
+{% endif %}
+
+---
+
+## Виманшоттари Даша
+
+### Даша при рождении
+
+- **Накшатра Луны:** {{ chart.dashas.birth_moon_nakshatra }}
+- **Маха-даша при рождении:** {{ chart.dashas.birth_mahadasha }}
+- **Остаток (дней):** {{ chart.dashas.balance_days | round(1) }}
+
+### Текущий период
+
+- **Маха-даша:** {{ chart.dashas.current.mahadasha }}
+- **Антар-даша:** {{ chart.dashas.current.antardasha }}
+- **Пратьянтар-даша:** {{ chart.dashas.current.pratyantardasha or "не рассчитана" }}
+
+Интерпретация:
+
+{% set maha_key = "dasha:" + chart.dashas.current.mahadasha | lower + ":mahadasha" %}
+{% set maha_item = context_map.get(maha_key) %}
+{% if maha_item %}
+**Маха-даша:** {{ maha_item.text }}
+
+ID источников: `{{ maha_item.source_id }}`
+{% else %}
+Источник интерпретации для Маха-даши не найден.
+{% endif %}
+
+{% set antar_key = "dasha:" + chart.dashas.current.antardasha | lower + ":antardasha" %}
+{% set antar_item = context_map.get(antar_key) %}
+{% if antar_item %}
+**Антар-даша:** {{ antar_item.text }}
+
+ID источников: `{{ antar_item.source_id }}`
+{% else %}
+Источник интерпретации для Антар-даши не найден.
+{% endif %}
+
+### Хронология Маха-даш
+
+| Маха-даша | Начало | Конец |
+|-----------|--------|-------|
+{% for m in chart.dashas.mahadashas %}
+| {{ m.planet }} | {{ m.start[:10] }} | {{ m.end[:10] }} |
+{% endfor %}
+
+### Хронология Антар-даш (текущая Маха-даша)
+
+| Маха-даша | Антар-даша | Начало | Конец |
+|-----------|------------|--------|-------|
+{% for a in chart.dashas.antardashas %}
+{% if a.mahadasha == chart.dashas.current.mahadasha %}
+| {{ a.mahadasha }} | {{ a.antardasha }} | {{ a.start[:10] }} | {{ a.end[:10] }} |
+{% endif %}
+{% endfor %}
+
+---
+
+## Кликабельные ключи
+
+```
+{% for k in chart.interpretation_keys %}
+{{ k }}
+{% endfor %}
+```
+
+---
+
+## Отсутствующие интерпретации
+
+{% if context.missing %}
+| Ключ | Статус |
+|------|--------|
+{% for m in context.missing %}
+| `{{ m.key }}` | {{ m.message }} |
+{% endfor %}
+{% else %}
+Все ключи найдены в базе знаний.
+{% endif %}

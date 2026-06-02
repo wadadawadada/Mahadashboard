@@ -1,0 +1,3032 @@
+{
+  "aberdeen,scotland": {
+    "name": "Aberdeen, Scotland",
+    "lat": 57.1333,
+    "lon": -2.1,
+    "timezone": "Europe/London"
+  },
+  "aberdeen,united kingdom": {
+    "name": "Aberdeen, Scotland",
+    "lat": 57.1333,
+    "lon": -2.1,
+    "timezone": "Europe/London"
+  },
+  "abu dhabi,uae": {
+    "name": "Abu Dhabi, UAE",
+    "lat": 24.4667,
+    "lon": 54.3667,
+    "timezone": "Asia/Dubai"
+  },
+  "abu dhabi,united arab emirates": {
+    "name": "Abu Dhabi, UAE",
+    "lat": 24.4667,
+    "lon": 54.3667,
+    "timezone": "Asia/Dubai"
+  },
+  "abu-dhabi,uae": {
+    "name": "Abu Dhabi, UAE",
+    "lat": 24.4667,
+    "lon": 54.3667,
+    "timezone": "Asia/Dubai"
+  },
+  "abu-dhabi,united arab emirates": {
+    "name": "Abu Dhabi, UAE",
+    "lat": 24.4667,
+    "lon": 54.3667,
+    "timezone": "Asia/Dubai"
+  },
+  "abuja,nigeria": {
+    "name": "Abuja, Nigeria",
+    "lat": 9.0833,
+    "lon": 7.5333,
+    "timezone": "Africa/Lagos"
+  },
+  "accra,ghana": {
+    "name": "Accra, Ghana",
+    "lat": 5.5833,
+    "lon": -0.1,
+    "timezone": "Africa/Accra"
+  },
+  "addis ababa,ethiopia": {
+    "name": "Addis Ababa, Ethiopia",
+    "lat": 9.0333,
+    "lon": 38.7,
+    "timezone": "Africa/Addis_Ababa"
+  },
+  "addis-ababa,ethiopia": {
+    "name": "Addis Ababa, Ethiopia",
+    "lat": 9.0333,
+    "lon": 38.7,
+    "timezone": "Africa/Addis_Ababa"
+  },
+  "adelaide,australia": {
+    "name": "Adelaide, Australia",
+    "lat": -34.9333,
+    "lon": 138.6,
+    "timezone": "Australia/Adelaide"
+  },
+  "al jubail,saudi arabia": {
+    "name": "Al Jubail, Saudi Arabia",
+    "lat": 25.4,
+    "lon": -49.65,
+    "timezone": "Asia/Riyadh"
+  },
+  "al-jubail,saudi arabia": {
+    "name": "Al Jubail, Saudi Arabia",
+    "lat": 25.4,
+    "lon": -49.65,
+    "timezone": "Asia/Riyadh"
+  },
+  "albany,usa": {
+    "name": "Albany, USA",
+    "lat": 42.65,
+    "lon": -73.7667,
+    "timezone": "US/Eastern"
+  },
+  "albuquerque,usa": {
+    "name": "Albuquerque, USA",
+    "lat": 35.1,
+    "lon": -106.6,
+    "timezone": "US/Mountain"
+  },
+  "algiers,algeria": {
+    "name": "Algiers, Algeria",
+    "lat": 36.7,
+    "lon": 3.1333,
+    "timezone": "Africa/Algiers"
+  },
+  "amman,jordan": {
+    "name": "Amman, Jordan",
+    "lat": 31.95,
+    "lon": 35.8667,
+    "timezone": "Asia/Amman"
+  },
+  "amsterdam,netherlands": {
+    "name": "Amsterdam, Netherlands",
+    "lat": 52.3833,
+    "lon": 4.9,
+    "timezone": "Europe/Amsterdam"
+  },
+  "anchorage,usa": {
+    "name": "Anchorage, USA",
+    "lat": 61.2167,
+    "lon": -149.8833,
+    "timezone": "US/Alaska"
+  },
+  "andorra la vella,andorra": {
+    "name": "Andorra la Vella, Andorra",
+    "lat": 42.5167,
+    "lon": 1.5333,
+    "timezone": "Europe/Andorra"
+  },
+  "andorra-la-vella,andorra": {
+    "name": "Andorra la Vella, Andorra",
+    "lat": 42.5167,
+    "lon": 1.5333,
+    "timezone": "Europe/Andorra"
+  },
+  "ankara,turkey": {
+    "name": "Ankara, Turkey",
+    "lat": 39.95,
+    "lon": 32.9,
+    "timezone": "Europe/Istanbul"
+  },
+  "annapolis,usa": {
+    "name": "Annapolis, USA",
+    "lat": 38.9667,
+    "lon": -76.5,
+    "timezone": "US/Eastern"
+  },
+  "antananarivo,madagascar": {
+    "name": "Antananarivo, Madagascar",
+    "lat": -18.9167,
+    "lon": 47.5167,
+    "timezone": "Indian/Antananarivo"
+  },
+  "apia,samoa": {
+    "name": "Apia, Samoa",
+    "lat": -13.8333,
+    "lon": -171.8333,
+    "timezone": "Pacific/Apia"
+  },
+  "ashgabat,turkmenistan": {
+    "name": "Ashgabat, Turkmenistan",
+    "lat": 38,
+    "lon": 57.8333,
+    "timezone": "Asia/Ashgabat"
+  },
+  "asmara,eritrea": {
+    "name": "Asmara, Eritrea",
+    "lat": 15.3167,
+    "lon": 38.9167,
+    "timezone": "Africa/Asmara"
+  },
+  "astana,kazakhstan": {
+    "name": "Astana, Kazakhstan",
+    "lat": 51.1667,
+    "lon": 71.5,
+    "timezone": "Asia/Qyzylorda"
+  },
+  "asuncion,paraguay": {
+    "name": "Asuncion, Paraguay",
+    "lat": -25.1667,
+    "lon": -57.5,
+    "timezone": "America/Asuncion"
+  },
+  "athens,greece": {
+    "name": "Athens, Greece",
+    "lat": 37.9667,
+    "lon": 23.7667,
+    "timezone": "Europe/Athens"
+  },
+  "atlanta,usa": {
+    "name": "Atlanta, USA",
+    "lat": 33.75,
+    "lon": -84.3833,
+    "timezone": "US/Eastern"
+  },
+  "augusta,usa": {
+    "name": "Augusta, USA",
+    "lat": 44.3,
+    "lon": -69.7667,
+    "timezone": "US/Eastern"
+  },
+  "austin,usa": {
+    "name": "Austin, USA",
+    "lat": 30.2667,
+    "lon": -97.75,
+    "timezone": "US/Central"
+  },
+  "avarua,cook islands": {
+    "name": "Avarua, Cook Islands",
+    "lat": 21.2,
+    "lon": -159.7667,
+    "timezone": "Etc/GMT-10"
+  },
+  "baghdad,iraq": {
+    "name": "Baghdad, Iraq",
+    "lat": 33.3333,
+    "lon": 44.5,
+    "timezone": "Asia/Baghdad"
+  },
+  "baku,azerbaijan": {
+    "name": "Baku, Azerbaijan",
+    "lat": 40.4833,
+    "lon": 49.9333,
+    "timezone": "Asia/Baku"
+  },
+  "baltimore,usa": {
+    "name": "Baltimore, USA",
+    "lat": 39.2833,
+    "lon": -76.6167,
+    "timezone": "US/Eastern"
+  },
+  "bamako,mali": {
+    "name": "Bamako, Mali",
+    "lat": 12.5667,
+    "lon": -7.9167,
+    "timezone": "Africa/Bamako"
+  },
+  "bandar seri begawan,brunei": {
+    "name": "Bandar Seri Begawan, Brunei Darussalam",
+    "lat": 4.8667,
+    "lon": 115,
+    "timezone": "Asia/Brunei"
+  },
+  "bandar seri begawan,brunei darussalam": {
+    "name": "Bandar Seri Begawan, Brunei Darussalam",
+    "lat": 4.8667,
+    "lon": 115,
+    "timezone": "Asia/Brunei"
+  },
+  "bandar-seri-begawan,brunei": {
+    "name": "Bandar Seri Begawan, Brunei Darussalam",
+    "lat": 4.8667,
+    "lon": 115,
+    "timezone": "Asia/Brunei"
+  },
+  "bandar-seri-begawan,brunei darussalam": {
+    "name": "Bandar Seri Begawan, Brunei Darussalam",
+    "lat": 4.8667,
+    "lon": 115,
+    "timezone": "Asia/Brunei"
+  },
+  "bangkok,thailand": {
+    "name": "Bangkok, Thailand",
+    "lat": 13.75,
+    "lon": 100.5833,
+    "timezone": "Asia/Bangkok"
+  },
+  "bangui,central african republic": {
+    "name": "Bangui, Central African Republic",
+    "lat": 4.3833,
+    "lon": 18.5833,
+    "timezone": "Africa/Bangui"
+  },
+  "banjul,gambia": {
+    "name": "Banjul, Gambia",
+    "lat": 13.4667,
+    "lon": -16.6667,
+    "timezone": "Africa/Banjul"
+  },
+  "banjul,the gambia": {
+    "name": "Banjul, Gambia",
+    "lat": 13.4667,
+    "lon": -16.6667,
+    "timezone": "Africa/Banjul"
+  },
+  "barrow in furness,england": {
+    "name": "Barrow-In-Furness, England",
+    "lat": 54.1,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "barrow in furness,united kingdom": {
+    "name": "Barrow-In-Furness, England",
+    "lat": 54.1,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "barrow-in-furness,england": {
+    "name": "Barrow-In-Furness, England",
+    "lat": 54.1,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "barrow-in-furness,united kingdom": {
+    "name": "Barrow-In-Furness, England",
+    "lat": 54.1,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "basse terre,guadeloupe": {
+    "name": "Basse-Terre, Guadeloupe",
+    "lat": 16,
+    "lon": -61.7333,
+    "timezone": "America/Guadeloupe"
+  },
+  "basse-terre,guadeloupe": {
+    "name": "Basse-Terre, Guadeloupe",
+    "lat": 16,
+    "lon": -61.7333,
+    "timezone": "America/Guadeloupe"
+  },
+  "basseterre,saint kitts and nevis": {
+    "name": "Basseterre, Saint Kitts and Nevis",
+    "lat": 17.2833,
+    "lon": -62.7167,
+    "timezone": "America/St_Kitts"
+  },
+  "baton rouge,usa": {
+    "name": "Baton Rouge, USA",
+    "lat": 30.45,
+    "lon": -91.1333,
+    "timezone": "US/Central"
+  },
+  "baton-rouge,usa": {
+    "name": "Baton Rouge, USA",
+    "lat": 30.45,
+    "lon": -91.1333,
+    "timezone": "US/Central"
+  },
+  "beijing,china": {
+    "name": "Beijing, China",
+    "lat": 39.9167,
+    "lon": 116.3333,
+    "timezone": "Asia/Harbin"
+  },
+  "beirut,lebanon": {
+    "name": "Beirut, Lebanon",
+    "lat": 33.8833,
+    "lon": 35.5167,
+    "timezone": "Asia/Beirut"
+  },
+  "belfast,northern ireland": {
+    "name": "Belfast, Northern Ireland",
+    "lat": 54.6,
+    "lon": -5.9333,
+    "timezone": "Europe/Belfast"
+  },
+  "belfast,united kingdom": {
+    "name": "Belfast, Northern Ireland",
+    "lat": 54.6,
+    "lon": -5.9333,
+    "timezone": "Europe/Belfast"
+  },
+  "belgrade,yugoslavia": {
+    "name": "Belgrade, Yugoslavia",
+    "lat": 44.8333,
+    "lon": 20.6167,
+    "timezone": "Europe/Belgrade"
+  },
+  "belmopan,belize": {
+    "name": "Belmopan, Belize",
+    "lat": 17.3,
+    "lon": -88.5,
+    "timezone": "America/Belize"
+  },
+  "berlin,germany": {
+    "name": "Berlin, Germany",
+    "lat": 52.5,
+    "lon": 13.4167,
+    "timezone": "Europe/Berlin"
+  },
+  "bern,switzerland": {
+    "name": "Bern, Switzerland",
+    "lat": 46.95,
+    "lon": 7.4667,
+    "timezone": "Europe/Zurich"
+  },
+  "billings,usa": {
+    "name": "Billings, USA",
+    "lat": 45.7833,
+    "lon": -108.5333,
+    "timezone": "US/Mountain"
+  },
+  "birmingham,england": {
+    "name": "Birmingham, England",
+    "lat": 52.5,
+    "lon": -1.8333,
+    "timezone": "Europe/London"
+  },
+  "birmingham,united kingdom": {
+    "name": "Birmingham, England",
+    "lat": 52.5,
+    "lon": -1.8333,
+    "timezone": "Europe/London"
+  },
+  "birmingham,usa": {
+    "name": "Birmingham, USA",
+    "lat": 33.65,
+    "lon": -86.8,
+    "timezone": "US/Central"
+  },
+  "bishkek,kyrgyzstan": {
+    "name": "Bishkek, Kyrgyzstan",
+    "lat": 42.9,
+    "lon": 74.7667,
+    "timezone": "Asia/Bishkek"
+  },
+  "bismarck,usa": {
+    "name": "Bismarck, USA",
+    "lat": 46.8,
+    "lon": -100.7667,
+    "timezone": "US/Central"
+  },
+  "bissau,guinea-bissau": {
+    "name": "Bissau, Guinea-Bissau",
+    "lat": 11.75,
+    "lon": -15.75,
+    "timezone": "Africa/Bissau"
+  },
+  "bloemfontein,south africa": {
+    "name": "Bloemfontein, South Africa",
+    "lat": -29.2,
+    "lon": 26.1167,
+    "timezone": "Africa/Johannesburg"
+  },
+  "bogota,colombia": {
+    "name": "Bogota, Colombia",
+    "lat": 4.5667,
+    "lon": -74,
+    "timezone": "America/Bogota"
+  },
+  "boise,usa": {
+    "name": "Boise, USA",
+    "lat": 43.6,
+    "lon": -116.2,
+    "timezone": "US/Mountain"
+  },
+  "bolton,england": {
+    "name": "Bolton, England",
+    "lat": 53.5833,
+    "lon": -2.25,
+    "timezone": "Europe/London"
+  },
+  "bolton,united kingdom": {
+    "name": "Bolton, England",
+    "lat": 53.5833,
+    "lon": -2.25,
+    "timezone": "Europe/London"
+  },
+  "boston,usa": {
+    "name": "Boston, USA",
+    "lat": 42.35,
+    "lon": -71.05,
+    "timezone": "US/Eastern"
+  },
+  "bradford,england": {
+    "name": "Bradford, England",
+    "lat": 53.7833,
+    "lon": -1.75,
+    "timezone": "Europe/London"
+  },
+  "bradford,united kingdom": {
+    "name": "Bradford, England",
+    "lat": 53.7833,
+    "lon": -1.75,
+    "timezone": "Europe/London"
+  },
+  "brasilia,brazil": {
+    "name": "Brasilia, Brazil",
+    "lat": -15.7833,
+    "lon": -47.9167,
+    "timezone": "Brazil/East"
+  },
+  "bratislava,slovakia": {
+    "name": "Bratislava, Slovakia",
+    "lat": 48.1667,
+    "lon": 17.1167,
+    "timezone": "Europe/Bratislava"
+  },
+  "brazzaville,congo": {
+    "name": "Brazzaville, Congo",
+    "lat": -4.15,
+    "lon": 15.2,
+    "timezone": "Africa/Brazzaville"
+  },
+  "brazzaville,republic of the congo": {
+    "name": "Brazzaville, Congo",
+    "lat": -4.15,
+    "lon": 15.2,
+    "timezone": "Africa/Brazzaville"
+  },
+  "bridgeport,usa": {
+    "name": "Bridgeport, USA",
+    "lat": 41.1833,
+    "lon": -73.1833,
+    "timezone": "US/Eastern"
+  },
+  "bridgetown,barbados": {
+    "name": "Bridgetown, Barbados",
+    "lat": 13.0833,
+    "lon": -59.5,
+    "timezone": "America/Barbados"
+  },
+  "brisbane,australia": {
+    "name": "Brisbane, Australia",
+    "lat": -27.5,
+    "lon": 153.0167,
+    "timezone": "Australia/Brisbane"
+  },
+  "bristol,england": {
+    "name": "Bristol, England",
+    "lat": 51.4667,
+    "lon": -2.5833,
+    "timezone": "Europe/London"
+  },
+  "bristol,united kingdom": {
+    "name": "Bristol, England",
+    "lat": 51.4667,
+    "lon": -2.5833,
+    "timezone": "Europe/London"
+  },
+  "brussels,belgium": {
+    "name": "Brussels, Belgium",
+    "lat": 50.85,
+    "lon": 4.35,
+    "timezone": "Europe/Brussels"
+  },
+  "bucharest,romania": {
+    "name": "Bucharest, Romania",
+    "lat": 44.45,
+    "lon": 26.1667,
+    "timezone": "Europe/Bucharest"
+  },
+  "bucuresti,romania": {
+    "name": "Bucuresti, Romania",
+    "lat": 44.45,
+    "lon": 26.1667,
+    "timezone": "Europe/Bucharest"
+  },
+  "budapest,hungary": {
+    "name": "Budapest, Hungary",
+    "lat": 47.4833,
+    "lon": 19.0833,
+    "timezone": "Europe/Budapest"
+  },
+  "buenos aires,argentina": {
+    "name": "Buenos Aires, Argentina",
+    "lat": -35.0333,
+    "lon": -58.7333,
+    "timezone": "America/Buenos_Aires"
+  },
+  "buenos-aires,argentina": {
+    "name": "Buenos Aires, Argentina",
+    "lat": -35.0333,
+    "lon": -58.7333,
+    "timezone": "America/Buenos_Aires"
+  },
+  "buffalo,usa": {
+    "name": "Buffalo, USA",
+    "lat": 42.9,
+    "lon": -78.8333,
+    "timezone": "US/Eastern"
+  },
+  "bujumbura,burundi": {
+    "name": "Bujumbura, Burundi",
+    "lat": -3.2667,
+    "lon": 29.3,
+    "timezone": "Africa/Bujumbura"
+  },
+  "burlington,usa": {
+    "name": "Burlington, USA",
+    "lat": 44.4667,
+    "lon": -73.15,
+    "timezone": "US/Eastern"
+  },
+  "cairo,egypt": {
+    "name": "Cairo, Egypt",
+    "lat": 30.0167,
+    "lon": 31.2333,
+    "timezone": "Africa/Cairo"
+  },
+  "calgary,canada": {
+    "name": "Calgary, Canada",
+    "lat": 51.0333,
+    "lon": -114.05,
+    "timezone": "America/Edmonton"
+  },
+  "canberra,australia": {
+    "name": "Canberra, Australia",
+    "lat": -35.25,
+    "lon": 149.1333,
+    "timezone": "Australia/Canberra"
+  },
+  "cape town,south africa": {
+    "name": "Cape Town, South Africa",
+    "lat": -33.9167,
+    "lon": 18.3667,
+    "timezone": "Africa/Johannesburg"
+  },
+  "cape-town,south africa": {
+    "name": "Cape Town, South Africa",
+    "lat": -33.9167,
+    "lon": 18.3667,
+    "timezone": "Africa/Johannesburg"
+  },
+  "caracas,venezuela": {
+    "name": "Caracas, Venezuela",
+    "lat": 10.5,
+    "lon": -66.9167,
+    "timezone": "America/Caracas"
+  },
+  "cardiff,united kingdom": {
+    "name": "Cardiff, Wales",
+    "lat": 51.4833,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "cardiff,wales": {
+    "name": "Cardiff, Wales",
+    "lat": 51.4833,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "carson city,usa": {
+    "name": "Carson City, USA",
+    "lat": 39.15,
+    "lon": -119.75,
+    "timezone": "US/Pacific"
+  },
+  "carson-city,usa": {
+    "name": "Carson City, USA",
+    "lat": 39.15,
+    "lon": -119.75,
+    "timezone": "US/Pacific"
+  },
+  "castries,saint lucia": {
+    "name": "Castries, Saint Lucia",
+    "lat": 14.0333,
+    "lon": -60.9667,
+    "timezone": "America/St_Lucia"
+  },
+  "cayenne,french guiana": {
+    "name": "Cayenne, French Guiana",
+    "lat": 5.0833,
+    "lon": -52.3,
+    "timezone": "America/Cayenne"
+  },
+  "charleston,usa": {
+    "name": "Charleston, USA",
+    "lat": 38.3333,
+    "lon": -81.6333,
+    "timezone": "US/Eastern"
+  },
+  "charlotte amalie,united states of virgin islands": {
+    "name": "Charlotte Amalie, United States of Virgin Islands",
+    "lat": 18.35,
+    "lon": -64.9333,
+    "timezone": "America/Virgin"
+  },
+  "charlotte,usa": {
+    "name": "Charlotte, USA",
+    "lat": 35.2167,
+    "lon": -80.8333,
+    "timezone": "US/Eastern"
+  },
+  "charlotte-amalie,united states of virgin islands": {
+    "name": "Charlotte Amalie, United States of Virgin Islands",
+    "lat": 18.35,
+    "lon": -64.9333,
+    "timezone": "America/Virgin"
+  },
+  "charlottetown,canada": {
+    "name": "Charlottetown, Canada",
+    "lat": 46.2333,
+    "lon": -63.1167,
+    "timezone": "America/Halifax"
+  },
+  "cheyenne,usa": {
+    "name": "Cheyenne, USA",
+    "lat": 41.1333,
+    "lon": -104.8,
+    "timezone": "US/Mountain"
+  },
+  "chicago,usa": {
+    "name": "Chicago, USA",
+    "lat": 41.8333,
+    "lon": -87.6833,
+    "timezone": "US/Central"
+  },
+  "chisinau,moldova": {
+    "name": "Chisinau, Moldova",
+    "lat": 47.0333,
+    "lon": 28.8333,
+    "timezone": "Europe/Chisinau"
+  },
+  "chisinau,moldova, republic of": {
+    "name": "Chisinau, Moldova",
+    "lat": 47.0333,
+    "lon": 28.8333,
+    "timezone": "Europe/Chisinau"
+  },
+  "cleveland,usa": {
+    "name": "Cleveland, USA",
+    "lat": 41.4667,
+    "lon": -81.6667,
+    "timezone": "US/Eastern"
+  },
+  "columbia,usa": {
+    "name": "Columbia, USA",
+    "lat": 34,
+    "lon": -81.0333,
+    "timezone": "US/Eastern"
+  },
+  "columbus,usa": {
+    "name": "Columbus, USA",
+    "lat": 39.9833,
+    "lon": -82.9833,
+    "timezone": "US/Eastern"
+  },
+  "conakry,guinea": {
+    "name": "Conakry, Guinea",
+    "lat": 9.4833,
+    "lon": -13.8167,
+    "timezone": "Africa/Conakry"
+  },
+  "concord,usa": {
+    "name": "Concord, USA",
+    "lat": 43.2,
+    "lon": -71.5333,
+    "timezone": "US/Eastern"
+  },
+  "copenhagen,denmark": {
+    "name": "Copenhagen, Denmark",
+    "lat": 55.6833,
+    "lon": 12.5667,
+    "timezone": "Europe/Copenhagen"
+  },
+  "cotonou,benin": {
+    "name": "Cotonou, Benin",
+    "lat": 6.3833,
+    "lon": 2.7,
+    "timezone": "Africa/Porto-Novo"
+  },
+  "crawley,england": {
+    "name": "Crawley, England",
+    "lat": 51.1333,
+    "lon": -0.1667,
+    "timezone": "Europe/London"
+  },
+  "crawley,united kingdom": {
+    "name": "Crawley, England",
+    "lat": 51.1333,
+    "lon": -0.1667,
+    "timezone": "Europe/London"
+  },
+  "dakar,senegal": {
+    "name": "Dakar, Senegal",
+    "lat": 14.5667,
+    "lon": -17.4833,
+    "timezone": "Africa/Dakar"
+  },
+  "dallas,usa": {
+    "name": "Dallas, USA",
+    "lat": 32.7833,
+    "lon": -96.8,
+    "timezone": "US/Central"
+  },
+  "damascus,syria": {
+    "name": "Damascus, Syrian Arab Republic",
+    "lat": 33.5,
+    "lon": 36.3,
+    "timezone": "Asia/Damascus"
+  },
+  "damascus,syrian arab republic": {
+    "name": "Damascus, Syrian Arab Republic",
+    "lat": 33.5,
+    "lon": 36.3,
+    "timezone": "Asia/Damascus"
+  },
+  "dammam,saudi arabia": {
+    "name": "Dammam, Saudi Arabia",
+    "lat": 26.5,
+    "lon": 50.2,
+    "timezone": "Asia/Riyadh"
+  },
+  "darwin,australia": {
+    "name": "Darwin, Australia",
+    "lat": -12.4333,
+    "lon": 130.8333,
+    "timezone": "Australia/Darwin"
+  },
+  "delhi,india": {
+    "name": "Delhi, India",
+    "lat": 28.6139,
+    "lon": 77.209,
+    "timezone": "Asia/Kolkata"
+  },
+  "denver,usa": {
+    "name": "Denver, USA",
+    "lat": 39.7333,
+    "lon": -104.9833,
+    "timezone": "US/Mountain"
+  },
+  "des moines,usa": {
+    "name": "Des Moines, USA",
+    "lat": 41.5833,
+    "lon": -93.6167,
+    "timezone": "US/Central"
+  },
+  "des-moines,usa": {
+    "name": "Des Moines, USA",
+    "lat": 41.5833,
+    "lon": -93.6167,
+    "timezone": "US/Central"
+  },
+  "detroit,usa": {
+    "name": "Detroit, USA",
+    "lat": 42.3167,
+    "lon": -83.0333,
+    "timezone": "US/Eastern"
+  },
+  "dhaka,bangladesh": {
+    "name": "Dhaka, Bangladesh",
+    "lat": 23.7167,
+    "lon": 90.4333,
+    "timezone": "Asia/Dhaka"
+  },
+  "dili,east timor": {
+    "name": "Dili, East Timor",
+    "lat": -8.4833,
+    "lon": 125.5667,
+    "timezone": "Asia/Dili"
+  },
+  "dili,timor-leste": {
+    "name": "Dili, East Timor",
+    "lat": -8.4833,
+    "lon": 125.5667,
+    "timezone": "Asia/Dili"
+  },
+  "djibouti,djibouti": {
+    "name": "Djibouti, Djibouti",
+    "lat": 11.1333,
+    "lon": 42.3333,
+    "timezone": "Africa/Djibouti"
+  },
+  "dodoma,tanzania": {
+    "name": "Dodoma, United Republic of Tanzania",
+    "lat": -6.1333,
+    "lon": 35.75,
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  "dodoma,united republic of tanzania": {
+    "name": "Dodoma, United Republic of Tanzania",
+    "lat": -6.1333,
+    "lon": 35.75,
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  "doha,qatar": {
+    "name": "Doha, Qatar",
+    "lat": 25.25,
+    "lon": 51.5833,
+    "timezone": "Asia/Qatar"
+  },
+  "douglas,isle of man": {
+    "name": "Douglas, Isle Of Man",
+    "lat": 54.15,
+    "lon": -4.4833,
+    "timezone": "Europe/London"
+  },
+  "dover,usa": {
+    "name": "Dover, USA",
+    "lat": 39.15,
+    "lon": -75.5167,
+    "timezone": "US/Eastern"
+  },
+  "dublin,ireland": {
+    "name": "Dublin, Ireland",
+    "lat": 53.35,
+    "lon": -6.25,
+    "timezone": "Europe/Dublin"
+  },
+  "dushanbe,tajikistan": {
+    "name": "Dushanbe, Tajikistan",
+    "lat": 38.55,
+    "lon": 68.8,
+    "timezone": "Asia/Dushanbe"
+  },
+  "edinburgh,scotland": {
+    "name": "Edinburgh, Scotland",
+    "lat": 55.95,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "edinburgh,united kingdom": {
+    "name": "Edinburgh, Scotland",
+    "lat": 55.95,
+    "lon": -3.2167,
+    "timezone": "Europe/London"
+  },
+  "edmonton,canada": {
+    "name": "Edmonton, Canada",
+    "lat": 53.5333,
+    "lon": -113.4833,
+    "timezone": "America/Edmonton"
+  },
+  "el aaiun,morocco": {
+    "name": "El Aaiun, Morocco",
+    "lat": 27.15,
+    "lon": -13.2,
+    "timezone": "UTC"
+  },
+  "el-aaiun,morocco": {
+    "name": "El Aaiun, Morocco",
+    "lat": 27.15,
+    "lon": -13.2,
+    "timezone": "UTC"
+  },
+  "fargo,usa": {
+    "name": "Fargo, USA",
+    "lat": 46.8667,
+    "lon": -96.7833,
+    "timezone": "US/Central"
+  },
+  "fort de france,martinique": {
+    "name": "Fort-de-France, Martinique",
+    "lat": 14.6,
+    "lon": -61.0333,
+    "timezone": "America/Martinique"
+  },
+  "fort-de-france,martinique": {
+    "name": "Fort-de-France, Martinique",
+    "lat": 14.6,
+    "lon": -61.0333,
+    "timezone": "America/Martinique"
+  },
+  "frankfort,usa": {
+    "name": "Frankfort, USA",
+    "lat": 38.1833,
+    "lon": -84.85,
+    "timezone": "US/Eastern"
+  },
+  "fredericton,canada": {
+    "name": "Fredericton, Canada",
+    "lat": 45.95,
+    "lon": -66.6333,
+    "timezone": "America/Halifax"
+  },
+  "freetown,sierra leone": {
+    "name": "Freetown, Sierra Leone",
+    "lat": 8.5,
+    "lon": -13.2833,
+    "timezone": "Africa/Freetown"
+  },
+  "funafuti,tuvalu": {
+    "name": "Funafuti, Tuvalu",
+    "lat": -8.5167,
+    "lon": 179.2167,
+    "timezone": "Pacific/Funafuti"
+  },
+  "gaborone,botswana": {
+    "name": "Gaborone, Botswana",
+    "lat": -24.75,
+    "lon": 25.95,
+    "timezone": "Africa/Gaborone"
+  },
+  "george town,cayman islands": {
+    "name": "George Town, Cayman Islands",
+    "lat": 19.3333,
+    "lon": -81.4,
+    "timezone": "America/Cayman"
+  },
+  "george-town,cayman islands": {
+    "name": "George Town, Cayman Islands",
+    "lat": 19.3333,
+    "lon": -81.4,
+    "timezone": "America/Cayman"
+  },
+  "georgetown,guyana": {
+    "name": "Georgetown, Guyana",
+    "lat": 6.8333,
+    "lon": -58.2,
+    "timezone": "America/Guyana"
+  },
+  "gibraltar,gibraltar": {
+    "name": "Gibraltar, Gibraltar",
+    "lat": 36.15,
+    "lon": -5.35,
+    "timezone": "Europe/Gibraltar"
+  },
+  "glasgow,scotland": {
+    "name": "Glasgow, Scotland",
+    "lat": 55.8333,
+    "lon": -4.25,
+    "timezone": "Europe/London"
+  },
+  "glasgow,united kingdom": {
+    "name": "Glasgow, Scotland",
+    "lat": 55.8333,
+    "lon": -4.25,
+    "timezone": "Europe/London"
+  },
+  "greenwich,england": {
+    "name": "Greenwich, England",
+    "lat": 51.4667,
+    "lon": 0,
+    "timezone": "Europe/London"
+  },
+  "greenwich,united kingdom": {
+    "name": "Greenwich, England",
+    "lat": 51.4667,
+    "lon": 0,
+    "timezone": "Europe/London"
+  },
+  "guatemala,guatemala": {
+    "name": "Guatemala, Guatemala",
+    "lat": 14.6667,
+    "lon": -90.3667,
+    "timezone": "America/Guatemala"
+  },
+  "halifax,canada": {
+    "name": "Halifax, Canada",
+    "lat": 44.6333,
+    "lon": -63.5667,
+    "timezone": "America/Halifax"
+  },
+  "hanoi,viet nam": {
+    "name": "Hanoi, Viet Nam",
+    "lat": 21.0833,
+    "lon": 105.9167,
+    "timezone": "Asia/Saigon"
+  },
+  "hanoi,vietnam": {
+    "name": "Hanoi, Viet Nam",
+    "lat": 21.0833,
+    "lon": 105.9167,
+    "timezone": "Asia/Saigon"
+  },
+  "harare,zimbabwe": {
+    "name": "Harare, Zimbabwe",
+    "lat": -17.7167,
+    "lon": 31.0333,
+    "timezone": "Africa/Harare"
+  },
+  "harrisburg,usa": {
+    "name": "Harrisburg, USA",
+    "lat": 40.2667,
+    "lon": -76.8667,
+    "timezone": "US/Eastern"
+  },
+  "hartford,usa": {
+    "name": "Hartford, USA",
+    "lat": 41.75,
+    "lon": -72.6833,
+    "timezone": "US/Eastern"
+  },
+  "havana,cuba": {
+    "name": "Havana, Cuba",
+    "lat": 23.1333,
+    "lon": -82.3667,
+    "timezone": "America/Havana"
+  },
+  "helena,usa": {
+    "name": "Helena, USA",
+    "lat": 46.5833,
+    "lon": -112.0167,
+    "timezone": "US/Mountain"
+  },
+  "helsinki,finland": {
+    "name": "Helsinki, Finland",
+    "lat": 60.25,
+    "lon": 25.05,
+    "timezone": "Europe/Helsinki"
+  },
+  "hobart,tasmania": {
+    "name": "Hobart, Tasmania",
+    "lat": -42.8833,
+    "lon": 147.3167,
+    "timezone": "Australia/Hobart"
+  },
+  "hong kong,china": {
+    "name": "Hong Kong, China",
+    "lat": 22.2667,
+    "lon": 114.15,
+    "timezone": "Asia/Hong_Kong"
+  },
+  "hong-kong,china": {
+    "name": "Hong Kong, China",
+    "lat": 22.2667,
+    "lon": 114.15,
+    "timezone": "Asia/Hong_Kong"
+  },
+  "honiara,solomon islands": {
+    "name": "Honiara, Solomon Islands",
+    "lat": -9.45,
+    "lon": 159.95,
+    "timezone": "Pacific/Guadalcanal"
+  },
+  "honolulu,usa": {
+    "name": "Honolulu, USA",
+    "lat": 21.3,
+    "lon": -157.8167,
+    "timezone": "US/Hawaii"
+  },
+  "houston,usa": {
+    "name": "Houston, USA",
+    "lat": 29.75,
+    "lon": -95.3667,
+    "timezone": "US/Central"
+  },
+  "indianapolis,usa": {
+    "name": "Indianapolis, USA",
+    "lat": 39.7667,
+    "lon": -86.15,
+    "timezone": "US/Eastern"
+  },
+  "iqaluit,canada": {
+    "name": "Iqaluit, Canada",
+    "lat": 63.7333,
+    "lon": -68.5167,
+    "timezone": "America/Iqaluit"
+  },
+  "islamabad,pakistan": {
+    "name": "Islamabad, Pakistan",
+    "lat": 33.6667,
+    "lon": 73.1667,
+    "timezone": "Asia/Karachi"
+  },
+  "jackson,usa": {
+    "name": "Jackson, USA",
+    "lat": 32.2833,
+    "lon": -90.1833,
+    "timezone": "US/Central"
+  },
+  "jacksonville,usa": {
+    "name": "Jacksonville, USA",
+    "lat": 30.3167,
+    "lon": -81.65,
+    "timezone": "US/Eastern"
+  },
+  "jakarta,indonesia": {
+    "name": "Jakarta, Indonesia",
+    "lat": -6.15,
+    "lon": 106.8167,
+    "timezone": "Asia/Jakarta"
+  },
+  "jefferson city,usa": {
+    "name": "Jefferson City, USA",
+    "lat": 38.5667,
+    "lon": -92.1667,
+    "timezone": "US/Central"
+  },
+  "jefferson-city,usa": {
+    "name": "Jefferson City, USA",
+    "lat": 38.5667,
+    "lon": -92.1667,
+    "timezone": "US/Central"
+  },
+  "jerusalem,israel": {
+    "name": "Jerusalem, Israel",
+    "lat": 31.7833,
+    "lon": 35.2,
+    "timezone": "Asia/Jerusalem"
+  },
+  "juba,south sudan": {
+    "name": "Juba, South Sudan",
+    "lat": 4.85,
+    "lon": 31.6,
+    "timezone": "Africa/Juba"
+  },
+  "jubail,saudi arabia": {
+    "name": "Jubail, Saudi Arabia",
+    "lat": 27.0333,
+    "lon": 49.65,
+    "timezone": "Asia/Riyadh"
+  },
+  "juneau,usa": {
+    "name": "Juneau, USA",
+    "lat": 58.3833,
+    "lon": -134.1833,
+    "timezone": "US/Alaska"
+  },
+  "kabul,afghanistan": {
+    "name": "Kabul, Afghanistan",
+    "lat": 34.4667,
+    "lon": 69.1833,
+    "timezone": "Asia/Kabul"
+  },
+  "kampala,uganda": {
+    "name": "Kampala, Uganda",
+    "lat": 0.3333,
+    "lon": 32.5,
+    "timezone": "Africa/Kampala"
+  },
+  "kansas city,usa": {
+    "name": "Kansas City, USA",
+    "lat": 39.1,
+    "lon": -94.5833,
+    "timezone": "US/Central"
+  },
+  "kansas-city,usa": {
+    "name": "Kansas City, USA",
+    "lat": 39.1,
+    "lon": -94.5833,
+    "timezone": "US/Central"
+  },
+  "kathmandu,nepal": {
+    "name": "Kathmandu, Nepal",
+    "lat": 27.75,
+    "lon": 85.3333,
+    "timezone": "Asia/Kathmandu"
+  },
+  "khartoum,sudan": {
+    "name": "Khartoum, Sudan",
+    "lat": 15.5167,
+    "lon": 32.5833,
+    "timezone": "Africa/Khartoum"
+  },
+  "kiev,ukraine": {
+    "name": "Kiev, Ukraine",
+    "lat": 50.5,
+    "lon": 30.4667,
+    "timezone": "Europe/Kiev"
+  },
+  "kigali,rwanda": {
+    "name": "Kigali, Rwanda",
+    "lat": -1.9833,
+    "lon": 30.0667,
+    "timezone": "Africa/Kigali"
+  },
+  "kingston,jamaica": {
+    "name": "Kingston, Jamaica",
+    "lat": 18,
+    "lon": -76.8333,
+    "timezone": "America/Jamaica"
+  },
+  "kingston,norfolk island": {
+    "name": "Kingston, Norfolk Island",
+    "lat": -45.3333,
+    "lon": 168.7167,
+    "timezone": "Pacific/Norfolk"
+  },
+  "kingstown,saint vincent and the grenadines": {
+    "name": "Kingstown, Saint Vincent and the Grenadines",
+    "lat": 13.1667,
+    "lon": -61.1667,
+    "timezone": "America/St_Vincent"
+  },
+  "kinshasa,democratic republic of the congo": {
+    "name": "Kinshasa, Democratic Republic of the Congo",
+    "lat": -4.3333,
+    "lon": 15.25,
+    "timezone": "Africa/Kinshasa"
+  },
+  "koror,palau": {
+    "name": "Koror, Palau",
+    "lat": 7.3333,
+    "lon": 134.4667,
+    "timezone": "Pacific/Palau"
+  },
+  "kuala lumpur,malaysia": {
+    "name": "Kuala Lumpur, Malaysia",
+    "lat": 3.15,
+    "lon": 101.6833,
+    "timezone": "Asia/Kuala_Lumpur"
+  },
+  "kuala-lumpur,malaysia": {
+    "name": "Kuala Lumpur, Malaysia",
+    "lat": 3.15,
+    "lon": 101.6833,
+    "timezone": "Asia/Kuala_Lumpur"
+  },
+  "kuwait,kuwait": {
+    "name": "Kuwait, Kuwait",
+    "lat": 29.5,
+    "lon": 48,
+    "timezone": "Asia/Kuwait"
+  },
+  "la paz,bolivia": {
+    "name": "La Paz, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "la paz,bolivia (plurinational state of)": {
+    "name": "La Paz, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "la-paz,bolivia": {
+    "name": "La Paz, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "la-paz,bolivia (plurinational state of)": {
+    "name": "La Paz, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "lansing,usa": {
+    "name": "Lansing, USA",
+    "lat": 42.7333,
+    "lon": -84.5333,
+    "timezone": "US/Eastern"
+  },
+  "las vegas,usa": {
+    "name": "Las Vegas, USA",
+    "lat": 36.1667,
+    "lon": -115.1333,
+    "timezone": "US/Pacific"
+  },
+  "las-vegas,usa": {
+    "name": "Las Vegas, USA",
+    "lat": 36.1667,
+    "lon": -115.1333,
+    "timezone": "US/Pacific"
+  },
+  "leeds,england": {
+    "name": "Leeds, England",
+    "lat": 53.8,
+    "lon": -1.5833,
+    "timezone": "Europe/London"
+  },
+  "leeds,united kingdom": {
+    "name": "Leeds, England",
+    "lat": 53.8,
+    "lon": -1.5833,
+    "timezone": "Europe/London"
+  },
+  "leicester,england": {
+    "name": "Leicester, England",
+    "lat": 52.6333,
+    "lon": -1.1333,
+    "timezone": "Europe/London"
+  },
+  "leicester,united kingdom": {
+    "name": "Leicester, England",
+    "lat": 52.6333,
+    "lon": -1.1333,
+    "timezone": "Europe/London"
+  },
+  "libreville,gabon": {
+    "name": "Libreville, Gabon",
+    "lat": 0.4167,
+    "lon": 9.4333,
+    "timezone": "Africa/Libreville"
+  },
+  "lilongwe,malawi": {
+    "name": "Lilongwe, Malawi",
+    "lat": -14,
+    "lon": 33.8,
+    "timezone": "Africa/Blantyre"
+  },
+  "lima,peru": {
+    "name": "Lima, Peru",
+    "lat": -12,
+    "lon": -77,
+    "timezone": "America/Lima"
+  },
+  "lincoln,usa": {
+    "name": "Lincoln, USA",
+    "lat": 40.8,
+    "lon": -96.6667,
+    "timezone": "US/Central"
+  },
+  "lisbon,portugal": {
+    "name": "Lisbon, Portugal",
+    "lat": 38.7,
+    "lon": -9.1667,
+    "timezone": "Europe/Lisbon"
+  },
+  "little rock,usa": {
+    "name": "Little Rock, USA",
+    "lat": 34.7333,
+    "lon": -92.3167,
+    "timezone": "US/Central"
+  },
+  "little-rock,usa": {
+    "name": "Little Rock, USA",
+    "lat": 34.7333,
+    "lon": -92.3167,
+    "timezone": "US/Central"
+  },
+  "liverpool,england": {
+    "name": "Liverpool, England",
+    "lat": 53.4167,
+    "lon": -3,
+    "timezone": "Europe/London"
+  },
+  "liverpool,united kingdom": {
+    "name": "Liverpool, England",
+    "lat": 53.4167,
+    "lon": -3,
+    "timezone": "Europe/London"
+  },
+  "ljubljana,slovenia": {
+    "name": "Ljubljana, Slovenia",
+    "lat": 46.0667,
+    "lon": 14.55,
+    "timezone": "Europe/Ljubljana"
+  },
+  "lome,togo": {
+    "name": "Lome, Togo",
+    "lat": 6.15,
+    "lon": 1.3333,
+    "timezone": "Africa/Lome"
+  },
+  "london,england": {
+    "name": "London, England",
+    "lat": 51.4733,
+    "lon": -0.0008,
+    "timezone": "Europe/London"
+  },
+  "london,united kingdom": {
+    "name": "London, United Kingdom",
+    "lat": 51.5072,
+    "lon": -0.1276,
+    "timezone": "Europe/London"
+  },
+  "los angeles,usa": {
+    "name": "Los Angeles, USA",
+    "lat": 34.05,
+    "lon": -118.25,
+    "timezone": "US/Pacific"
+  },
+  "los-angeles,usa": {
+    "name": "Los Angeles, USA",
+    "lat": 34.05,
+    "lon": -118.25,
+    "timezone": "US/Pacific"
+  },
+  "louisville,usa": {
+    "name": "Louisville, USA",
+    "lat": 38.25,
+    "lon": -85.75,
+    "timezone": "US/Eastern"
+  },
+  "luanda,angola": {
+    "name": "Luanda, Angola",
+    "lat": -8.8333,
+    "lon": 13.25,
+    "timezone": "Africa/Luanda"
+  },
+  "lusaka,zambia": {
+    "name": "Lusaka, Zambia",
+    "lat": -15.4667,
+    "lon": 28.2667,
+    "timezone": "Africa/Lusaka"
+  },
+  "luxembourg,luxembourg": {
+    "name": "Luxembourg, Luxembourg",
+    "lat": 49.6167,
+    "lon": 6.15,
+    "timezone": "Europe/Luxembourg"
+  },
+  "macau,macao": {
+    "name": "Macau, Macao",
+    "lat": 22.2,
+    "lon": 113.55,
+    "timezone": "Asia/Macau"
+  },
+  "macau,macau": {
+    "name": "Macau, Macao",
+    "lat": 22.2,
+    "lon": 113.55,
+    "timezone": "Asia/Macau"
+  },
+  "madinah,saudi arabia": {
+    "name": "Madinah, Saudi Arabia",
+    "lat": 24.4667,
+    "lon": 39.6,
+    "timezone": "Asia/Riyadh"
+  },
+  "madison,usa": {
+    "name": "Madison, USA",
+    "lat": 43.0667,
+    "lon": -89.4,
+    "timezone": "US/Central"
+  },
+  "madrid,spain": {
+    "name": "Madrid, Spain",
+    "lat": 40.4167,
+    "lon": -3.75,
+    "timezone": "Europe/Madrid"
+  },
+  "majuro,marshall islands": {
+    "name": "Majuro, Marshall Islands",
+    "lat": 7.0667,
+    "lon": 171.2667,
+    "timezone": "Pacific/Majuro"
+  },
+  "makkah,saudi arabia": {
+    "name": "Makkah, Saudi Arabia",
+    "lat": 21.4333,
+    "lon": 39.8167,
+    "timezone": "Asia/Riyadh"
+  },
+  "malabo,equatorial guinea": {
+    "name": "Malabo, Equatorial Guinea",
+    "lat": 3.75,
+    "lon": 8.8333,
+    "timezone": "Africa/Malabo"
+  },
+  "male,maldives": {
+    "name": "Male, Maldives",
+    "lat": 4,
+    "lon": 73.4667,
+    "timezone": "Indian/Maldives"
+  },
+  "mamoudzou,mayotte": {
+    "name": "Mamoudzou, Mayotte",
+    "lat": -12.8,
+    "lon": 45.2333,
+    "timezone": "Indian/Mayotte"
+  },
+  "managua,nicaragua": {
+    "name": "Managua, Nicaragua",
+    "lat": 12.1,
+    "lon": -86.3333,
+    "timezone": "America/Managua"
+  },
+  "manama,bahrain": {
+    "name": "Manama, Bahrain",
+    "lat": 26.1667,
+    "lon": 50.5,
+    "timezone": "Asia/Bahrain"
+  },
+  "manchester,england": {
+    "name": "Manchester, England",
+    "lat": 53.5,
+    "lon": -2.25,
+    "timezone": "Europe/London"
+  },
+  "manchester,united kingdom": {
+    "name": "Manchester, England",
+    "lat": 53.5,
+    "lon": -2.25,
+    "timezone": "Europe/London"
+  },
+  "manchester,usa": {
+    "name": "Manchester, USA",
+    "lat": 42.9833,
+    "lon": -71.45,
+    "timezone": "US/Eastern"
+  },
+  "manila,philippines": {
+    "name": "Manila, Philippines",
+    "lat": 14.6667,
+    "lon": 121.05,
+    "timezone": "Asia/Manila"
+  },
+  "maputo,mozambique": {
+    "name": "Maputo, Mozambique",
+    "lat": -25.9667,
+    "lon": 32.5333,
+    "timezone": "Africa/Maputo"
+  },
+  "maseru,lesotho": {
+    "name": "Maseru, Lesotho",
+    "lat": -29.3,
+    "lon": 27.5,
+    "timezone": "Africa/Maseru"
+  },
+  "masqat,oman": {
+    "name": "Masqat, Oman",
+    "lat": 23.6167,
+    "lon": 58.6,
+    "timezone": "Asia/Muscat"
+  },
+  "mbabane,swaziland": {
+    "name": "Mbabane, Swaziland",
+    "lat": -26.3,
+    "lon": 31.1,
+    "timezone": "Africa/Mbabane"
+  },
+  "mecca,saudi arabia": {
+    "name": "Mecca, Saudi Arabia",
+    "lat": 21.4333,
+    "lon": 39.8167,
+    "timezone": "Asia/Riyadh"
+  },
+  "medina,saudi arabia": {
+    "name": "Medina, Saudi Arabia",
+    "lat": 24.4667,
+    "lon": 39.6,
+    "timezone": "Asia/Riyadh"
+  },
+  "melbourne,australia": {
+    "name": "Melbourne, Australia",
+    "lat": -37.8,
+    "lon": 144.95,
+    "timezone": "Australia/Melbourne"
+  },
+  "memphis,usa": {
+    "name": "Memphis, USA",
+    "lat": 35.1167,
+    "lon": -89.9667,
+    "timezone": "US/Central"
+  },
+  "mexico,mexico": {
+    "name": "Mexico, Mexico",
+    "lat": 19.3333,
+    "lon": -99.1667,
+    "timezone": "America/Mexico_City"
+  },
+  "miami,usa": {
+    "name": "Miami, USA",
+    "lat": 26.1333,
+    "lon": -80.2,
+    "timezone": "US/Eastern"
+  },
+  "milwaukee,usa": {
+    "name": "Milwaukee, USA",
+    "lat": 43.05,
+    "lon": -87.95,
+    "timezone": "US/Central"
+  },
+  "minneapolis,usa": {
+    "name": "Minneapolis, USA",
+    "lat": 44.9667,
+    "lon": -93.25,
+    "timezone": "US/Central"
+  },
+  "minsk,belarus": {
+    "name": "Minsk, Belarus",
+    "lat": 53.8667,
+    "lon": 27.5,
+    "timezone": "Europe/Minsk"
+  },
+  "mogadishu,somalia": {
+    "name": "Mogadishu, Somalia",
+    "lat": 2.0333,
+    "lon": 45.4167,
+    "timezone": "Africa/Mogadishu"
+  },
+  "monaco,priciplality of monaco": {
+    "name": "Monaco, Priciplality Of Monaco",
+    "lat": 43.7167,
+    "lon": 7.4167,
+    "timezone": "Europe/Monaco"
+  },
+  "monrovia,liberia": {
+    "name": "Monrovia, Liberia",
+    "lat": 6.3,
+    "lon": -10.7833,
+    "timezone": "Africa/Monrovia"
+  },
+  "montevideo,uruguay": {
+    "name": "Montevideo, Uruguay",
+    "lat": -34.8333,
+    "lon": -56.1833,
+    "timezone": "America/Montevideo"
+  },
+  "montgomery,usa": {
+    "name": "Montgomery, USA",
+    "lat": 32.35,
+    "lon": -86.2667,
+    "timezone": "US/Central"
+  },
+  "montpelier,usa": {
+    "name": "Montpelier, USA",
+    "lat": 44.25,
+    "lon": -72.5667,
+    "timezone": "US/Eastern"
+  },
+  "montreal,canada": {
+    "name": "Montreal, Canada",
+    "lat": 45.5,
+    "lon": -73.55,
+    "timezone": "America/Montreal"
+  },
+  "moroni,comoros": {
+    "name": "Moroni, Comoros",
+    "lat": -11.6667,
+    "lon": 43.2667,
+    "timezone": "Indian/Comoro"
+  },
+  "moscow,russia": {
+    "name": "Moscow, Russia",
+    "lat": 55.7558,
+    "lon": 37.6173,
+    "timezone": "Europe/Moscow"
+  },
+  "moscow,russian federation": {
+    "name": "Moscow, Russian Federation",
+    "lat": 55.75,
+    "lon": 37.5833,
+    "timezone": "Europe/Moscow"
+  },
+  "moskva,russia": {
+    "name": "Moskva, Russian Federation",
+    "lat": 55.75,
+    "lon": 37.5833,
+    "timezone": "Europe/Moscow"
+  },
+  "moskva,russian federation": {
+    "name": "Moskva, Russian Federation",
+    "lat": 55.75,
+    "lon": 37.5833,
+    "timezone": "Europe/Moscow"
+  },
+  "mumbai,india": {
+    "name": "Mumbai, India",
+    "lat": 18.9667,
+    "lon": 72.8167,
+    "timezone": "Asia/Kolkata"
+  },
+  "muscat,oman": {
+    "name": "Muscat, Oman",
+    "lat": 23.6167,
+    "lon": 58.5333,
+    "timezone": "Asia/Muscat"
+  },
+  "n'djamena,chad": {
+    "name": "N'Djamena, Chad",
+    "lat": 12.1667,
+    "lon": 14.9833,
+    "timezone": "Africa/Ndjamena"
+  },
+  "nairobi,kenya": {
+    "name": "Nairobi, Kenya",
+    "lat": -1.2833,
+    "lon": 36.8,
+    "timezone": "Africa/Nairobi"
+  },
+  "nashville,usa": {
+    "name": "Nashville, USA",
+    "lat": 36.1667,
+    "lon": -86.7833,
+    "timezone": "US/Central"
+  },
+  "nassau,bahamas": {
+    "name": "Nassau, Bahamas",
+    "lat": 25.0833,
+    "lon": -77.3333,
+    "timezone": "America/Nassau"
+  },
+  "naypyidaw,myanmar": {
+    "name": "Naypyidaw, Myanmar",
+    "lat": 19.75,
+    "lon": 96.1,
+    "timezone": "Asia/Rangoon"
+  },
+  "new delhi,india": {
+    "name": "New Delhi, India",
+    "lat": 28.6167,
+    "lon": 77.2167,
+    "timezone": "Asia/Kolkata"
+  },
+  "new orleans,usa": {
+    "name": "New Orleans, USA",
+    "lat": 29.95,
+    "lon": -90.0667,
+    "timezone": "US/Central"
+  },
+  "new york,usa": {
+    "name": "New York, USA",
+    "lat": 40.7128,
+    "lon": -74.006,
+    "timezone": "America/New_York"
+  },
+  "new-delhi,india": {
+    "name": "New Delhi, India",
+    "lat": 28.6167,
+    "lon": 77.2167,
+    "timezone": "Asia/Kolkata"
+  },
+  "new-orleans,usa": {
+    "name": "New Orleans, USA",
+    "lat": 29.95,
+    "lon": -90.0667,
+    "timezone": "US/Central"
+  },
+  "new-york,usa": {
+    "name": "New York, USA",
+    "lat": 40.7167,
+    "lon": -74,
+    "timezone": "US/Eastern"
+  },
+  "newark,usa": {
+    "name": "Newark, USA",
+    "lat": 40.7333,
+    "lon": -74.1833,
+    "timezone": "US/Eastern"
+  },
+  "newcastle upon tyne,england": {
+    "name": "Newcastle Upon Tyne, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "newcastle upon tyne,united kingdom": {
+    "name": "Newcastle Upon Tyne, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "newcastle,england": {
+    "name": "Newcastle, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "newcastle,united kingdom": {
+    "name": "Newcastle, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "newcastle-upon-tyne,england": {
+    "name": "Newcastle Upon Tyne, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "newcastle-upon-tyne,united kingdom": {
+    "name": "Newcastle Upon Tyne, England",
+    "lat": 54.9833,
+    "lon": -1.6,
+    "timezone": "Europe/London"
+  },
+  "ngerulmud,palau": {
+    "name": "Ngerulmud, Palau",
+    "lat": 7.5,
+    "lon": 134.6167,
+    "timezone": "Pacific/Palau"
+  },
+  "niamey,niger": {
+    "name": "Niamey, Niger",
+    "lat": 13.45,
+    "lon": 2.1,
+    "timezone": "Africa/Niamey"
+  },
+  "nicosia,cyprus": {
+    "name": "Nicosia, Cyprus",
+    "lat": 35.1667,
+    "lon": 33.4167,
+    "timezone": "Asia/Nicosia"
+  },
+  "norwich,england": {
+    "name": "Norwich, England",
+    "lat": 52.6333,
+    "lon": 1.3,
+    "timezone": "Europe/London"
+  },
+  "norwich,united kingdom": {
+    "name": "Norwich, England",
+    "lat": 52.6333,
+    "lon": 1.3,
+    "timezone": "Europe/London"
+  },
+  "nouakchott,mauritania": {
+    "name": "Nouakchott, Mauritania",
+    "lat": -20.1667,
+    "lon": 57.5,
+    "timezone": "Africa/Nouakchott"
+  },
+  "noumea,new caledonia": {
+    "name": "Noumea, New Caledonia",
+    "lat": -22.2833,
+    "lon": 166.5,
+    "timezone": "Pacific/Noumea"
+  },
+  "nuku'alofa,tonga": {
+    "name": "Nuku'alofa, Tonga",
+    "lat": -21.1667,
+    "lon": -174,
+    "timezone": "Pacific/Tongatapu"
+  },
+  "nuuk,greenland": {
+    "name": "Nuuk, Greenland",
+    "lat": 64.1667,
+    "lon": -51.5833,
+    "timezone": "America/Godthab"
+  },
+  "oklahoma city,usa": {
+    "name": "Oklahoma City, USA",
+    "lat": 35.4667,
+    "lon": -97.5333,
+    "timezone": "US/Central"
+  },
+  "oklahoma-city,usa": {
+    "name": "Oklahoma City, USA",
+    "lat": 35.4667,
+    "lon": -97.5333,
+    "timezone": "US/Central"
+  },
+  "olympia,usa": {
+    "name": "Olympia, USA",
+    "lat": 47.0333,
+    "lon": -122.8833,
+    "timezone": "US/Pacific"
+  },
+  "omaha,usa": {
+    "name": "Omaha, USA",
+    "lat": 41.25,
+    "lon": -96,
+    "timezone": "US/Central"
+  },
+  "oranjestad,aruba": {
+    "name": "Oranjestad, Aruba",
+    "lat": 12.5333,
+    "lon": -70.0333,
+    "timezone": "America/Aruba"
+  },
+  "orlando,usa": {
+    "name": "Orlando, USA",
+    "lat": 28.5333,
+    "lon": -81.3667,
+    "timezone": "US/Eastern"
+  },
+  "oslo,norway": {
+    "name": "Oslo, Norway",
+    "lat": 59.9167,
+    "lon": 10.75,
+    "timezone": "Europe/Oslo"
+  },
+  "ottawa,canada": {
+    "name": "Ottawa, Canada",
+    "lat": 45.45,
+    "lon": -75.7,
+    "timezone": "US/Eastern"
+  },
+  "ouagadougou,burkina faso": {
+    "name": "Ouagadougou, Burkina Faso",
+    "lat": 12.25,
+    "lon": -1.5,
+    "timezone": "Africa/Ouagadougou"
+  },
+  "oxford,england": {
+    "name": "Oxford, England",
+    "lat": 51.75,
+    "lon": -1.25,
+    "timezone": "Europe/London"
+  },
+  "oxford,united kingdom": {
+    "name": "Oxford, England",
+    "lat": 51.75,
+    "lon": -1.25,
+    "timezone": "Europe/London"
+  },
+  "p'yongyang,democratic people's republic of korea": {
+    "name": "P'yongyang, Democratic People's Republic of Korea",
+    "lat": 39.15,
+    "lon": 125.5,
+    "timezone": "Asia/Pyongyang"
+  },
+  "p'yongyang,north korea": {
+    "name": "P'yongyang, Democratic People's Republic of Korea",
+    "lat": 39.15,
+    "lon": 125.5,
+    "timezone": "Asia/Pyongyang"
+  },
+  "pago pago,american samoa": {
+    "name": "Pago Pago, American Samoa",
+    "lat": -14.2667,
+    "lon": -170.7167,
+    "timezone": "Pacific/Pago_Pago"
+  },
+  "pago-pago,american samoa": {
+    "name": "Pago Pago, American Samoa",
+    "lat": -14.2667,
+    "lon": -170.7167,
+    "timezone": "Pacific/Pago_Pago"
+  },
+  "palikir,micronesia": {
+    "name": "Palikir, Micronesia",
+    "lat": 6.9167,
+    "lon": 158.15,
+    "timezone": "Pacific/Ponape"
+  },
+  "panama,panama": {
+    "name": "Panama, Panama",
+    "lat": 9,
+    "lon": -79.4167,
+    "timezone": "America/Panama"
+  },
+  "papeete,french polynesia": {
+    "name": "Papeete, French Polynesia",
+    "lat": -17.5333,
+    "lon": -149.5667,
+    "timezone": "Pacific/Tahiti"
+  },
+  "paramaribo,suriname": {
+    "name": "Paramaribo, Suriname",
+    "lat": 5.8333,
+    "lon": -55.1667,
+    "timezone": "America/Paramaribo"
+  },
+  "paris,france": {
+    "name": "Paris, France",
+    "lat": 48.8333,
+    "lon": 2.3333,
+    "timezone": "Europe/Paris"
+  },
+  "perth,australia": {
+    "name": "Perth, Australia",
+    "lat": -31.9333,
+    "lon": 115.8333,
+    "timezone": "Australia/Perth"
+  },
+  "philadelphia,usa": {
+    "name": "Philadelphia, USA",
+    "lat": 39.95,
+    "lon": -75.1667,
+    "timezone": "US/Eastern"
+  },
+  "phnom penh,cambodia": {
+    "name": "Phnom Penh, Cambodia",
+    "lat": 11.55,
+    "lon": 104.9167,
+    "timezone": "Asia/Phnom_Penh"
+  },
+  "phnom-penh,cambodia": {
+    "name": "Phnom Penh, Cambodia",
+    "lat": 11.55,
+    "lon": 104.9167,
+    "timezone": "Asia/Phnom_Penh"
+  },
+  "phoenix,usa": {
+    "name": "Phoenix, USA",
+    "lat": 33.4333,
+    "lon": -112.0667,
+    "timezone": "America/Phoenix"
+  },
+  "pierre,usa": {
+    "name": "Pierre, USA",
+    "lat": 44.3667,
+    "lon": -100.3333,
+    "timezone": "US/Central"
+  },
+  "plymouth,england": {
+    "name": "Plymouth, England",
+    "lat": 50.4167,
+    "lon": -4.25,
+    "timezone": "Europe/London"
+  },
+  "plymouth,united kingdom": {
+    "name": "Plymouth, England",
+    "lat": 50.4167,
+    "lon": -4.25,
+    "timezone": "Europe/London"
+  },
+  "podgorica,montenegro": {
+    "name": "Podgorica, Montenegro",
+    "lat": 42.4667,
+    "lon": 19.2667,
+    "timezone": "Europe/Podgorica"
+  },
+  "port au prince,haiti": {
+    "name": "Port-au-Prince, Haiti",
+    "lat": 18.6667,
+    "lon": -72.3333,
+    "timezone": "America/Port-au-Prince"
+  },
+  "port louis,mauritius": {
+    "name": "Port Louis, Mauritius",
+    "lat": -20.15,
+    "lon": 57.5,
+    "timezone": "Indian/Mauritius"
+  },
+  "port moresby,papua new guinea": {
+    "name": "Port Moresby, Papua New Guinea",
+    "lat": -9.4,
+    "lon": 147.1333,
+    "timezone": "Pacific/Port_Moresby"
+  },
+  "port of spain,trinidad and tobago": {
+    "name": "Port of Spain, Trinidad and Tobago",
+    "lat": 10.6667,
+    "lon": -61.5167,
+    "timezone": "America/Port_of_Spain"
+  },
+  "port vila,vanuatu": {
+    "name": "Port-Vila, Vanuatu",
+    "lat": -17.75,
+    "lon": 168.3,
+    "timezone": "Pacific/Efate"
+  },
+  "port-au-prince,haiti": {
+    "name": "Port-au-Prince, Haiti",
+    "lat": 18.6667,
+    "lon": -72.3333,
+    "timezone": "America/Port-au-Prince"
+  },
+  "port-louis,mauritius": {
+    "name": "Port Louis, Mauritius",
+    "lat": -20.15,
+    "lon": 57.5,
+    "timezone": "Indian/Mauritius"
+  },
+  "port-moresby,papua new guinea": {
+    "name": "Port Moresby, Papua New Guinea",
+    "lat": -9.4,
+    "lon": 147.1333,
+    "timezone": "Pacific/Port_Moresby"
+  },
+  "port-of-spain,trinidad and tobago": {
+    "name": "Port of Spain, Trinidad and Tobago",
+    "lat": 10.6667,
+    "lon": -61.5167,
+    "timezone": "America/Port_of_Spain"
+  },
+  "port-vila,vanuatu": {
+    "name": "Port-Vila, Vanuatu",
+    "lat": -17.75,
+    "lon": 168.3,
+    "timezone": "Pacific/Efate"
+  },
+  "portland,usa": {
+    "name": "Portland, USA",
+    "lat": 43.65,
+    "lon": -70.2667,
+    "timezone": "US/Eastern"
+  },
+  "porto novo,benin": {
+    "name": "Porto-Novo, Benin",
+    "lat": 6.3833,
+    "lon": 2.7,
+    "timezone": "Africa/Porto-Novo"
+  },
+  "porto-novo,benin": {
+    "name": "Porto-Novo, Benin",
+    "lat": 6.3833,
+    "lon": 2.7,
+    "timezone": "Africa/Porto-Novo"
+  },
+  "portsmouth,england": {
+    "name": "Portsmouth, England",
+    "lat": 50.8,
+    "lon": -1.0833,
+    "timezone": "Europe/London"
+  },
+  "portsmouth,united kingdom": {
+    "name": "Portsmouth, England",
+    "lat": 50.8,
+    "lon": -1.0833,
+    "timezone": "Europe/London"
+  },
+  "prague,czech republic": {
+    "name": "Prague, Czech Republic",
+    "lat": 50.0833,
+    "lon": 14.3667,
+    "timezone": "Europe/Prague"
+  },
+  "prague,czechia": {
+    "name": "Prague, Czech Republic",
+    "lat": 50.0833,
+    "lon": 14.3667,
+    "timezone": "Europe/Prague"
+  },
+  "praia,cabo verde": {
+    "name": "Praia, Cape Verde",
+    "lat": 15.0333,
+    "lon": -23.5667,
+    "timezone": "Atlantic/Cape_Verde"
+  },
+  "praia,cape verde": {
+    "name": "Praia, Cape Verde",
+    "lat": 15.0333,
+    "lon": -23.5667,
+    "timezone": "Atlantic/Cape_Verde"
+  },
+  "pretoria,south africa": {
+    "name": "Pretoria, South Africa",
+    "lat": -25.7333,
+    "lon": 28.2,
+    "timezone": "Africa/Johannesburg"
+  },
+  "pristina,albania": {
+    "name": "Pristina, Albania",
+    "lat": 42.6667,
+    "lon": 21.1667,
+    "timezone": "Europe/Tirane"
+  },
+  "providence,usa": {
+    "name": "Providence, USA",
+    "lat": 41.8167,
+    "lon": -71.4167,
+    "timezone": "US/Eastern"
+  },
+  "quebec,canada": {
+    "name": "Quebec, Canada",
+    "lat": 46.8,
+    "lon": -71.2333,
+    "timezone": "America/Toronto"
+  },
+  "quito,ecuador": {
+    "name": "Quito, Ecuador",
+    "lat": -0.25,
+    "lon": -78.5833,
+    "timezone": "America/Guayaquil"
+  },
+  "rabat,morocco": {
+    "name": "Rabat, Morocco",
+    "lat": 34.0167,
+    "lon": -6.8333,
+    "timezone": "Africa/Casablanca"
+  },
+  "raleigh,usa": {
+    "name": "Raleigh, USA",
+    "lat": 35.8167,
+    "lon": -78.6333,
+    "timezone": "US/Eastern"
+  },
+  "reading,england": {
+    "name": "Reading, England",
+    "lat": 51.45,
+    "lon": -0.9667,
+    "timezone": "Europe/London"
+  },
+  "reading,united kingdom": {
+    "name": "Reading, England",
+    "lat": 51.45,
+    "lon": -0.9667,
+    "timezone": "Europe/London"
+  },
+  "regina,canada": {
+    "name": "Regina, Canada",
+    "lat": 50.45,
+    "lon": -104.6,
+    "timezone": "America/Regina"
+  },
+  "reykjavik,iceland": {
+    "name": "Reykjavik, Iceland",
+    "lat": 64.1667,
+    "lon": -21.95,
+    "timezone": "Atlantic/Reykjavik"
+  },
+  "richmond,usa": {
+    "name": "Richmond, USA",
+    "lat": 37.5333,
+    "lon": -77.4167,
+    "timezone": "US/Eastern"
+  },
+  "riga,latvia": {
+    "name": "Riga, Latvia",
+    "lat": 56.8833,
+    "lon": 24.1333,
+    "timezone": "Europe/Riga"
+  },
+  "riyadh,saudi arabia": {
+    "name": "Riyadh, Saudi Arabia",
+    "lat": 24.6833,
+    "lon": 46.7,
+    "timezone": "Asia/Riyadh"
+  },
+  "road town,british virgin islands": {
+    "name": "Road Town, British Virgin Islands",
+    "lat": 18.45,
+    "lon": -64.6167,
+    "timezone": "America/Virgin"
+  },
+  "road-town,british virgin islands": {
+    "name": "Road Town, British Virgin Islands",
+    "lat": 18.45,
+    "lon": -64.6167,
+    "timezone": "America/Virgin"
+  },
+  "rome,italy": {
+    "name": "Rome, Italy",
+    "lat": 41.9,
+    "lon": 12.4833,
+    "timezone": "Europe/Rome"
+  },
+  "roseau,dominica": {
+    "name": "Roseau, Dominica",
+    "lat": 15.3333,
+    "lon": -61.4,
+    "timezone": "America/Dominica"
+  },
+  "sacramento,usa": {
+    "name": "Sacramento, USA",
+    "lat": 38.55,
+    "lon": -121.4667,
+    "timezone": "US/Pacific"
+  },
+  "saint helier,jersey": {
+    "name": "Saint Helier, Jersey",
+    "lat": 49.1833,
+    "lon": -2.1,
+    "timezone": "Etc/GMT"
+  },
+  "saint paul,usa": {
+    "name": "Saint Paul, USA",
+    "lat": 44.9333,
+    "lon": -93.0833,
+    "timezone": "US/Central"
+  },
+  "saint petersburg,russia": {
+    "name": "Saint Petersburg, Russia",
+    "lat": 59.9343,
+    "lon": 30.3351,
+    "timezone": "Europe/Moscow"
+  },
+  "saint pierre,saint pierre and miquelon": {
+    "name": "Saint Pierre, Saint Pierre and Miquelon",
+    "lat": 46.7667,
+    "lon": -56.2,
+    "timezone": "America/Miquelon"
+  },
+  "saint-helier,jersey": {
+    "name": "Saint Helier, Jersey",
+    "lat": 49.1833,
+    "lon": -2.1,
+    "timezone": "Etc/GMT"
+  },
+  "saint-paul,usa": {
+    "name": "Saint Paul, USA",
+    "lat": 44.9333,
+    "lon": -93.0833,
+    "timezone": "US/Central"
+  },
+  "saint-petersburg,russia": {
+    "name": "Saint-Petersburg, Russia",
+    "lat": 59.9343,
+    "lon": 30.3351,
+    "timezone": "Europe/Moscow"
+  },
+  "saint-pierre,saint pierre and miquelon": {
+    "name": "Saint Pierre, Saint Pierre and Miquelon",
+    "lat": 46.7667,
+    "lon": -56.2,
+    "timezone": "America/Miquelon"
+  },
+  "saipan,northern mariana islands": {
+    "name": "Saipan, Northern Mariana Islands",
+    "lat": 15.2,
+    "lon": 145.75,
+    "timezone": "Pacific/Saipan"
+  },
+  "salem,usa": {
+    "name": "Salem, USA",
+    "lat": 44.9167,
+    "lon": -123.0167,
+    "timezone": "US/Pacific"
+  },
+  "salt lake city,usa": {
+    "name": "Salt Lake City, USA",
+    "lat": 40.75,
+    "lon": -111.8833,
+    "timezone": "US/Mountain"
+  },
+  "salt-lake-city,usa": {
+    "name": "Salt Lake City, USA",
+    "lat": 40.75,
+    "lon": -111.8833,
+    "timezone": "US/Mountain"
+  },
+  "san diego,usa": {
+    "name": "San Diego, USA",
+    "lat": 32.7,
+    "lon": -117.15,
+    "timezone": "US/Pacific"
+  },
+  "san francisco,usa": {
+    "name": "San Francisco, USA",
+    "lat": 37.7667,
+    "lon": -122.4167,
+    "timezone": "US/Pacific"
+  },
+  "san jose,costa rica": {
+    "name": "San Jose, Costa Rica",
+    "lat": 9.9167,
+    "lon": -84.0333,
+    "timezone": "America/Costa_Rica"
+  },
+  "san juan,puerto rico": {
+    "name": "San Juan, Puerto Rico",
+    "lat": 18.4667,
+    "lon": -66.1167,
+    "timezone": "America/Puerto_Rico"
+  },
+  "san marino,san marino": {
+    "name": "San Marino, San Marino",
+    "lat": 43.9167,
+    "lon": 12.5,
+    "timezone": "Europe/San_Marino"
+  },
+  "san salvador,el salvador": {
+    "name": "San Salvador, El Salvador",
+    "lat": 13.6667,
+    "lon": -89.1667,
+    "timezone": "America/El_Salvador"
+  },
+  "san-diego,usa": {
+    "name": "San Diego, USA",
+    "lat": 32.7,
+    "lon": -117.15,
+    "timezone": "US/Pacific"
+  },
+  "san-francisco,usa": {
+    "name": "San Francisco, USA",
+    "lat": 37.7667,
+    "lon": -122.4167,
+    "timezone": "US/Pacific"
+  },
+  "san-jose,costa rica": {
+    "name": "San Jose, Costa Rica",
+    "lat": 9.9167,
+    "lon": -84.0333,
+    "timezone": "America/Costa_Rica"
+  },
+  "san-juan,puerto rico": {
+    "name": "San Juan, Puerto Rico",
+    "lat": 18.4667,
+    "lon": -66.1167,
+    "timezone": "America/Puerto_Rico"
+  },
+  "san-marino,san marino": {
+    "name": "San Marino, San Marino",
+    "lat": 43.9167,
+    "lon": 12.5,
+    "timezone": "Europe/San_Marino"
+  },
+  "san-salvador,el salvador": {
+    "name": "San Salvador, El Salvador",
+    "lat": 13.6667,
+    "lon": -89.1667,
+    "timezone": "America/El_Salvador"
+  },
+  "sana'a,yemen": {
+    "name": "Sana'a, Yemen",
+    "lat": 15.3333,
+    "lon": -44.2,
+    "timezone": "Asia/Aden"
+  },
+  "sana,yemen": {
+    "name": "Sana, Yemen",
+    "lat": 15.3333,
+    "lon": -44.2,
+    "timezone": "Asia/Aden"
+  },
+  "santa fe,usa": {
+    "name": "Santa Fe, USA",
+    "lat": 35.6667,
+    "lon": -105.95,
+    "timezone": "US/Mountain"
+  },
+  "santa-fe,usa": {
+    "name": "Santa Fe, USA",
+    "lat": 35.6667,
+    "lon": -105.95,
+    "timezone": "US/Mountain"
+  },
+  "santiago,chile": {
+    "name": "Santiago, Chile",
+    "lat": -33.4,
+    "lon": -70.6667,
+    "timezone": "America/Santiago"
+  },
+  "santo domingo,dominica republic": {
+    "name": "Santo Domingo, Dominica Republic",
+    "lat": 18.5,
+    "lon": -69.9833,
+    "timezone": "America/Santo_Domingo"
+  },
+  "santo-domingo,dominica republic": {
+    "name": "Santo Domingo, Dominica Republic",
+    "lat": 18.5,
+    "lon": -69.9833,
+    "timezone": "America/Santo_Domingo"
+  },
+  "sao tome,sao tome and principe": {
+    "name": "Sao Tome, Sao Tome and Principe",
+    "lat": 0.1667,
+    "lon": 6.65,
+    "timezone": "Africa/Sao_Tome"
+  },
+  "sao-tome,sao tome and principe": {
+    "name": "Sao Tome, Sao Tome and Principe",
+    "lat": 0.1667,
+    "lon": 6.65,
+    "timezone": "Africa/Sao_Tome"
+  },
+  "sarajevo,bosnia and herzegovina": {
+    "name": "Sarajevo, Bosnia and Herzegovina",
+    "lat": 43.8667,
+    "lon": 18.4333,
+    "timezone": "Europe/Sarajevo"
+  },
+  "saskatoon,canada": {
+    "name": "Saskatoon, Canada",
+    "lat": 52.1333,
+    "lon": -106.6667,
+    "timezone": "America/Regina"
+  },
+  "seattle,usa": {
+    "name": "Seattle, USA",
+    "lat": 47.6,
+    "lon": -122.3167,
+    "timezone": "US/Pacific"
+  },
+  "seoul,republic of korea": {
+    "name": "Seoul, Republic of Korea",
+    "lat": 37.5167,
+    "lon": 126.9667,
+    "timezone": "Asia/Seoul"
+  },
+  "seoul,south korea": {
+    "name": "Seoul, Republic of Korea",
+    "lat": 37.5167,
+    "lon": 126.9667,
+    "timezone": "Asia/Seoul"
+  },
+  "sheffield,england": {
+    "name": "Sheffield, England",
+    "lat": 53.3833,
+    "lon": -1.4667,
+    "timezone": "Europe/London"
+  },
+  "sheffield,united kingdom": {
+    "name": "Sheffield, England",
+    "lat": 53.3833,
+    "lon": -1.4667,
+    "timezone": "Europe/London"
+  },
+  "singapore,republic of singapore": {
+    "name": "Singapore, Republic of Singapore",
+    "lat": 1.3,
+    "lon": 103.8,
+    "timezone": "Asia/Singapore"
+  },
+  "sioux falls,usa": {
+    "name": "Sioux Falls, USA",
+    "lat": 43.5333,
+    "lon": -96.7167,
+    "timezone": "US/Central"
+  },
+  "sioux-falls,usa": {
+    "name": "Sioux Falls, USA",
+    "lat": 43.5333,
+    "lon": -96.7167,
+    "timezone": "US/Central"
+  },
+  "skopje,the former yugoslav republic of macedonia": {
+    "name": "Skopje, The Former Yugoslav Republic of Macedonia",
+    "lat": 42.0167,
+    "lon": 21.4333,
+    "timezone": "Europe/Skopje"
+  },
+  "sofia,bulgaria": {
+    "name": "Sofia, Bulgaria",
+    "lat": 42.6977,
+    "lon": 23.3219,
+    "timezone": "Europe/Sofia"
+  },
+  "southampton,england": {
+    "name": "Southampton, England",
+    "lat": 50.9167,
+    "lon": -1.4167,
+    "timezone": "Europe/London"
+  },
+  "southampton,united kingdom": {
+    "name": "Southampton, England",
+    "lat": 50.9167,
+    "lon": -1.4167,
+    "timezone": "Europe/London"
+  },
+  "springfield,usa": {
+    "name": "Springfield, USA",
+    "lat": 39.7833,
+    "lon": -89.65,
+    "timezone": "US/Central"
+  },
+  "sri jayawardenapura kotte,sri lanka": {
+    "name": "Sri Jayawardenapura Kotte, Sri Lanka",
+    "lat": 6.9,
+    "lon": 79.8833,
+    "timezone": "Asia/Colombo"
+  },
+  "sri-jayawardenapura-kotte,sri lanka": {
+    "name": "Sri Jayawardenapura Kotte, Sri Lanka",
+    "lat": 6.9,
+    "lon": 79.8833,
+    "timezone": "Asia/Colombo"
+  },
+  "st. george's,grenada": {
+    "name": "St. George's, Grenada",
+    "lat": 32.3667,
+    "lon": -64.6667,
+    "timezone": "America/Grenada"
+  },
+  "st. john's,antigua and barbuda": {
+    "name": "St. John's, Antigua and Barbuda",
+    "lat": 17.1167,
+    "lon": -61.85,
+    "timezone": "America/Antigua"
+  },
+  "st. john's,canada": {
+    "name": "St. John's, Canada",
+    "lat": 47.55,
+    "lon": -52.7,
+    "timezone": "America/Halifax"
+  },
+  "st. peter port,guernsey": {
+    "name": "St. Peter Port, Guernsey",
+    "lat": 49.4333,
+    "lon": -2.55,
+    "timezone": "Europe/Guernsey"
+  },
+  "st.-george's,grenada": {
+    "name": "St. George's, Grenada",
+    "lat": 32.3667,
+    "lon": -64.6667,
+    "timezone": "America/Grenada"
+  },
+  "st.-john's,antigua and barbuda": {
+    "name": "St. John's, Antigua and Barbuda",
+    "lat": 17.1167,
+    "lon": -61.85,
+    "timezone": "America/Antigua"
+  },
+  "st.-john's,canada": {
+    "name": "St. John's, Canada",
+    "lat": 47.55,
+    "lon": -52.7,
+    "timezone": "America/Halifax"
+  },
+  "st.-peter-port,guernsey": {
+    "name": "St. Peter Port, Guernsey",
+    "lat": 49.4333,
+    "lon": -2.55,
+    "timezone": "Europe/Guernsey"
+  },
+  "stanley,falkland islands": {
+    "name": "Stanley, Falkland Islands",
+    "lat": -51.6667,
+    "lon": -59.85,
+    "timezone": "Atlantic/Stanley"
+  },
+  "stockholm,sweden": {
+    "name": "Stockholm, Sweden",
+    "lat": 59.3333,
+    "lon": 18.0833,
+    "timezone": "Europe/Stockholm"
+  },
+  "sucre,bolivia": {
+    "name": "Sucre, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "sucre,bolivia (plurinational state of)": {
+    "name": "Sucre, Bolivia",
+    "lat": -16.3333,
+    "lon": -68.1667,
+    "timezone": "America/La_Paz"
+  },
+  "suva,fiji": {
+    "name": "Suva, Fiji",
+    "lat": -18.1,
+    "lon": 178.5,
+    "timezone": "Pacific/Fiji"
+  },
+  "swansea,england": {
+    "name": "Swansea, England",
+    "lat": 51.6167,
+    "lon": -3.95,
+    "timezone": "Europe/London"
+  },
+  "swansea,united kingdom": {
+    "name": "Swansea, England",
+    "lat": 51.6167,
+    "lon": -3.95,
+    "timezone": "Europe/London"
+  },
+  "swindon,england": {
+    "name": "Swindon, England",
+    "lat": 51.5667,
+    "lon": -1.7833,
+    "timezone": "Europe/London"
+  },
+  "swindon,united kingdom": {
+    "name": "Swindon, England",
+    "lat": 51.5667,
+    "lon": -1.7833,
+    "timezone": "Europe/London"
+  },
+  "sydney,australia": {
+    "name": "Sydney, Australia",
+    "lat": -33.8833,
+    "lon": 151.2167,
+    "timezone": "Australia/Sydney"
+  },
+  "t'bilisi,georgia": {
+    "name": "T'bilisi, Georgia",
+    "lat": 41.7167,
+    "lon": 44.8333,
+    "timezone": "Asia/Tbilisi"
+  },
+  "taipei,republic of china (taiwan)": {
+    "name": "Taipei, Republic of China (Taiwan)",
+    "lat": 25.0333,
+    "lon": 121.6333,
+    "timezone": "Asia/Taipei"
+  },
+  "taipei,taiwan": {
+    "name": "Taipei, Republic of China (Taiwan)",
+    "lat": 25.0333,
+    "lon": 121.6333,
+    "timezone": "Asia/Taipei"
+  },
+  "tallahassee,usa": {
+    "name": "Tallahassee, USA",
+    "lat": 30.45,
+    "lon": -84.2667,
+    "timezone": "US/Eastern"
+  },
+  "tallinn,estonia": {
+    "name": "Tallinn, Estonia",
+    "lat": 59.3667,
+    "lon": 24.8,
+    "timezone": "Europe/Tallinn"
+  },
+  "tarawa,kiribati": {
+    "name": "Tarawa, Kiribati",
+    "lat": 1.5,
+    "lon": 173,
+    "timezone": "Pacific/Tarawa"
+  },
+  "tashkent,uzbekistan": {
+    "name": "Tashkent, Uzbekistan",
+    "lat": 41.3333,
+    "lon": 69.1667,
+    "timezone": "Asia/Tashkent"
+  },
+  "tbilisi,georgia": {
+    "name": "Tbilisi, Georgia",
+    "lat": 41.7167,
+    "lon": 44.8333,
+    "timezone": "Asia/Tbilisi"
+  },
+  "tegucigalpa,honduras": {
+    "name": "Tegucigalpa, Honduras",
+    "lat": 14.0833,
+    "lon": -87.2333,
+    "timezone": "America/Tegucigalpa"
+  },
+  "tehran,iran": {
+    "name": "Tehran, Iran",
+    "lat": 35.7333,
+    "lon": 51.5,
+    "timezone": "Asia/Tehran"
+  },
+  "tehran,iran, islamic republic of": {
+    "name": "Tehran, Iran",
+    "lat": 35.7333,
+    "lon": 51.5,
+    "timezone": "Asia/Tehran"
+  },
+  "thimphu,bhutan": {
+    "name": "Thimphu, Bhutan",
+    "lat": 27.5167,
+    "lon": 89.75,
+    "timezone": "Asia/Thimphu"
+  },
+  "tirana,albania": {
+    "name": "Tirana, Albania",
+    "lat": 41.3,
+    "lon": 19.8167,
+    "timezone": "Europe/Tirane"
+  },
+  "tirane,albania": {
+    "name": "Tirane, Albania",
+    "lat": 41.3,
+    "lon": 19.8167,
+    "timezone": "Europe/Tirane"
+  },
+  "tokyo,japan": {
+    "name": "Tokyo, Japan",
+    "lat": 35.6833,
+    "lon": 139.6833,
+    "timezone": "Asia/Tokyo"
+  },
+  "toledo,usa": {
+    "name": "Toledo, USA",
+    "lat": 41.65,
+    "lon": -83.5667,
+    "timezone": "US/Eastern"
+  },
+  "topeka,usa": {
+    "name": "Topeka, USA",
+    "lat": 39.05,
+    "lon": -95.6833,
+    "timezone": "US/Central"
+  },
+  "toronto,canada": {
+    "name": "Toronto, Canada",
+    "lat": 43.65,
+    "lon": -79.3667,
+    "timezone": "America/Toronto"
+  },
+  "torshavn,faroe islands": {
+    "name": "Torshavn, Faroe Islands",
+    "lat": 62.0833,
+    "lon": -6.9333,
+    "timezone": "Atlantic/Faroe"
+  },
+  "trenton,usa": {
+    "name": "Trenton, USA",
+    "lat": 40.2167,
+    "lon": -74.75,
+    "timezone": "US/Eastern"
+  },
+  "tripoli,libyan arab jamahiriya": {
+    "name": "Tripoli, Libyan Arab Jamahiriya",
+    "lat": 32.8167,
+    "lon": 13.1167,
+    "timezone": "Africa/Tripoli"
+  },
+  "tunis,tunisia": {
+    "name": "Tunis, Tunisia",
+    "lat": 36.8333,
+    "lon": 10.1833,
+    "timezone": "Africa/Tunis"
+  },
+  "ulaanbaatar,mongolia": {
+    "name": "Ulaanbaatar, Mongolia",
+    "lat": 47.9167,
+    "lon": 106.9167,
+    "timezone": "Asia/Ulaanbaatar"
+  },
+  "ulan bator,mongolia": {
+    "name": "Ulan Bator, Mongolia",
+    "lat": 47.9167,
+    "lon": 106.9167,
+    "timezone": "Asia/Ulaanbaatar"
+  },
+  "ulan-bator,mongolia": {
+    "name": "Ulan Bator, Mongolia",
+    "lat": 47.9167,
+    "lon": 106.9167,
+    "timezone": "Asia/Ulaanbaatar"
+  },
+  "vaduz,liechtenstein": {
+    "name": "Vaduz, Liechtenstein",
+    "lat": 47.1333,
+    "lon": 9.5167,
+    "timezone": "Europe/Vaduz"
+  },
+  "valletta,malta": {
+    "name": "Valletta, Malta",
+    "lat": 35.9,
+    "lon": 14.5167,
+    "timezone": "Europe/Malta"
+  },
+  "vancouver,canada": {
+    "name": "Vancouver, Canada",
+    "lat": 49.25,
+    "lon": -123.1,
+    "timezone": "America/Vancouver"
+  },
+  "varna,bulgaria": {
+    "name": "Varna, Bulgaria",
+    "lat": 43.2141,
+    "lon": 27.9147,
+    "timezone": "Europe/Sofia"
+  },
+  "vienna,austria": {
+    "name": "Vienna, Austria",
+    "lat": 48.2,
+    "lon": 16.3667,
+    "timezone": "Europe/Vienna"
+  },
+  "vientiane,lao people's democratic republic": {
+    "name": "Vientiane, Lao People's Democratic Republic",
+    "lat": 17.9667,
+    "lon": 102.6,
+    "timezone": "Asia/Vientiane"
+  },
+  "vientiane,laos": {
+    "name": "Vientiane, Lao People's Democratic Republic",
+    "lat": 17.9667,
+    "lon": 102.6,
+    "timezone": "Asia/Vientiane"
+  },
+  "vilnius,lithuania": {
+    "name": "Vilnius, Lithuania",
+    "lat": 54.6333,
+    "lon": 25.3167,
+    "timezone": "Europe/Vilnius"
+  },
+  "virginia beach,usa": {
+    "name": "Virginia Beach, USA",
+    "lat": 36.8333,
+    "lon": -76.0833,
+    "timezone": "US/Eastern"
+  },
+  "virginia-beach,usa": {
+    "name": "Virginia Beach, USA",
+    "lat": 36.8333,
+    "lon": -76.0833,
+    "timezone": "US/Eastern"
+  },
+  "w. indies,antigua and barbuda": {
+    "name": "W. Indies, Antigua and Barbuda",
+    "lat": 17.3333,
+    "lon": -61.8,
+    "timezone": "America/Antigua"
+  },
+  "w.-indies,antigua and barbuda": {
+    "name": "W. Indies, Antigua and Barbuda",
+    "lat": 17.3333,
+    "lon": -61.8,
+    "timezone": "America/Antigua"
+  },
+  "warsaw,poland": {
+    "name": "Warsaw, Poland",
+    "lat": 52.2167,
+    "lon": 21,
+    "timezone": "Europe/Warsaw"
+  },
+  "washington dc,usa": {
+    "name": "Washington DC, USA",
+    "lat": 40.5167,
+    "lon": -77.0333,
+    "timezone": "US/Eastern"
+  },
+  "washington-dc,usa": {
+    "name": "Washington DC, USA",
+    "lat": 40.5167,
+    "lon": -77.0333,
+    "timezone": "US/Eastern"
+  },
+  "wellington,new zealand": {
+    "name": "Wellington, New Zealand",
+    "lat": -41.3167,
+    "lon": 174.7667,
+    "timezone": "Pacific/Auckland"
+  },
+  "whitehorse,canada": {
+    "name": "Whitehorse, Canada",
+    "lat": 60.7167,
+    "lon": -135.05,
+    "timezone": "America/Whitehorse"
+  },
+  "wichita,usa": {
+    "name": "Wichita, USA",
+    "lat": 37.6833,
+    "lon": -97.3333,
+    "timezone": "US/Central"
+  },
+  "willemstad,netherlands antilles": {
+    "name": "Willemstad, Netherlands Antilles",
+    "lat": 12.0833,
+    "lon": -69,
+    "timezone": "America/Curacao"
+  },
+  "wilmington,usa": {
+    "name": "Wilmington, USA",
+    "lat": 39.7333,
+    "lon": -75.5333,
+    "timezone": "US/Eastern"
+  },
+  "windhoek,namibia": {
+    "name": "Windhoek, Namibia",
+    "lat": -22.5833,
+    "lon": 17.0667,
+    "timezone": "Africa/Windhoek"
+  },
+  "winnipeg,canada": {
+    "name": "Winnipeg, Canada",
+    "lat": 49.8833,
+    "lon": -97.1333,
+    "timezone": "America/Winnipeg"
+  },
+  "wolverhampton,england": {
+    "name": "Wolverhampton, England",
+    "lat": 52.5833,
+    "lon": -2.1333,
+    "timezone": "Europe/London"
+  },
+  "wolverhampton,united kingdom": {
+    "name": "Wolverhampton, England",
+    "lat": 52.5833,
+    "lon": -2.1333,
+    "timezone": "Europe/London"
+  },
+  "yamoussoukro,cote d'ivoire": {
+    "name": "Yamoussoukro, Cote d'Ivoire",
+    "lat": 6.8167,
+    "lon": -5.2833,
+    "timezone": "Africa/Abidjan"
+  },
+  "yangon,myanmar": {
+    "name": "Yangon, Myanmar",
+    "lat": 16.75,
+    "lon": 96.3333,
+    "timezone": "Asia/Rangoon"
+  },
+  "yaounde,cameroon": {
+    "name": "Yaounde, Cameroon",
+    "lat": 3.8333,
+    "lon": 11.5833,
+    "timezone": "Africa/Douala"
+  },
+  "yaren,nauru": {
+    "name": "Yaren, Nauru",
+    "lat": -0.5333,
+    "lon": 166.9167,
+    "timezone": "Pacific/Nauru"
+  },
+  "yellowknife,canada": {
+    "name": "Yellowknife, Canada",
+    "lat": 62.45,
+    "lon": -114.3667,
+    "timezone": "America/Yellowknife"
+  },
+  "yerevan,armenia": {
+    "name": "Yerevan, Armenia",
+    "lat": 40.1667,
+    "lon": 44.5167,
+    "timezone": "Asia/Yerevan"
+  },
+  "zagreb,croatia": {
+    "name": "Zagreb, Croatia",
+    "lat": 45.8333,
+    "lon": 15.9667,
+    "timezone": "Europe/Zagreb"
+  },
+  "zurich,switzerland": {
+    "name": "Zurich, Switzerland",
+    "lat": 47.3667,
+    "lon": 8.55,
+    "timezone": "Europe/Zurich"
+  }
+}

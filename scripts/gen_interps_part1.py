@@ -1,0 +1,150 @@
+"""Part 1: planet:sign (108 entries)"""
+import json, pathlib
+
+DATA = []
+
+PLANET_SIGN = {
+    "sun": {
+        "aries": ("Sun in Aries — exaltation. Vitality, courage, leadership. Strong solar identity.", "Солнце в Овне — экзальтация. Высокая витальность, смелость, лидерство. Сильная солярная идентичность."),
+        "taurus": ("Sun in Taurus — Venus-ruled earth. Stability, material comfort, steady ego.", "Солнце в Тельце — знак Венеры. Стабильность, материальный комфорт, устойчивое эго."),
+        "gemini": ("Sun in Gemini — Mercury-ruled air. Intellect, communication, curiosity define the self.", "Солнце в Близнецах — знак Меркурия. Интеллект, общение, любознательность в основе личности."),
+        "cancer": ("Sun in Cancer — Moon-ruled water. Emotional sensitivity, home, mother define identity.", "Солнце в Раке — знак Луны. Эмоциональность, дом, связь с матерью определяют личность."),
+        "leo": ("Sun in Leo — own sign. Natural authority, charisma, creative self-expression and pride.", "Солнце во Льве — собственный знак. Природный авторитет, харизма, творческое самовыражение, гордость."),
+        "virgo": ("Sun in Virgo — Mercury earth. Analysis, service, precision and competence define the self.", "Солнце в Деве — земля Меркурия. Анализ, служение, точность, компетентность определяют личность."),
+        "libra": ("Sun in Libra — debilitation. Self-assertion weakened; diplomacy and fairness can shine instead.", "Солнце в Весах — дебилитация. Самоутверждение ослаблено; дипломатия и справедливость могут расцвести."),
+        "scorpio": ("Sun in Scorpio — Mars water. Depth, intensity, research, hidden power and transformation.", "Солнце в Скорпионе — вода Марса. Глубина, интенсивность, исследование, скрытая сила и трансформация."),
+        "sagittarius": ("Sun in Sagittarius — Jupiter fire. Philosophy, dharma, wisdom and moral authority define the self.", "Солнце в Стрельце — огонь Юпитера. Философия, дхарма, мудрость и нравственный авторитет."),
+        "capricorn": ("Sun in Capricorn — Saturn earth. Disciplined ambition, authority through effort, public recognition.", "Солнце в Козероге — земля Сатурна. Дисциплинированное честолюбие, авторитет через труд, общественное признание."),
+        "aquarius": ("Sun in Aquarius — Saturn air. Authority through social vision, innovation and idealism.", "Солнце в Водолее — воздух Сатурна. Авторитет через социальное видение, инновации и идеализм."),
+        "pisces": ("Sun in Pisces — Jupiter water. Compassionate, spiritual, imaginative; identity can be diffuse.", "Солнце в Рыбах — вода Юпитера. Сострадательная, духовная, образная личность; идентичность размыта."),
+    },
+    "moon": {
+        "aries": ("Moon in Aries — quick emotional responses, impulsive, courageous mind, restless energy.", "Луна в Овне — быстрые эмоциональные реакции, импульсивный, смелый ум, беспокойная энергия."),
+        "taurus": ("Moon in Taurus — exaltation. Emotional stability, sensory richness, calm patient mind.", "Луна в Тельце — экзальтация. Эмоциональная стабильность, чувственность, спокойный терпеливый ум."),
+        "gemini": ("Moon in Gemini — mental agility, curiosity, verbal skill; restless and changeable emotions.", "Луна в Близнецах — умственная гибкость, любопытство, речевые способности; беспокойные переменчивые эмоции."),
+        "cancer": ("Moon in Cancer — own sign. Rich emotional life, deep memory, empathy, nurturing bonds.", "Луна в Раке — собственный знак. Богатая эмоциональная жизнь, глубокая память, эмпатия, заботливые связи."),
+        "leo": ("Moon in Leo — warm generous heart, seeks admiration, dramatic emotional expression.", "Луна во Льве — тёплое щедрое сердце, стремится к признанию, драматичное выражение эмоций."),
+        "virgo": ("Moon in Virgo — analytical, worrying mind; processes emotions through service and precision.", "Луна в Деве — аналитический, склонный к беспокойству ум; эмоции перерабатываются через служение."),
+        "libra": ("Moon in Libra — seeks harmony and fairness; emotional wellbeing depends on social balance.", "Луна в Весах — стремится к гармонии и справедливости; эмоциональное благополучие зависит от равновесия."),
+        "scorpio": ("Moon in Scorpio — debilitation. Intense, secretive, emotionally turbulent; deep feelings.", "Луна в Скорпионе — дебилитация. Интенсивная, скрытная, эмоционально бурная; глубокие чувства."),
+        "sagittarius": ("Moon in Sagittarius — optimistic, philosophical mind; drawn to wisdom, travel, higher ideals.", "Луна в Стрельце — оптимистичный, философский ум; тянется к мудрости, путешествиям, высоким идеалам."),
+        "capricorn": ("Moon in Capricorn — restrained, practical emotions; reliable, persevering, expresses little.", "Луна в Козероге — сдержанные, практичные эмоции; надёжный, настойчивый, мало выражает чувства."),
+        "aquarius": ("Moon in Aquarius — emotionally independent, socially oriented, drawn to collective ideals.", "Луна в Водолее — эмоционально независимый, социально ориентированный, тянется к коллективным идеалам."),
+        "pisces": ("Moon in Pisces — deep empathy, psychic sensitivity, imagination; struggles with boundaries.", "Луна в Рыбах — глубокая эмпатия, психическая чувствительность, воображение; трудно с границами."),
+    },
+    "mars": {
+        "aries": ("Mars in Aries — own sign. Boldness, directness, competitive drive, physical courage.", "Марс в Овне — собственный знак. Смелость, прямота, соревновательность, физическое мужество."),
+        "taurus": ("Mars in Taurus — steady, persistent effort toward material goals; can be stubborn.", "Марс в Тельце — устойчивые, настойчивые усилия ради материальных целей; может быть упрямым."),
+        "gemini": ("Mars in Gemini — energy in communication and debate; sharp intellect, multiple projects.", "Марс в Близнецах — энергия в общении и полемике; острый интеллект, множество проектов."),
+        "cancer": ("Mars in Cancer — debilitation. Misdirected energy, high emotional reactivity, indirect assertion.", "Марс в Раке — дебилитация. Рассеянная энергия, высокая эмоциональная реактивность, косвенная агрессия."),
+        "leo": ("Mars in Leo — energy into creative expression and authority; confident, generous action.", "Марс во Льве — энергия в творчество и власть; уверенное, великодушное действие."),
+        "virgo": ("Mars in Virgo — energy for precision, service, health, technical work; meticulous effort.", "Марс в Деве — энергия на точность, служение, здоровье, техническую работу; тщательные усилия."),
+        "libra": ("Mars in Libra — energy into partnerships and negotiation; fights for justice; can be indecisive.", "Марс в Весах — энергия в партнёрства и переговоры; борется за справедливость; может быть нерешительным."),
+        "scorpio": ("Mars in Scorpio — own sign. Intense, probing, relentless willpower, investigative mastery.", "Марс в Скорпионе — собственный знак. Интенсивная, проникающая, неустанная воля, исследовательское мастерство."),
+        "sagittarius": ("Mars in Sagittarius — acts on principles; adventure, dharma, moral conviction drive action.", "Марс в Стрельце — действует по принципам; авантюризм, дхарма, нравственные убеждения движут действием."),
+        "capricorn": ("Mars in Capricorn — exaltation. Disciplined, strategic, patient energy; worldly achievement.", "Марс в Козероге — экзальтация. Дисциплинированная, стратегическая, терпеливая энергия; мирские достижения."),
+        "aquarius": ("Mars in Aquarius — social reform, innovation, collective causes energize the will.", "Марс в Водолее — социальные реформы, инновации, коллективные дела заряжают волю."),
+        "pisces": ("Mars in Pisces — diffuse or spiritually motivated energy; compassionate courage.", "Марс в Рыбах — рассеянная или духовно мотивированная энергия; сострадательное мужество."),
+    },
+    "mercury": {
+        "aries": ("Mercury in Aries — quick, direct, assertive intellect; bold communication, rapid decisions.", "Меркурий в Овне — быстрый, прямой, напористый интеллект; смелое общение, быстрые решения."),
+        "taurus": ("Mercury in Taurus — deliberate, practical, thorough mind; communicates with reliability.", "Меркурий в Тельце — обдуманный, практичный, тщательный ум; общается надёжно."),
+        "gemini": ("Mercury in Gemini — own sign. Exceptional verbal intelligence, curiosity, adaptability.", "Меркурий в Близнецах — собственный знак. Исключительный вербальный интеллект, любопытство, гибкость."),
+        "cancer": ("Mercury in Cancer — emotionally influenced mind; intuitive, memory-rich, empathic communicator.", "Меркурий в Раке — ум под влиянием эмоций; интуитивный, насыщенный памятью, эмпатичный коммуникатор."),
+        "leo": ("Mercury in Leo — proud, expressive, authoritative intellect; creative and confident communication.", "Меркурий во Льве — гордый, выразительный, авторитетный интеллект; творческое и уверенное общение."),
+        "virgo": ("Mercury in Virgo — own sign and exaltation. Analytical brilliance, precision, organizational mastery.", "Меркурий в Деве — собственный знак и экзальтация. Аналитический блеск, точность, организационное мастерство."),
+        "libra": ("Mercury in Libra — balanced, diplomatic, aesthetically inclined mind; excels at mediation.", "Меркурий в Весах — уравновешенный, дипломатичный, эстетически склонный ум; мастер переговоров."),
+        "scorpio": ("Mercury in Scorpio — penetrating, investigative, secretive mind; research and psychology.", "Меркурий в Скорпионе — проникающий, исследовательский, скрытный ум; исследования и психология."),
+        "sagittarius": ("Mercury in Sagittarius — debilitation. Broad generalization over precision; teaching can be strong.", "Меркурий в Стрельце — дебилитация. Склонность к обобщениям; преподавание и этика могут быть сильны."),
+        "capricorn": ("Mercury in Capricorn — pragmatic, structured intellect; disciplined, goal-oriented communication.", "Меркурий в Козероге — прагматичный, структурированный интеллект; дисциплинированное, целенаправленное общение."),
+        "aquarius": ("Mercury in Aquarius — innovative, unconventional mind; thinks in systems, original ideas.", "Меркурий в Водолее — инновационный, нестандартный ум; мыслит системами, оригинальные идеи."),
+        "pisces": ("Mercury in Pisces — debilitation. Imaginative, intuitive, poetic; imprecise in logic.", "Меркурий в Рыбах — дебилитация. Образный, интуитивный, поэтический; неточен в логике."),
+    },
+    "jupiter": {
+        "aries": ("Jupiter in Aries — wisdom through pioneering action; bold ethical stance, confident teaching.", "Юпитер в Овне — мудрость через первопроходчество; смелая этическая позиция, уверенное преподавание."),
+        "taurus": ("Jupiter in Taurus — abundance, aesthetic wisdom; material blessings and philosophical comfort.", "Юпитер в Тельце — изобилие, эстетическая мудрость; материальные блага и философский комфорт."),
+        "gemini": ("Jupiter in Gemini — expands intellect and communication; versatile knowledge, many subjects.", "Юпитер в Близнецах — расширяет интеллект и общение; разностороннее знание, многие темы."),
+        "cancer": ("Jupiter in Cancer — exaltation. Exceptional wisdom, compassion, abundance, spiritual depth.", "Юпитер в Раке — экзальтация. Исключительная мудрость, сострадание, изобилие, духовная глубина."),
+        "leo": ("Jupiter in Leo — grand vision, noble generosity; leadership and teaching with royal charisma.", "Юпитер во Льве — грандиозное видение, благородная щедрость; лидерство и преподавание с королевской харизмой."),
+        "virgo": ("Jupiter in Virgo — wisdom through service and analysis; dharma via precision and practical help.", "Юпитер в Деве — мудрость через служение и анализ; дхарма через точность и практическую помощь."),
+        "libra": ("Jupiter in Libra — expands fairness, diplomacy; dharma through balanced partnership and law.", "Юпитер в Весах — расширяет справедливость, дипломатию; дхарма через сбалансированное партнёрство и закон."),
+        "scorpio": ("Jupiter in Scorpio — wisdom through depth and transformation; occult knowledge, research.", "Юпитер в Скорпионе — мудрость через глубину и трансформацию; оккультное знание, исследование."),
+        "sagittarius": ("Jupiter in Sagittarius — own sign. Natural wisdom, philosophical depth, teaching, dharmic conviction.", "Юпитер в Стрельце — собственный знак. Природная мудрость, философская глубина, преподавание, дхармическое убеждение."),
+        "capricorn": ("Jupiter in Capricorn — debilitation. Pragmatic wisdom constrained by materialism or institution.", "Юпитер в Козероге — дебилитация. Прагматичная мудрость, ограниченная материализмом или институциями."),
+        "aquarius": ("Jupiter in Aquarius — expands social idealism and humanitarian vision; collective wisdom.", "Юпитер в Водолее — расширяет социальный идеализм и гуманитарное видение; коллективная мудрость."),
+        "pisces": ("Jupiter in Pisces — own sign. Deep spirituality, compassion, mystical connection, expansive empathy.", "Юпитер в Рыбах — собственный знак. Глубокая духовность, сострадание, мистическая связь, безграничная эмпатия."),
+    },
+    "venus": {
+        "aries": ("Venus in Aries — passionate, bold in love; desire quickly kindled and quickly spent.", "Венера в Овне — страстная, смелая в любви; желание быстро разгорается и быстро угасает."),
+        "taurus": ("Venus in Taurus — own sign. Sensual pleasure, aesthetic refinement, loyal stable affection.", "Венера в Тельце — собственный знак. Чувственное удовольствие, эстетическое совершенство, верная стабильная привязанность."),
+        "gemini": ("Venus in Gemini — charm, wit, intellectual attraction; love through conversation and variety.", "Венера в Близнецах — обаяние, остроумие, интеллектуальное притяжение; любовь через разговор и разнообразие."),
+        "cancer": ("Venus in Cancer — affectionate, home-loving; seeks emotional security in relationships.", "Венера в Раке — нежная, домолюбивая; ищет эмоциональную безопасность в отношениях."),
+        "leo": ("Venus in Leo — grand romantic expression, generous love, flair for dramatic beauty and luxury.", "Венера во Льве — грандиозное романтическое выражение, щедрая любовь, страсть к драматической красоте и роскоши."),
+        "virgo": ("Venus in Virgo — debilitation. Pleasure constrained by criticism; devoted service can emerge.", "Венера в Деве — дебилитация. Удовольствие сковано критикой; преданное служение может расцвести."),
+        "libra": ("Venus in Libra — own sign. Natural grace, diplomatic charm, refined taste, harmonious relationships.", "Венера в Весах — собственный знак. Природная грация, дипломатическое обаяние, утончённый вкус, гармоничные отношения."),
+        "scorpio": ("Venus in Scorpio — intense, passionate, sometimes obsessive attachments; deep intimacy.", "Венера в Скорпионе — интенсивные, страстные, порой навязчивые привязанности; глубокая близость."),
+        "sagittarius": ("Venus in Sagittarius — love through adventure and philosophy; values freedom and ideals.", "Венера в Стрельце — любовь через приключения и философию; ценит свободу и идеалы."),
+        "capricorn": ("Venus in Capricorn — practical, cautious in love; delays pleasure for duty, but reliable.", "Венера в Козероге — практичная, осторожная в любви; откладывает удовольствие ради долга, но надёжная."),
+        "aquarius": ("Venus in Aquarius — unconventional in love; values independence, friendship and ideals.", "Венера в Водолее — нестандартная в любви; ценит независимость, дружбу и идеалы."),
+        "pisces": ("Venus in Pisces — exaltation. Deep compassion, spiritual love, artistic sensitivity, selfless devotion.", "Венера в Рыбах — экзальтация. Глубокое сострадание, духовная любовь, художественная чувствительность, самоотверженная преданность."),
+    },
+    "saturn": {
+        "aries": ("Saturn in Aries — debilitation. Discipline clashes with impulse; delayed initiative, hard-won resilience.", "Сатурн в Овне — дебилитация. Дисциплина в конфликте с импульсивностью; задержанная инициатива, труднозаработанная стойкость."),
+        "taurus": ("Saturn in Taurus — disciplines material security; wealth through sustained patience.", "Сатурн в Тельце — дисциплинирует материальную безопасность; богатство через устойчивое терпение."),
+        "gemini": ("Saturn in Gemini — structures intellect; serious mind, careful precision, late developer in learning.", "Сатурн в Близнецах — структурирует интеллект; серьёзный ум, тщательная точность, позднее развитие в учёбе."),
+        "cancer": ("Saturn in Cancer — emotional restriction; burdens around home and mother; develops resilience.", "Сатурн в Раке — эмоциональное ограничение; бремя вокруг дома и матери; развивает стойкость."),
+        "leo": ("Saturn in Leo — constrained authority and self-expression; recognition delayed but earned.", "Сатурн во Льве — ограниченный авторитет и самовыражение; признание задержано, но заработано."),
+        "virgo": ("Saturn in Virgo — exceptional precision, analytical discipline, meticulous work ethic.", "Сатурн в Деве — исключительная точность, аналитическая дисциплина, тщательная трудовая этика."),
+        "libra": ("Saturn in Libra — exaltation. Just, enduring structures in relationships, law and society.", "Сатурн в Весах — экзальтация. Справедливые, долговечные структуры в отношениях, законе и обществе."),
+        "scorpio": ("Saturn in Scorpio — discipline in depth; endurance for intense transformation, research, occult.", "Сатурн в Скорпионе — дисциплина в глубине; стойкость к интенсивной трансформации, исследованиям, оккульту."),
+        "sagittarius": ("Saturn in Sagittarius — philosophical conviction through hardship; serious teacher, austere moralist.", "Сатурн в Стрельце — философское убеждение через трудности; серьёзный учитель, суровый моралист."),
+        "capricorn": ("Saturn in Capricorn — own sign. Natural discipline, organizational mastery, patient achievement.", "Сатурн в Козероге — собственный знак. Природная дисциплина, организационное мастерство, терпеливые достижения."),
+        "aquarius": ("Saturn in Aquarius — own sign. Social reform, innovation, collective responsibility and systems.", "Сатурн в Водолее — собственный знак. Социальные реформы, инновации, коллективная ответственность и системы."),
+        "pisces": ("Saturn in Pisces — spiritual austerity; wisdom through renunciation, isolation, and service.", "Сатурн в Рыбах — духовный аскетизм; мудрость через отречение, уединение и служение."),
+    },
+    "rahu": {
+        "aries": ("Rahu in Aries — amplified desire for independence and self-assertion; intense drive to pioneer.", "Раху в Овне — усиленное желание независимости и самоутверждения; интенсивное стремление к первопроходчеству."),
+        "taurus": ("Rahu in Taurus — amplified craving for material comfort and beauty; insatiable desire for security.", "Раху в Тельце — усиленная тяга к материальному комфорту и красоте; ненасытное желание безопасности."),
+        "gemini": ("Rahu in Gemini — amplified communication and information; obsessive networking and media.", "Раху в Близнецах — усиленное общение и информация; навязчивое стремление к сети и медиа."),
+        "cancer": ("Rahu in Cancer — amplified emotional needs; unusual relationship with home and mother.", "Раху в Раке — усиленные эмоциональные потребности; необычные отношения с домом и матерью."),
+        "leo": ("Rahu in Leo — amplified craving for recognition and authority; obsessive pursuit of status.", "Раху во Льве — усиленная жажда признания и власти; навязчивое стремление к статусу."),
+        "virgo": ("Rahu in Virgo — amplified analytical skill and service; obsessive health, work, technology focus.", "Раху в Деве — усиленный аналитический навык и служение; навязчивый фокус на здоровье, работе, технологиях."),
+        "libra": ("Rahu in Libra — amplified desire for partnership and social refinement; unusual alliances.", "Раху в Весах — усиленное желание партнёрства и социального совершенства; необычные союзы."),
+        "scorpio": ("Rahu in Scorpio — amplified intensity; obsession with hidden matters, occult and transformation.", "Раху в Скорпионе — усиленная интенсивность; одержимость скрытыми делами, оккультом и трансформацией."),
+        "sagittarius": ("Rahu in Sagittarius — amplified philosophical seeking; obsessive adoption of beliefs and foreign cultures.", "Раху в Стрельце — усиленное философское искание; навязчивое принятие убеждений и чужих культур."),
+        "capricorn": ("Rahu in Capricorn — amplified career ambition; rise through unconventional means or foreign settings.", "Раху в Козероге — усиленное карьерное честолюбие; подъём нестандартными путями или в иностранной среде."),
+        "aquarius": ("Rahu in Aquarius — amplified social innovation; drawn to mass movements and technological disruption.", "Раху в Водолее — усиленная социальная инновация; тяготение к массовым движениям и технологическому разрыву."),
+        "pisces": ("Rahu in Pisces — amplified spiritual seeking; illusion and inspiration, foreign mysticism.", "Раху в Рыбах — усиленное духовное искание; иллюзия и вдохновение, иностранная мистика."),
+    },
+    "ketu": {
+        "aries": ("Ketu in Aries — past-life mastery of courage; detachment from personal ambition this life.", "Кету в Овне — мастерство смелости из прошлых жизней; отстранённость от личных амбиций в этой жизни."),
+        "taurus": ("Ketu in Taurus — detachment from material accumulation; internalized past-life wealth.", "Кету в Тельце — отстранённость от материального накопления; усвоенное богатство из прошлых жизней."),
+        "gemini": ("Ketu in Gemini — detachment from intellect and networks; latent verbal mastery, solitary thinking.", "Кету в Близнецах — отстранённость от интеллекта и связей; скрытое вербальное мастерство, одиночное мышление."),
+        "cancer": ("Ketu in Cancer — detachment from home and emotional security; past-life nurturing released.", "Кету в Раке — отстранённость от дома и эмоциональной безопасности; освобождение от заботливости прошлых жизней."),
+        "leo": ("Ketu in Leo — detachment from authority and recognition; hidden spiritual leadership.", "Кету во Льве — отстранённость от авторитета и признания; скрытое духовное лидерство."),
+        "virgo": ("Ketu in Virgo — detachment from analytical routine; past-life craft mastery; higher synthesis.", "Кету в Деве — отстранённость от аналитической рутины; мастерство ремесла из прошлых жизней; высший синтез."),
+        "libra": ("Ketu in Libra — detachment from partnerships; solitude or spiritual companionship preferred.", "Кету в Весах — отстранённость от партнёрств; предпочтение одиночества или духовного товарищества."),
+        "scorpio": ("Ketu in Scorpio — own sign. Deep occult perception, past-life hidden knowledge mastery.", "Кету в Скорпионе — собственный знак. Глубокое оккультное восприятие, мастерство скрытого знания из прошлых жизней."),
+        "sagittarius": ("Ketu in Sagittarius — detachment from dogma; liberation through direct experience over formal belief.", "Кету в Стрельце — отстранённость от догмы; освобождение через прямой опыт, а не формальные убеждения."),
+        "capricorn": ("Ketu in Capricorn — detachment from career and status; internalized discipline, ascetic tendencies.", "Кету в Козероге — отстранённость от карьеры и статуса; усвоенная дисциплина, аскетические тенденции."),
+        "aquarius": ("Ketu in Aquarius — detachment from social networks; solitary wisdom emerging from collective past.", "Кету в Водолее — отстранённость от социальных сетей; одинокая мудрость из коллективного прошлого."),
+        "pisces": ("Ketu in Pisces — detachment from mysticism; sharp analytical edge applied to spiritual inquiry.", "Кету в Рыбах — отстранённость от мистицизма; острое аналитическое видение в духовном поиске."),
+    },
+}
+
+SOURCE = "curated:jyotish:basic"
+
+for planet, signs in PLANET_SIGN.items():
+    for sign, (en, ru) in signs.items():
+        DATA.append({
+            "key": f"planet:{planet}:sign:{sign}",
+            "source_id": SOURCE,
+            "text_en": en,
+            "text_ru": ru,
+        })
+
+out = pathlib.Path(__file__).parent / "part1_planet_sign.jsonl"
+with open(out, "w", encoding="utf-8") as f:
+    for entry in DATA:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+print(f"Written {len(DATA)} entries to {out}")

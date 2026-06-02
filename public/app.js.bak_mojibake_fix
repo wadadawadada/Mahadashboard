@@ -1,0 +1,1187 @@
+﻿const state = {
+  lang: "ru",
+  profiles: [],
+  currentProfileId: null,
+  currentRunId: null,
+  chart: null,
+  context: null,
+  markdown: "",
+};
+
+const t = {
+  ru: {
+    subtitle: "С‚РѕС‡РЅС‹Р№ СЂР°СЃС‡РµС‚, Р¶РёРІРѕР№ РѕС‚С‡РµС‚",
+    profiles: "РџСЂРѕС„РёР»Рё",
+    birthData: "Р”Р°РЅРЅС‹Рµ СЂРѕР¶РґРµРЅРёСЏ",
+    name: "РРјСЏ",
+    date: "Р”Р°С‚Р°",
+    time: "Р’СЂРµРјСЏ",
+    place: "РњРµСЃС‚Рѕ",
+    city: "Р“РѕСЂРѕРґ",
+    country: "РЎС‚СЂР°РЅР°",
+    precisePlace: "РўРѕС‡РЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹",
+    settings: "РќР°СЃС‚СЂРѕР№РєРё СЂР°СЃС‡РµС‚Р°",
+    aspects: "РђСЃРїРµРєС‚С‹",
+    interpretations: "РРЅС‚РµСЂРїСЂРµС‚Р°С†РёРё",
+    nodeAspects: "РђСЃРїРµРєС‚С‹ СѓР·Р»РѕРІ",
+    generate: "РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РѕС‚С‡РµС‚",
+    engine: "Swiss Ephemeris В· curated sources",
+    emptyTitle: "Р’РІРµРґРёС‚Рµ РґР°РЅРЅС‹Рµ Рё СЃРѕР·РґР°Р№С‚Рµ РїРµСЂРІС‹Р№ СЂР°СЃС‡РµС‚",
+    emptyText: "РЎРµСЂРІРёСЃ СЃРѕС…СЂР°РЅРёС‚ РїСЂРѕС„РёР»СЊ, Р·Р°РїСѓСЃС‚РёС‚ Р»РѕРєР°Р»СЊРЅС‹Р№ СЂР°СЃС‡РµС‚РЅС‹Р№ РґРІРёР¶РѕРє Рё РїРѕРєР°Р¶РµС‚ РєР°СЂС‚Сѓ, С‚Р°Р±Р»РёС†С‹, РёСЃС‚РѕС‡РЅРёРєРё Рё РѕС‚С‡РµС‚ РІ РѕРґРЅРѕРј РёРЅС‚РµСЂС„РµР№СЃРµ.",
+    chartTab: "РљР°СЂС‚Р°",
+    overview: "РћР±Р·РѕСЂ",
+    tables: "РўР°Р±Р»РёС†С‹",
+    sources: "РСЃС‚РѕС‡РЅРёРєРё",
+    report: "РћС‚С‡РµС‚",
+    planetTable: "РџР»Р°РЅРµС‚С‹",
+    houseTable: "Р”РѕРјР°",
+    aspectTable: "РђСЃРїРµРєС‚С‹",
+    foundSources: "РќР°Р№РґРµРЅРЅС‹Рµ РёСЃС‚РѕС‡РЅРёРєРё",
+    missingSources: "РќРµРґРѕСЃС‚Р°СЋС‰РёРµ РєР»СЋС‡Рё",
+    aiTitle: "Р’РѕРїСЂРѕСЃ РїРѕ РєР°СЂС‚Рµ",
+    ask: "РЎРїСЂРѕСЃРёС‚СЊ",
+    askPlaceholder: "РЎРїСЂРѕСЃРё Рѕ РєР°СЂС‚Рµ, РїРµСЂРёРѕРґРµ, РґРѕРјР°С… РёР»Рё РёСЃС‚РѕС‡РЅРёРєР°С…",
+    ready: "Р“РѕС‚РѕРІРѕ",
+    running: "Р Р°СЃС‡РµС‚...",
+    generated: "РћС‚С‡РµС‚ РіРѕС‚РѕРІ",
+    failed: "РћС€РёР±РєР°",
+    noProfiles: "РџРѕРєР° РЅРµС‚ РїСЂРѕС„РёР»РµР№",
+    openProfile: "РћС‚РєСЂС‹С‚СЊ РїСЂРѕС„РёР»СЊ",
+    lagna: "Р›Р°РіРЅР°",
+    moon: "Р›СѓРЅР°",
+    currentPeriod: "РўРµРєСѓС‰РёР№ РїРµСЂРёРѕРґ",
+    sourcesFound: "РСЃС‚РѕС‡РЅРёРєРё",
+    birth: "Р РѕР¶РґРµРЅРёРµ",
+    location: "Р›РѕРєР°С†РёСЏ",
+    settingsLabel: "РќР°СЃС‚СЂРѕР№РєРё",
+    warnings: "РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёСЏ",
+    noWarnings: "РќРµС‚ РїСЂРµРґСѓРїСЂРµР¶РґРµРЅРёР№",
+    markdown: "Markdown",
+    chartJson: "Chart JSON",
+    contextJson: "Context JSON",
+    inputJson: "Input JSON",
+    missingApiKey: "OPENROUTER_API_KEY РЅРµ Р·Р°РґР°РЅ РІ .env.",
+    deleteProfile: "РЈРґР°Р»РёС‚СЊ РїСЂРѕС„РёР»СЊ",
+    deleteConfirm: "РЈРґР°Р»РёС‚СЊ РїСЂРѕС„РёР»СЊ Рё РµРіРѕ РѕС‚С‡РµС‚С‹?",
+    namePlaceholder: "РРјСЏ РїСЂРѕС„РёР»СЏ",
+    placePlaceholder: "Р“РѕСЂРѕРґ, СЃС‚СЂР°РЅР°",
+    aiSubtitle: "РР РѕС‚РІРµС‡Р°РµС‚ С‚РѕР»СЊРєРѕ РїРѕ СЂР°СЃСЃС‡РёС‚Р°РЅРЅРѕР№ РєР°СЂС‚Рµ Рё Р»РѕРєР°Р»СЊРЅС‹Рј РёСЃС‚РѕС‡РЅРёРєР°Рј",
+    chatEmptyTitle: "РЎРїСЂРѕСЃРё РїРѕ РєР°СЂС‚Рµ",
+    promptCareer: "РљР°СЂСЊРµСЂР°",
+    promptDasha: "РўРµРєСѓС‰РёР№ РїРµСЂРёРѕРґ",
+    promptRelationships: "РћС‚РЅРѕС€РµРЅРёСЏ",
+    promptStrengths: "РЎРёР»СЊРЅС‹Рµ СЃС‚РѕСЂРѕРЅС‹",
+    promptRisks: "Р РёСЃРєРё",
+    promptMoney: "Р”РµРЅСЊРіРё",
+    promptCareerText: "Р§С‚Рѕ РІ РјРѕРµР№ РєР°СЂС‚Рµ СЃРІСЏР·Р°РЅРѕ СЃ РєР°СЂСЊРµСЂРѕР№ Рё РїСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅРѕР№ СЂРµР°Р»РёР·Р°С†РёРµР№?",
+    promptDashaText: "РћР±СЉСЏСЃРЅРё С‚РµРєСѓС‰РёР№ Vimshottari РїРµСЂРёРѕРґ Рё РєР°РєРёРµ С‚РµРјС‹ СЃРµР№С‡Р°СЃ Р°РєС‚РёРІРЅС‹.",
+    promptRelationshipsText: "Р§С‚Рѕ СЂР°СЃСЃС‡РёС‚Р°РЅРЅР°СЏ РєР°СЂС‚Р° РїРѕРєР°Р·С‹РІР°РµС‚ РїРѕ С‚РµРјРµ РѕС‚РЅРѕС€РµРЅРёР№?",
+    promptStrengthsText: "РљР°РєРёРµ СЃР°РјС‹Рµ СЃРёР»СЊРЅС‹Рµ СЃС‚РѕСЂРѕРЅС‹ РІРёРґРЅС‹ РІ СЂР°СЃСЃС‡РёС‚Р°РЅРЅРѕР№ РєР°СЂС‚Рµ?",
+    promptRisksText: "РљР°РєРёРµ СЂРёСЃРєРё РёР»Рё РЅР°РїСЂСЏР¶РµРЅРЅС‹Рµ С‚РµРјС‹ СЃС‚РѕРёС‚ СѓС‡РёС‚С‹РІР°С‚СЊ РїРѕ РєР°СЂС‚Рµ?",
+    promptMoneyText: "Р§С‚Рѕ СЂР°СЃСЃС‡РёС‚Р°РЅРЅР°СЏ РєР°СЂС‚Р° РїРѕРєР°Р·С‹РІР°РµС‚ РїРѕ С‚РµРјРµ РґРµРЅРµРі Рё РґРѕС…РѕРґР°?",
+    followUpTitle: "РњРѕР¶РЅРѕ СѓС‚РѕС‡РЅРёС‚СЊ:",
+    followUpTiming: "РљРѕРіРґР° СЌС‚Рѕ РїСЂРѕСЏРІР»СЏРµС‚СЃСЏ СЃРёР»СЊРЅРµРµ?",
+    followUpHouses: "РљР°РєРёРµ РґРѕРјР° Р·РґРµСЃСЊ РіР»Р°РІРЅС‹Рµ?",
+    followUpSources: "РљР°РєРёРµ source ids СЌС‚Рѕ РїРѕРґС‚РІРµСЂР¶РґР°СЋС‚?",
+    clearChat: "РћС‡РёСЃС‚РёС‚СЊ",
+    clearChatConfirm: "РћС‡РёСЃС‚РёС‚СЊ РёСЃС‚РѕСЂРёСЋ С‡Р°С‚Р° РґР»СЏ СЌС‚РѕРіРѕ РїСЂРѕС„РёР»СЏ?",
+  },
+  en: {
+    subtitle: "precise calculation, live report",
+    profiles: "Profiles",
+    birthData: "Birth data",
+    name: "Name",
+    date: "Date",
+    time: "Time",
+    place: "Place",
+    city: "City",
+    country: "Country",
+    precisePlace: "Precise coordinates",
+    settings: "Calculation settings",
+    aspects: "Aspects",
+    interpretations: "Interpretations",
+    nodeAspects: "Node aspects",
+    generate: "Generate report",
+    engine: "Swiss Ephemeris В· curated sources",
+    emptyTitle: "Enter birth data and create the first calculation",
+    emptyText: "The service saves a profile, runs the local calculation engine, and shows the chart, tables, sources, and report in one interface.",
+    chartTab: "Chart",
+    overview: "Overview",
+    tables: "Tables",
+    sources: "Sources",
+    report: "Report",
+    planetTable: "Planets",
+    houseTable: "Houses",
+    aspectTable: "Aspects",
+    foundSources: "Found sources",
+    missingSources: "Missing keys",
+    aiTitle: "Ask about the chart",
+    ask: "Ask",
+    askPlaceholder: "Ask about the chart, period, houses, or sources",
+    ready: "Ready",
+    running: "Calculating...",
+    generated: "Report ready",
+    failed: "Error",
+    noProfiles: "No profiles yet",
+    openProfile: "Open profile",
+    lagna: "Lagna",
+    moon: "Moon",
+    currentPeriod: "Current period",
+    sourcesFound: "Sources",
+    birth: "Birth",
+    location: "Location",
+    settingsLabel: "Settings",
+    warnings: "Warnings",
+    noWarnings: "No warnings",
+    markdown: "Markdown",
+    chartJson: "Chart JSON",
+    contextJson: "Context JSON",
+    inputJson: "Input JSON",
+    missingApiKey: "OPENROUTER_API_KEY is missing in .env.",
+    deleteProfile: "Delete profile",
+    deleteConfirm: "Delete this profile and its reports?",
+    namePlaceholder: "Profile name",
+    placePlaceholder: "City, country",
+    aiSubtitle: "AI answers only from the calculated chart and local sources",
+    chatEmptyTitle: "Ask about the chart",
+    promptCareer: "Career",
+    promptDasha: "Current period",
+    promptRelationships: "Relationships",
+    promptStrengths: "Strengths",
+    promptRisks: "Risks",
+    promptMoney: "Money",
+    promptCareerText: "What in my chart is connected with career and professional direction?",
+    promptDashaText: "Explain the current Vimshottari period and which themes are active now.",
+    promptRelationshipsText: "What does the calculated chart show about relationships?",
+    promptStrengthsText: "What are the strongest qualities visible in the calculated chart?",
+    promptRisksText: "Which risks or tense themes should be considered from the chart?",
+    promptMoneyText: "What does the calculated chart show about money and income?",
+    followUpTitle: "Follow up:",
+    followUpTiming: "When is this more active?",
+    followUpHouses: "Which houses matter most?",
+    followUpSources: "Which source ids support this?",
+    clearChat: "Clear",
+    clearChatConfirm: "Clear chat history for this profile?",
+  },
+};
+
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+const ACTIVE_PROFILE_STORAGE_KEY = "astro_active_profile_id";
+
+const PLANET_ORDER = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+
+const SIGN_META = {
+  Aries: { short: "Ari", element: "Fire", mode: "Cardinal" },
+  Taurus: { short: "Tau", element: "Earth", mode: "Fixed" },
+  Gemini: { short: "Gem", element: "Air", mode: "Mutable" },
+  Cancer: { short: "Can", element: "Water", mode: "Cardinal" },
+  Leo: { short: "Leo", element: "Fire", mode: "Fixed" },
+  Virgo: { short: "Vir", element: "Earth", mode: "Mutable" },
+  Libra: { short: "Lib", element: "Air", mode: "Cardinal" },
+  Scorpio: { short: "Sco", element: "Water", mode: "Fixed" },
+  Sagittarius: { short: "Sag", element: "Fire", mode: "Mutable" },
+  Capricorn: { short: "Cap", element: "Earth", mode: "Cardinal" },
+  Aquarius: { short: "Aqu", element: "Air", mode: "Fixed" },
+  Pisces: { short: "Pis", element: "Water", mode: "Mutable" },
+};
+
+const PLANET_META = {
+  sun: { glyph: "в‰", color: "#f2c45b", label: "Sun" },
+  moon: { glyph: "вЅ", color: "#d8e6ff", label: "Moon" },
+  mars: { glyph: "в™‚", color: "#d66b52", label: "Mars" },
+  mercury: { glyph: "вї", color: "#7dd2bf", label: "Mercury" },
+  jupiter: { glyph: "в™ѓ", color: "#d7b66c", label: "Jupiter" },
+  venus: { glyph: "в™Ђ", color: "#e5a0c3", label: "Venus" },
+  saturn: { glyph: "в™„", color: "#a9a18f", label: "Saturn" },
+  rahu: { glyph: "вЉ", color: "#9c7cff", label: "Rahu" },
+  ketu: { glyph: "в‹", color: "#83a2ff", label: "Ketu" },
+};
+
+const MISSING_SOURCE_MSG = "No curated interpretation source found for this key.";
+const SIGN_RU = {
+  Aries: "РћРІРµРЅ",
+  Taurus: "РўРµР»РµС†",
+  Gemini: "Р‘Р»РёР·РЅРµС†С‹",
+  Cancer: "Р Р°Рє",
+  Leo: "Р›РµРІ",
+  Virgo: "Р”РµРІР°",
+  Libra: "Р’РµСЃС‹",
+  Scorpio: "РЎРєРѕСЂРїРёРѕРЅ",
+  Sagittarius: "РЎС‚СЂРµР»РµС†",
+  Capricorn: "РљРѕР·РµСЂРѕРі",
+  Aquarius: "Р’РѕРґРѕР»РµР№",
+  Pisces: "Р С‹Р±С‹",
+};
+const DIGNITY_LABEL = {
+  neutral: { ru: "РЅРµР№С‚СЂР°Р»СЊРЅРѕ", en: "neutral" },
+  exalted: { ru: "СЌРєР·Р°Р»СЊС‚Р°С†РёСЏ", en: "exalted" },
+  debilitated: { ru: "РїР°РґРµРЅРёРµ", en: "debilitated" },
+  own_sign: { ru: "СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ Р·РЅР°Рє", en: "own sign" },
+};
+
+function tr(key) {
+  return t[state.lang][key] || t.ru[key] || key;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function icon(name) {
+  return `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      "content-type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = data.detail ? `\n${data.detail}` : "";
+    throw new Error(`${data.error || response.statusText}${detail}`);
+  }
+  return data;
+}
+
+function applyI18n() {
+  document.documentElement.lang = state.lang;
+  $$("[data-i18n]").forEach((node) => {
+    node.textContent = tr(node.dataset.i18n);
+  });
+  $$("[data-i18n-placeholder]").forEach((node) => {
+    node.placeholder = tr(node.dataset.i18nPlaceholder);
+  });
+  $$("[data-lang]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.lang === state.lang);
+  });
+}
+
+function setStatus(text, tone = "") {
+  const pill = $("#statusPill");
+  if (!pill) return;
+  pill.textContent = text;
+  pill.style.borderColor = tone === "error" ? "rgba(208, 107, 102, 0.7)" : "";
+  pill.style.color = tone === "error" ? "var(--danger)" : "";
+}
+
+let chart3dModulePromise = null;
+
+async function loadChart3dModule() {
+  if (chart3dModulePromise) return chart3dModulePromise;
+  const specifiers = [`/chart3d.mjs?v=${Date.now()}`, "/chart3d.mjs", "/chart3d.js"];
+  chart3dModulePromise = (async () => {
+    let lastError = null;
+    for (const specifier of specifiers) {
+      try {
+        return await import(specifier);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("3D chart module is unavailable.");
+  })();
+  return chart3dModulePromise;
+}
+
+async function loadProfiles() {
+  const data = await api("/api/profiles");
+  state.profiles = data.profiles || [];
+  renderProfiles();
+  const currentExists = state.currentProfileId && state.profiles.some((item) => item.id === state.currentProfileId);
+  if (currentExists) return;
+
+  const savedProfileId = getSavedActiveProfileId();
+  const savedExists = savedProfileId && state.profiles.some((item) => item.id === savedProfileId);
+  const fallbackProfile = state.profiles.find((item) => item.last_run_id) || state.profiles[0];
+  const targetProfileId = (savedExists ? savedProfileId : fallbackProfile?.id) || null;
+  if (targetProfileId) {
+    await selectProfile(targetProfileId);
+  }
+}
+
+function renderProfiles() {
+  const list = $("#profileList");
+  if (!state.profiles.length) {
+    list.innerHTML = `<div class="profile-item"><span>${escapeHtml(tr("noProfiles"))}</span></div>`;
+    return;
+  }
+  list.innerHTML = state.profiles
+    .map((profile) => {
+      const active = profile.id === state.currentProfileId ? " active" : "";
+      const summary = profile.last_summary?.current_period || `${profile.birth?.birth_date || ""} ${profile.birth?.birth_time || ""}`;
+      return `
+        <div class="profile-item${active}" data-profile-id="${escapeHtml(profile.id)}">
+          <button class="profile-open" type="button" data-profile-open="${escapeHtml(profile.id)}">
+            <span class="profile-symbol">${icon("user")}</span>
+            <span>
+              <strong>${escapeHtml(profile.name || "Unnamed")}</strong>
+              <span>${escapeHtml(summary)}</span>
+            </span>
+          </button>
+          <button class="profile-delete" type="button" data-profile-delete="${escapeHtml(profile.id)}" title="${escapeHtml(tr("deleteProfile"))}">${icon("trash")}</button>
+        </div>
+      `;
+    })
+    .join("");
+  $$("[data-profile-open]").forEach((button) => {
+    button.addEventListener("click", () => selectProfile(button.dataset.profileOpen));
+  });
+  $$("[data-profile-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteProfile(button.dataset.profileDelete));
+  });
+}
+
+async function deleteProfile(profileId) {
+  if (!confirm(tr("deleteConfirm"))) return;
+  try {
+    if (getSavedActiveProfileId() === profileId) {
+      clearSavedActiveProfileId();
+    }
+    await api(`/api/profiles/${profileId}`, { method: "DELETE" });
+    if (state.currentProfileId === profileId) {
+      state.currentProfileId = null;
+      state.currentRunId = null;
+      state.chart = null;
+      state.context = null;
+      state.markdown = "";
+      $("#birthForm").reset();
+      $("#placeQuery").value = "";
+      $("#resultLayout").classList.add("hidden");
+      $("#emptyState").classList.remove("hidden");
+    }
+    await loadProfiles();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function selectProfile(profileId) {
+  const profile = state.profiles.find((item) => item.id === profileId);
+  if (!profile) return;
+  state.currentProfileId = profileId;
+  saveActiveProfileId(profileId);
+  fillForm(profile.birth, profile.place);
+  renderProfiles();
+  if (profile.last_run_id) {
+    const data = await api(`/api/reports/${profile.last_run_id}`);
+    applyReport(data.manifest, data.chart, data.context, data.markdown);
+    renderChatHistory(profile.chat_history || []);
+  }
+}
+
+function fillForm(birth, place) {
+  const form = $("#birthForm");
+  form.name.value = birth?.name || "";
+  form.birth_date.value = birth?.birth_date || "";
+  form.birth_time.value = birth?.birth_time || "";
+  form.city.value = birth?.city || "";
+  form.country.value = birth?.country || "";
+  form.latitude.value = place?.lat || place?.latitude || "";
+  form.longitude.value = place?.lon || place?.longitude || "";
+  form.timezone.value = place?.timezone || "";
+  $("#placeQuery").value = place?.name || `${birth?.city || ""}, ${birth?.country || ""}`.replace(/^,\s*/, "");
+}
+
+function collectBirthPayload() {
+  const form = $("#birthForm");
+  const birth = {
+    name: form.name.value.trim(),
+    birth_date: form.birth_date.value,
+    birth_time: form.birth_time.value,
+    city: form.city.value.trim(),
+    country: form.country.value.trim(),
+    language: state.lang,
+    settings: {
+      ayanamsa: form.ayanamsa.value,
+      zodiac: form.zodiac.value,
+      house_system: form.house_system.value,
+      dasha_system: form.dasha_system.value,
+      include_navamsa: form.include_navamsa.checked,
+      include_aspects: form.include_aspects.checked,
+      include_interpretation: form.include_interpretation.checked,
+      include_clickable_keys: true,
+      enable_node_aspects: form.enable_node_aspects.checked,
+    },
+  };
+  const latitude = form.latitude.value.trim();
+  const longitude = form.longitude.value.trim();
+  const timezone = form.timezone.value.trim();
+  const place =
+    latitude && longitude && timezone
+      ? {
+          display_name: $("#placeQuery").value.trim() || `${birth.city}, ${birth.country}`,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          timezone,
+        }
+      : null;
+  return { birth, place, profile_id: state.currentProfileId };
+}
+
+async function generateReport(event) {
+  event.preventDefault();
+  const button = $("#generateBtn");
+  button.disabled = true;
+  setStatus(tr("running"));
+  try {
+    const payload = collectBirthPayload();
+    const data = await api("/api/reports", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    state.currentProfileId = data.profile.id;
+    applyReport(data.run, data.chart, data.context, data.markdown);
+    await loadProfiles();
+    setStatus(tr("generated"));
+  } catch (error) {
+    setStatus(tr("failed"), "error");
+    alert(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function applyReport(run, chart, context, markdown) {
+  closePlanetInterpretationModal();
+  saveActiveProfileId(state.currentProfileId);
+  state.currentRunId = run.id;
+  state.chart = chart;
+  state.context = context;
+  state.markdown = markdown;
+  $("#emptyState").classList.add("hidden");
+  $("#resultLayout").classList.remove("hidden");
+  renderSummary(run.summary);
+  renderD1(chart);
+  renderD9(chart);
+  renderOverview(chart, context);
+  renderTables(chart);
+  renderDashas(chart);
+  renderSources(context);
+  renderReport(run, markdown);
+  setActiveTab("chart");
+  renderChatHistory([]);
+}
+
+function renderSummary(summary) {
+  const items = [
+    ["sun", tr("lagna"), summary.lagna],
+    ["moon", tr("moon"), summary.moon],
+    ["clock", tr("currentPeriod"), summary.current_period],
+    ["book", tr("sourcesFound"), `${summary.sources_found} / ${summary.sources_missing}`],
+  ];
+  $("#summaryGrid").innerHTML = items
+    .map(([iconName, label, value]) => `<div class="summary-card"><i>${icon(iconName)}</i><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+}
+
+function renderD1(chart) {
+  const container = $("#d1Chart");
+  container.innerHTML = `<div class="chart-loading">Loading 3D chart...</div>`;
+  loadChart3dModule()
+    .then((module) =>
+      module.renderChart3D(container, chart, {
+        onPlanetSelect: (payload) => openPlanetInterpretationModal(payload),
+      })
+    )
+    .catch((error) => {
+      chart3dModulePromise = null;
+      container.innerHTML = `<div class="chart-loading">3D chart unavailable: ${escapeHtml(error.message)}</div>`;
+    });
+}
+
+function renderD9(chart) {
+  const planets = chart.divisional_charts?.D9?.planets || {};
+  const entries = PLANET_ORDER.filter((key) => planets[key]).map((key) => [key, planets[key]]);
+  const container = $("#d9Chart");
+  const badge = $("#d9Badge");
+
+  if (!entries.length) {
+    container.innerHTML = `<div class="d9-empty">D9 data is missing.</div>`;
+    if (badge) badge.textContent = "No data";
+    return;
+  }
+
+  const signCounts = {};
+  const elementCounts = {};
+  for (const [, value] of entries) {
+    const sign = value.sign || "Unknown";
+    signCounts[sign] = (signCounts[sign] || 0) + 1;
+    const element = SIGN_META[sign]?.element || "Unknown";
+    elementCounts[element] = (elementCounts[element] || 0) + 1;
+  }
+
+  const dominantSigns = Object.entries(signCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const dominantElements = Object.entries(elementCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2);
+  const total = entries.length;
+
+  if (badge) badge.textContent = `${total} placements`;
+
+  const spectrum = dominantSigns
+    .map(([sign, count]) => {
+      const pct = Math.round((count / total) * 100);
+      return `
+        <div class="d9-spectrum-row">
+          <span>${escapeHtml(sign)}</span>
+          <div class="d9-spectrum-track"><i style="width:${pct}%"></i></div>
+          <em>${count}</em>
+        </div>
+      `;
+    })
+    .join("");
+
+  const cards = entries
+    .map(([key, value]) => {
+      const meta = PLANET_META[key] || { glyph: "вЂў", color: "#d8b764", label: cap(key) };
+      const sign = value.sign || "missing";
+      const signMeta = SIGN_META[sign] || { short: sign, element: "Unknown", mode: "Unknown" };
+      return `
+        <article class="d9-card" data-d9-planet="${escapeHtml(key)}" role="button" tabindex="0">
+          <div class="d9-card-head">
+            <span class="d9-glyph" style="--planet-color:${escapeHtml(meta.color)}">${escapeHtml(meta.glyph)}</span>
+            <div>
+              <strong>${escapeHtml(meta.label)}</strong>
+              <span>${escapeHtml(sign)}</span>
+            </div>
+            <b>${escapeHtml(signMeta.short)}</b>
+          </div>
+          <div class="d9-card-meta">
+            <span>${escapeHtml(signMeta.element)}</span>
+            <span>${escapeHtml(signMeta.mode)}</span>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  container.innerHTML = `
+    <section class="d9-summary">
+      <div class="d9-kpi">
+        <span>Dominant signs</span>
+        <strong>${escapeHtml(dominantSigns.map(([sign]) => sign).join(" В· "))}</strong>
+      </div>
+      <div class="d9-kpi">
+        <span>Element focus</span>
+        <strong>${escapeHtml(dominantElements.map(([name]) => name).join(" В· "))}</strong>
+      </div>
+      <div class="d9-spectrum">${spectrum}</div>
+    </section>
+    <section class="d9-grid">${cards}</section>
+  `;
+
+  container.querySelectorAll("[data-d9-planet]").forEach((node) => {
+    node.addEventListener("click", () => {
+      openPlanetInterpretationModal({
+        division: "D9",
+        source: "d9-card",
+        planet_key: node.dataset.d9Planet,
+      });
+    });
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openPlanetInterpretationModal({
+        division: "D9",
+        source: "d9-card",
+        planet_key: node.dataset.d9Planet,
+      });
+    });
+  });
+}
+
+function localizeMissingMessage(message) {
+  if ((message || "").trim() !== MISSING_SOURCE_MSG) return message || "";
+  return state.lang === "ru" ? "Р”Р»СЏ СЌС‚РѕРіРѕ РєР»СЋС‡Р° РЅРµ РЅР°Р№РґРµРЅ Р»РѕРєР°Р»СЊРЅС‹Р№ РёСЃС‚РѕС‡РЅРёРє С‚СЂР°РєС‚РѕРІРєРё." : MISSING_SOURCE_MSG;
+}
+
+function localizeSign(sign) {
+  if (!sign) return "missing";
+  if (state.lang !== "ru") return sign;
+  return SIGN_RU[sign] ? `${sign} (${SIGN_RU[sign]})` : sign;
+}
+
+function localizeDignity(value) {
+  if (!value) return "missing";
+  const entry = DIGNITY_LABEL[value];
+  if (!entry) return value;
+  return state.lang === "ru" ? entry.ru : entry.en;
+}
+
+function sourceLangLabel(sourceId) {
+  const language = sourceId?.startsWith("curated:") ? "EN" : "EN";
+  return state.lang === "ru" ? `РЇР·С‹Рє: ${language}` : `Language: ${language}`;
+}
+
+function openPlanetInterpretationModal(payload) {
+  if (!payload?.planet_key || !state.chart || !state.context) return;
+  const planetKey = payload.planet_key;
+  const isRu = state.lang === "ru";
+  const division = payload.division === "D9" ? (isRu ? "D9 Навамша" : "D9 Navamsa") : "D1 Rashi";
+  const planetMeta = PLANET_META[planetKey] || { label: cap(planetKey) };
+  const d1Planet = state.chart.planets?.[planetKey] || null;
+  const d9Planet = state.chart.divisional_charts?.D9?.planets?.[planetKey] || null;
+
+  const interpretationKeys = [];
+  if (d1Planet?.clickable_keys?.length) interpretationKeys.push(...d1Planet.clickable_keys);
+  if (payload.division === "D9" && d9Planet?.clickable_key) interpretationKeys.unshift(d9Planet.clickable_key);
+  if (!interpretationKeys.length) interpretationKeys.push(`planet:${planetKey}`);
+  const uniqueKeys = [...new Set(interpretationKeys)];
+
+  const foundByKey = new Map();
+  for (const key of uniqueKeys) {
+    const matches = (state.context.items || []).filter((item) => item.key === key);
+    if (matches.length) foundByKey.set(key, matches);
+  }
+  const foundItems = uniqueKeys.flatMap((key) => foundByKey.get(key) || []);
+  const dedupedSources = [];
+  const seen = new Set();
+  for (const item of foundItems) {
+    const signature = `${item.key}::${item.source_id}::${item.text}`;
+    if (seen.has(signature)) continue;
+    seen.add(signature);
+    dedupedSources.push(item);
+  }
+
+  const missingEntries = uniqueKeys
+    .filter((key) => !foundByKey.has(key))
+    .map((key) => (state.context.missing || []).find((item) => item.key === key) || { key, message: MISSING_SOURCE_MSG });
+
+  const titleEl = $("#planetModalTitle");
+  const bodyEl = $("#planetModalBody");
+  const modalEl = $("#planetModal");
+  if (!titleEl || !bodyEl || !modalEl) return;
+
+  titleEl.textContent = `${planetMeta.label} · ${division}`;
+
+  const facts = [];
+  if (d1Planet) {
+    facts.push([isRu ? "D1 знак" : "D1 sign", localizeSign(d1Planet.sign)]);
+    facts.push([isRu ? "D1 дом" : "D1 house", d1Planet.house ?? "missing"]);
+    facts.push([isRu ? "D1 градус" : "D1 degree", d1Planet.degree_formatted || "missing"]);
+    facts.push([isRu ? "D1 накшатра" : "D1 nakshatra", `${d1Planet.nakshatra || "missing"}${d1Planet.pada ? (isRu ? ` / пада ${d1Planet.pada}` : ` / pada ${d1Planet.pada}`) : ""}`]);
+    facts.push([isRu ? "Ретроградность" : "Retrograde", d1Planet.retrograde ? (isRu ? "да" : "yes") : isRu ? "нет" : "no"]);
+    facts.push([isRu ? "Управляет домами" : "Rules houses", (d1Planet.ruler_of_houses || []).join(", ") || (isRu ? "нет" : "none")]);
+    facts.push([isRu ? "Достоинство" : "Dignity", localizeDignity(d1Planet.dignity)]);
+  }
+  if (d9Planet) {
+    facts.push([isRu ? "D9 знак" : "D9 sign", localizeSign(d9Planet.sign)]);
+    if (d9Planet.clickable_key) {
+      facts.push([isRu ? "D9 ключ" : "D9 key", d9Planet.clickable_key]);
+    }
+  }
+
+  const factsHtml = facts.length
+    ? `
+      <section class="planet-modal-section">
+        <h4>${isRu ? "Расчётные факты" : "Calculated facts"}</h4>
+        <dl class="planet-modal-facts">
+          ${facts
+            .map(
+              ([label, value]) =>
+                `<div class="planet-modal-fact"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`
+            )
+            .join("")}
+        </dl>
+      </section>
+    `
+    : "";
+
+  const sourceHtml = dedupedSources.length
+    ? `
+      <section class="planet-modal-section">
+        <h4>${isRu ? "Трактовки из локальных источников" : "Interpretation from local sources"}</h4>
+        <div class="planet-modal-source-id">${isRu ? "Тексты источников в этой сборке доступны на английском." : "Source texts in this build are available in English."}</div>
+        ${dedupedSources
+          .map(
+            (item) => `
+              <article class="planet-modal-source">
+                <div class="planet-modal-source-key">${escapeHtml(item.key)}</div>
+                <div class="planet-modal-source-id">${escapeHtml(item.source_id)} · ${escapeHtml(sourceLangLabel(item.source_id))}</div>
+                <p class="planet-modal-source-text">${escapeHtml(item.text)}</p>
+              </article>
+            `
+          )
+          .join("")}
+      </section>
+    `
+    : "";
+
+  const keysHtml = `
+      <section class="planet-modal-section">
+        <h4>${isRu ? "Ключи интерпретации" : "Interpretation keys"}</h4>
+        ${uniqueKeys.map((key) => `<div class="planet-modal-source-id">${escapeHtml(key)}</div>`).join("")}
+      </section>
+    `;
+
+  const missingHtml = missingEntries.length
+    ? `
+      <section class="planet-modal-section">
+        <h4>${isRu ? "Отсутствующие ключи" : "Missing keys"}</h4>
+        ${missingEntries
+          .map(
+            (item) => `
+              <div class="planet-modal-missing">
+                <div>${escapeHtml(item.key)}</div>
+                <div>${escapeHtml(localizeMissingMessage(item.message || MISSING_SOURCE_MSG))}</div>
+              </div>
+            `
+          )
+          .join("")}
+      </section>
+    `
+    : "";
+
+  bodyEl.innerHTML = factsHtml + sourceHtml + keysHtml + missingHtml;
+  modalEl.classList.remove("hidden");
+}
+function closePlanetInterpretationModal() {
+  $("#planetModal")?.classList.add("hidden");
+}
+
+function initPlanetModal() {
+  $("#planetModalClose")?.addEventListener("click", closePlanetInterpretationModal);
+  $("#planetModal")?.addEventListener("click", (event) => {
+    if (event.target?.dataset?.modalClose) closePlanetInterpretationModal();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if ($("#planetModal")?.classList.contains("hidden")) return;
+    closePlanetInterpretationModal();
+  });
+}
+
+function renderOverview(chart, context) {
+  const current = chart.dashas?.current || {};
+  const facts = [
+    [tr("birth"), `${chart.birth.local_date} ${chart.birth.local_time}`],
+    [tr("location"), `${chart.birth.city}, ${chart.birth.country} В· ${chart.birth.timezone}`],
+    ["UTC", chart.birth.utc_datetime],
+    ["Julian Day", chart.birth.julian_day],
+    [tr("settingsLabel"), `${chart.meta.ayanamsa}, ${chart.meta.zodiac}, ${chart.meta.house_system}, ${chart.meta.dasha_system}`],
+    [tr("currentPeriod"), [current.mahadasha, current.antardasha, current.pratyantardasha].filter(Boolean).join(" / ")],
+    [tr("warnings"), (chart.warnings || []).join("; ") || tr("noWarnings")],
+  ];
+  const sourcePreview = (context.items || [])
+    .slice(0, 5)
+    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><span>${escapeHtml(item.source_id)} · ${escapeHtml(sourceLangLabel(item.source_id))}</span><p>${escapeHtml(item.text)}</p></div>`)
+    .join("");
+  $("#overviewPanel").innerHTML = `
+    <div class="overview-grid">
+      <dl class="fact-list">
+        ${facts.map(([label, value]) => `<div class="fact-row"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+      </dl>
+      <div class="source-list">${sourcePreview}</div>
+    </div>
+  `;
+}
+
+function renderTables(chart) {
+  const planets = Object.values(chart.planets || {}).map((planet) => [
+    planet.name,
+    planet.sign,
+    planet.degree_formatted,
+    planet.house,
+    planet.nakshatra,
+    planet.pada,
+    planet.dignity,
+    planet.retrograde ? "R" : "",
+  ]);
+  $("#planetTable").innerHTML = table(
+    state.lang === "ru" ? ["Планета", "Знак", "Градус", "Дом", "Накшатра", "Пада", "Достоинство", "R"] : ["Planet", "Sign", "Degree", "House", "Nakshatra", "Pada", "Dignity", "Rx"],
+    planets
+  );
+
+  const houses = Object.values(chart.houses || {})
+    .sort((a, b) => a.number - b.number)
+    .map((house) => [house.number, house.sign, house.lord, (house.planets || []).join(", ") || "-"]);
+  $("#houseTable").innerHTML = table(state.lang === "ru" ? ["Дом", "Знак", "Управитель", "Планеты"] : ["House", "Sign", "Lord", "Planets"], houses);
+
+  const aspects = (chart.aspects || []).map((aspect) => [
+    aspect.from_planet,
+    aspect.from_house,
+    aspect.aspect,
+    aspect.to_house,
+    aspect.to_sign,
+    aspect.clickable_key,
+  ]);
+  $("#aspectTable").innerHTML = table(
+    state.lang === "ru" ? ["От", "Из дома", "Аспект", "В дом", "В знак", "Ключ"] : ["From", "From house", "Aspect", "To house", "To sign", "Key"],
+    aspects
+  );
+}
+
+function renderDashas(chart) {
+  const rows = (chart.dashas?.mahadashas || []).map((item) => [
+    item.planet,
+    formatDate(item.start),
+    formatDate(item.end),
+    item.duration_years,
+    item.clickable_key,
+  ]);
+  $("#dashaTable").innerHTML = table(state.lang === "ru" ? ["Махадаша", "Начало", "Конец", "Лет", "Ключ"] : ["Mahadasha", "Start", "End", "Years", "Key"], rows);
+}
+
+function renderSources(context) {
+  $("#sourceList").innerHTML = (context.items || [])
+    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><span>${escapeHtml(item.source_id)} · ${escapeHtml(sourceLangLabel(item.source_id))}</span><p>${escapeHtml(item.text)}</p></div>`)
+    .join("");
+  $("#missingList").innerHTML = (context.missing || [])
+    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><span>${escapeHtml(localizeMissingMessage(item.message))}</span></div>`)
+    .join("");
+}
+
+function renderReport(run, markdown) {
+  $("#fileLinks").innerHTML = `
+    <a href="/api/download/${run.id}/markdown">${escapeHtml(tr("markdown"))}</a>
+    <a href="/api/download/${run.id}/chart">${escapeHtml(tr("chartJson"))}</a>
+    <a href="/api/download/${run.id}/context">${escapeHtml(tr("contextJson"))}</a>
+    <a href="/api/download/${run.id}/input">${escapeHtml(tr("inputJson"))}</a>
+  `;
+  $("#reportBody").innerHTML = markdownToHtml(markdown);
+}
+
+function table(headers, rows) {
+  return `
+    <table>
+      <thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table>
+  `;
+}
+
+function markdownToHtml(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const chunks = [];
+  let paragraph = [];
+  let list = [];
+  let tableLines = [];
+
+  function flushParagraph() {
+    if (paragraph.length) {
+      chunks.push(`<p>${escapeHtml(paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+  }
+
+  function flushList() {
+    if (list.length) {
+      chunks.push(`<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+      list = [];
+    }
+  }
+
+  function flushTable() {
+    if (tableLines.length) {
+      const rows = tableLines
+        .filter((line) => !/^\|\s*-/.test(line))
+        .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()));
+      const [head, ...body] = rows;
+      if (head) chunks.push(table(head, body));
+      tableLines = [];
+    }
+  }
+
+  for (const line of lines) {
+    if (!line.trim()) {
+      flushParagraph();
+      flushList();
+      flushTable();
+      continue;
+    }
+    if (line.startsWith("|")) {
+      flushParagraph();
+      flushList();
+      tableLines.push(line);
+      continue;
+    }
+    flushTable();
+    if (line.startsWith("### ")) {
+      flushParagraph();
+      flushList();
+      chunks.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
+    } else if (line.startsWith("## ")) {
+      flushParagraph();
+      flushList();
+      chunks.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+    } else if (line.startsWith("# ")) {
+      flushParagraph();
+      flushList();
+      chunks.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
+    } else if (/^\s*[-*]\s+/.test(line)) {
+      flushParagraph();
+      list.push(line.replace(/^\s*[-*]\s+/, ""));
+    } else {
+      paragraph.push(line);
+    }
+  }
+  flushParagraph();
+  flushList();
+  flushTable();
+  return chunks.join("");
+}
+
+async function searchPlaces() {
+  const q = $("#placeQuery").value.trim();
+  const box = $("#placeSuggestions");
+  if (q.length < 2) {
+    box.style.display = "none";
+    return;
+  }
+  const data = await api(`/api/places?q=${encodeURIComponent(q)}`);
+  box.innerHTML = (data.places || [])
+    .map(
+      (place) => `
+        <button class="suggestion" type="button" data-place='${escapeHtml(JSON.stringify(place))}'>
+          ${escapeHtml(place.name)}
+          <span>${escapeHtml(place.latitude)}, ${escapeHtml(place.longitude)} В· ${escapeHtml(place.timezone)}</span>
+        </button>
+      `
+    )
+    .join("");
+  box.style.display = box.innerHTML ? "block" : "none";
+  $$(".suggestion").forEach((button) => {
+    button.addEventListener("click", () => {
+      const place = JSON.parse(button.dataset.place);
+      const [city, ...countryParts] = place.key.split(",");
+      const form = $("#birthForm");
+      form.city.value = titleCase(city);
+      form.country.value = titleCase(countryParts.join(","));
+      form.latitude.value = place.latitude;
+      form.longitude.value = place.longitude;
+      form.timezone.value = place.timezone;
+      $("#placeQuery").value = place.name;
+      box.style.display = "none";
+    });
+  });
+}
+
+async function askQuestion(event) {
+  event.preventDefault();
+  const input = $("#chatQuestion");
+  const question = input.value.trim();
+  if (!question || !state.currentRunId) return;
+  addMessage("user", question);
+  input.value = "";
+  const pending = addMessage("assistant", state.lang === "ru" ? "Р”СѓРјР°СЋ РїРѕ СЂР°СЃСЃС‡РёС‚Р°РЅРЅРѕР№ РєР°СЂС‚Рµ..." : "Reading the calculated chart...");
+  pending.classList.add("loading");
+  try {
+    const data = await api("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        run_id: state.currentRunId,
+        profile_id: state.currentProfileId,
+        question,
+        language: state.lang,
+      }),
+    });
+    pending.classList.remove("loading");
+    pending.querySelector("p").textContent = data.answer || "";
+    if (Array.isArray(data.chat_history)) {
+      updateCurrentProfileChat(data.chat_history);
+    }
+    renderFollowUps();
+  } catch (error) {
+    pending.classList.remove("loading");
+    pending.querySelector("p").textContent = error.message.includes("OPENROUTER_API_KEY") ? tr("missingApiKey") : error.message;
+  }
+}
+
+function renderChatHistory(messages) {
+  const log = $("#chatLog");
+  const history = Array.isArray(messages) ? messages : [];
+  if (!history.length) {
+    log.innerHTML = "";
+    return;
+  }
+  log.innerHTML = "";
+  history.forEach((message) => addMessage(message.role, message.content || "", { persist: false }));
+}
+
+function updateCurrentProfileChat(chatHistory) {
+  const profile = state.profiles.find((item) => item.id === state.currentProfileId);
+  if (profile) profile.chat_history = chatHistory;
+}
+
+async function clearChat() {
+  if (!state.currentProfileId) return;
+  if (!confirm(tr("clearChatConfirm"))) return;
+  try {
+    const data = await api(`/api/profiles/${state.currentProfileId}/chat`, { method: "DELETE" });
+    updateCurrentProfileChat(data.chat_history || []);
+    renderChatHistory([]);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderFollowUps() {
+  const log = $("#chatLog");
+  log.querySelector(".followups")?.remove();
+  const node = document.createElement("div");
+  node.className = "followups";
+  const items = [
+    ["followUpTiming", "promptDashaText"],
+    ["followUpHouses", "promptStrengthsText"],
+    ["followUpSources", "followUpSources"],
+  ];
+  node.innerHTML = `
+    <span>${escapeHtml(tr("followUpTitle"))}</span>
+    <div>
+      ${items
+        .map(([labelKey, promptKey]) => `<button type="button" class="followup-chip" data-followup="${escapeHtml(promptKey)}">${escapeHtml(tr(labelKey))}</button>`)
+        .join("")}
+    </div>
+  `;
+  log.appendChild(node);
+  node.querySelectorAll("[data-followup]").forEach((button) => {
+    button.addEventListener("click", () => {
+      $("#chatQuestion").value = button.dataset.followup === "followUpSources" ? tr("followUpSources") : tr(button.dataset.followup);
+      $("#chatQuestion").focus();
+    });
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+function addMessage(role, text, options = {}) {
+  const log = $("#chatLog");
+  const empty = log.querySelector(".chat-empty");
+  if (empty) empty.remove();
+  const node = document.createElement("div");
+  node.className = `message ${role}`;
+  node.innerHTML = `
+    <div class="message-avatar">${role === "user" ? icon("user") : icon("spark")}</div>
+    <div class="message-body">
+      <span>${role === "user" ? "You" : "AI"}</span>
+      <p>${escapeHtml(text)}</p>
+    </div>
+  `;
+  log.appendChild(node);
+  log.scrollTop = log.scrollHeight;
+  return node;
+}
+
+function cap(value) {
+  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+}
+
+function titleCase(value) {
+  return String(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+}
+
+function initTabs() {
+  $$(".tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveTab(button.dataset.tab);
+    });
+  });
+}
+
+function setActiveTab(tab) {
+  $$(".tab").forEach((item) => item.classList.toggle("active", item.dataset.tab === tab));
+  $$(".tab-view").forEach((item) => item.classList.remove("active"));
+  const view = $(`#tab-${tab}`);
+  if (view) view.classList.add("active");
+}
+
+function initLanguage() {
+  $$("[data-lang]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.lang = button.dataset.lang;
+      applyI18n();
+      if (state.chart) {
+        renderSummary({
+          lagna: `${state.chart.lagna?.sign || ""} ${state.chart.lagna?.degree_formatted || ""}`.trim(),
+          moon: state.chart.planets?.moon
+            ? `${state.chart.planets.moon.sign}, ${state.chart.planets.moon.nakshatra} pada ${state.chart.planets.moon.pada}, house ${state.chart.planets.moon.house}`
+            : "missing",
+          current_period: Object.values(state.chart.dashas?.current || {}).filter(Boolean).join(" / "),
+          sources_found: state.context?.items?.length || 0,
+          sources_missing: state.context?.missing?.length || 0,
+        });
+        if (state.context) {
+          renderOverview(state.chart, state.context);
+          renderTables(state.chart);
+          renderDashas(state.chart);
+          renderSources(state.context);
+        }
+      }
+    });
+  });
+}
+
+function boot() {
+  applyI18n();
+  initLanguage();
+  initTabs();
+  initPlanetModal();
+  $("#birthForm").addEventListener("submit", generateReport);
+  $("#refreshProfiles").addEventListener("click", loadProfiles);
+  $("#placeQuery").addEventListener("input", debounce(searchPlaces, 180));
+  $("#chatForm").addEventListener("submit", askQuestion);
+  $("#clearChatBtn").addEventListener("click", clearChat);
+  $$(".prompt-chip").forEach((button) => {
+    button.addEventListener("click", () => {
+      $("#chatQuestion").value = tr(`${button.dataset.promptKey}Text`);
+      $("#chatQuestion").focus();
+    });
+  });
+  loadProfiles().catch((error) => setStatus(error.message, "error"));
+}
+
+function debounce(fn, delay) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function getSavedActiveProfileId() {
+  try {
+    return localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveActiveProfileId(profileId) {
+  if (!profileId) return;
+  try {
+    localStorage.setItem(ACTIVE_PROFILE_STORAGE_KEY, profileId);
+  } catch {
+    // Ignore storage failures and keep app functional.
+  }
+}
+
+function clearSavedActiveProfileId() {
+  try {
+    localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
+  } catch {
+    // Ignore storage failures and keep app functional.
+  }
+}
+
+boot();
+

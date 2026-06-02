@@ -1,0 +1,29 @@
+# User-generated data
+data/reports/
+data/service/
+data/input/
+
+# Keep knowledge base
+!data/knowledge/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+pytest-cache-files-*/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

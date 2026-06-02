@@ -1,0 +1,9 @@
+[project]
+name = "jyotish-agent"
+version = "0.1.0"
+description = "Deterministic Jyotish calculation and report generation agent"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
