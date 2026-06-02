@@ -1871,6 +1871,7 @@ function renderDashas(chart) {
     el.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, parseInt(el.dataset.idx)));
     el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDashaModal(mahadashas, antardasha_map, parseInt(el.dataset.idx)); } });
   });
+
 }
 
 function openDashaModal(mahadashas, antardasha_map, idx) {
@@ -2635,6 +2636,20 @@ function setActiveTab(tab) {
       loadForecast(_fcState.date || _fcTodayStr());
     } else {
       _fcSetVisible("content");
+    }
+  }
+
+  if (tab === "dashas" && state.chart) {
+    const mahadashas = state.chart.dashas?.mahadashas || [];
+    const antardasha_map = {};
+    (state.chart.dashas?.antardashas || []).forEach((a) => {
+      if (!antardasha_map[a.mahadasha]) antardasha_map[a.mahadasha] = [];
+      antardasha_map[a.mahadasha].push(a);
+    });
+    const now = new Date();
+    const currentIdx = mahadashas.findIndex((m) => now >= new Date(m.start) && now <= new Date(m.end));
+    if (currentIdx !== -1) {
+      setTimeout(() => openDashaModal(mahadashas, antardasha_map, currentIdx), 120);
     }
   }
 }
