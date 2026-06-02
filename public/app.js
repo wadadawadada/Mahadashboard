@@ -1454,9 +1454,6 @@ async function openSettingsModal(setupMode = false) {
   const welcome = $("#settingsWelcome");
   if (welcome) welcome.classList.toggle("hidden", !setupMode);
 
-  // Close button — hide in setup mode so user must save
-  const closeBtn = $("#settingsModalClose");
-  if (closeBtn) closeBtn.classList.toggle("hidden", setupMode);
 
   // Cancel button — hide in setup mode
   const cancelBtn = $("#settingsCancelBtn");

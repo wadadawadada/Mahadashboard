@@ -396,9 +396,9 @@
     <div class="settings-modal hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
       <div class="settings-modal-backdrop" id="settingsModalBackdrop"></div>
       <article class="settings-modal-card">
+        <button class="settings-modal-close" type="button" id="settingsModalClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         <div class="settings-modal-head">
           <h3 id="settingsModalTitle" data-i18n="aiSettings">AI settings</h3>
-          <button class="settings-modal-close" type="button" id="settingsModalClose" aria-label="Close">×</button>
         </div>
         <div class="settings-welcome hidden" id="settingsWelcome">
           <div class="settings-welcome-logo">
@@ -430,8 +430,7 @@
           </div>
           <div class="settings-modal-actions">
             <span id="settingsModalStatus" class="settings-modal-status"></span>
-            <button class="segmented" type="button" id="settingsCancelBtn" data-i18n="cancel">Cancel</button>
-            <button class="primary-button small" type="submit" id="settingsSaveBtn" data-i18n="save">Save</button>
+            <button class="primary-button" type="submit" id="settingsSaveBtn" data-i18n="save">Save</button>
           </div>
         </form>
       </article>
