@@ -703,6 +703,47 @@ async function route(req, res) {
     return;
   }
 
+  const forecastMatch = pathname.match(/^\/api\/forecast\/([a-f0-9-]{36})$/);
+  if (req.method === "GET" && forecastMatch) {
+    const runId = forecastMatch[1];
+    if (!/^[a-f0-9-]{36}$/.test(runId)) throw new ApiError(400, "Invalid run id.");
+    const runDir = path.join(RUNS_DIR, runId);
+
+    const rawDate = new URL(req.url, "http://x").searchParams.get("date") || "";
+    const dateParam = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+      ? rawDate
+      : new Date().toISOString().slice(0, 10);
+
+    const language = (await readJson(path.join(runDir, "chart.json"))).meta?.language || "ru";
+    const langParam = (new URL(req.url, "http://x").searchParams.get("lang") || language);
+
+    const forecastPath = path.join(runDir, `forecast_${dateParam}_${langParam}.json`);
+
+    // Serve cached result if available
+    try {
+      const cached = await fsp.readFile(forecastPath, "utf8");
+      sendJson(res, 200, JSON.parse(cached));
+      return;
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+
+    const manifest = await readJson(path.join(runDir, "manifest.json"));
+    const inputFile = path.join(ROOT, manifest.files.input);
+
+    await runPython([
+      "-m", "jyotish.cli", "forecast",
+      "--input", inputFile,
+      "--out-forecast", forecastPath,
+      "--forecast-date", dateParam,
+      "--language", langParam,
+    ]);
+
+    const forecastData = await readJson(forecastPath);
+    sendJson(res, 200, forecastData);
+    return;
+  }
+
   if (req.method === "POST" && pathname === "/api/chat") {
     const body = await parseBody(req);
     const question = String(body.question || "").trim();

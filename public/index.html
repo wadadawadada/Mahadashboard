@@ -200,8 +200,9 @@
           <div class="tab-shell">
             <nav class="tabs" id="tabs" aria-label="Sections">
               <button class="tab active" type="button" data-tab="chart" title="Chart"><svg class="icon"><use href="#i-chart"></use></svg><span data-i18n="chartTab">Карта</span></button>
-              <button class="tab" type="button" data-tab="dashas" title="Life Path"><svg class="icon"><use href="#i-clock"></use></svg><span data-i18n="lifePathTab">Life Path</span></button>
+              <button class="tab" type="button" data-tab="dashas" title="Life Path"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span data-i18n="lifePathTab">Life Path</span></button>
               <button class="tab" type="button" data-tab="ai" data-i18n-title="aiTab"><svg class="icon"><use href="#i-chat"></use></svg><span data-i18n="aiTab">AI</span></button>
+              <button class="tab" type="button" data-tab="forecast" data-i18n-title="forecastTab"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-i18n="forecastTab">Прогноз</span></button>
               <button class="tab" type="button" data-tab="geo" title="Geo"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 2c-2.8 3-4 6-4 10s1.2 7 4 10M12 2c2.8 3 4 6 4 10s-1.2 7-4 10M2 12h20"/></svg><span data-i18n="geoTab">Geo</span></button>
               <button class="tab" type="button" data-tab="report" title="Report"><svg class="icon"><use href="#i-file"></use></svg><span data-i18n="report">Отчет</span></button>
             </nav>
@@ -349,6 +350,94 @@
                   </aside>
                 </div>
               </section>
+
+              <section class="tab-view" id="tab-forecast">
+                <div class="panel forecast-panel">
+
+                  <!-- Header: date nav -->
+                  <div class="forecast-header">
+                    <div class="forecast-date-nav">
+                      <button class="fc-nav-btn" id="fcPrevDay" type="button" data-i18n="forecastPrev">← день</button>
+                      <button class="fc-today-btn" id="fcToday" type="button" data-i18n="forecastToday">Сегодня</button>
+                      <input class="fc-date-input" type="date" id="fcDateInput" />
+                      <button class="fc-nav-btn" id="fcNextDay" type="button" data-i18n="forecastNext">день →</button>
+                    </div>
+                    <button class="fc-ask-ai-btn" id="fcAskAI" type="button">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      <span data-i18n="forecastAskAI">Спросить ИИ про этот день</span>
+                    </button>
+                  </div>
+
+                  <div class="fc-scrollable">
+                  <!-- States: only one visible at a time -->
+                  <div class="fc-state fc-loading hidden" id="fcLoading">
+                    <div class="fc-spinner"></div>
+                    <span data-i18n="forecastLoading">Расчёт прогноза...</span>
+                  </div>
+                  <div class="fc-state fc-error hidden" id="fcError" data-i18n="forecastError">Ошибка расчёта прогноза</div>
+                  <div class="fc-state hidden" id="fcNoRun" data-i18n="forecastNoRun">Сначала создайте отчёт</div>
+
+                  <!-- Main content (hidden until loaded) -->
+                  <div class="fc-content hidden" id="fcContent">
+
+                    <div class="fc-grid">
+
+                      <!-- LEFT column: score + dasha + avarga -->
+                      <div class="fc-col-left">
+
+                        <div class="fc-score-block">
+                          <div class="fc-score-ring-wrap">
+                            <svg class="fc-score-ring" viewBox="0 0 160 160">
+                              <circle class="fc-ring-bg" cx="80" cy="80" r="68" fill="none" stroke-width="12"/>
+                              <circle class="fc-ring-fill" id="fcRingFill" cx="80" cy="80" r="68" fill="none" stroke-width="12"
+                                stroke-dasharray="427.3" stroke-dashoffset="427.3" stroke-linecap="round"/>
+                            </svg>
+                            <div class="fc-ring-center">
+                              <span class="fc-score-num" id="fcScoreNum">–</span>
+                              <span class="fc-score-label" id="fcScoreLabel">–</span>
+                            </div>
+                          </div>
+                          <div class="fc-score-meta" id="fcScoreMeta"></div>
+                        </div>
+
+                        <div class="fc-moon-block" id="fcMoon"></div>
+
+                        <div class="fc-section">
+                          <div class="fc-section-head"><span data-i18n="forecastDasha">Активная даша</span></div>
+                          <div class="fc-dasha-block" id="fcDasha"></div>
+                        </div>
+
+                        <div class="fc-section">
+                          <div class="fc-section-head">
+                            <span data-i18n="forecastAvarga">Аштакаварга</span>
+                            <span class="fc-hint fc-hint--tooltip" data-tooltip-ru="Числа 0–8 показывают насколько благоприятен транзит планеты через этот дом. 5+ — хорошо, 3 и ниже — сложнее." data-tooltip-en="Scores 0–8 show how favorable each planet's transit through that house is. 5+ is good, 3 or below is challenging.">BAV 0–8 (?)</span>
+                          </div>
+                          <div class="fc-avarga-wrap" id="fcAvarga"></div>
+                        </div>
+
+                      </div><!-- /fc-col-left -->
+
+                      <!-- RIGHT column: tips + transits -->
+                      <div class="fc-col-right">
+
+                        <div class="fc-section">
+                          <div class="fc-section-head"><span data-i18n="forecastTips">Картина дня</span></div>
+                          <div class="fc-tips" id="fcTips"></div>
+                        </div>
+
+                        <div class="fc-section">
+                          <div class="fc-section-head"><span data-i18n="forecastTransits">Планеты сегодня</span></div>
+                          <div class="fc-transits-wrap" id="fcTransits"></div>
+                        </div>
+
+                      </div><!-- /fc-col-right -->
+
+                    </div><!-- /fc-grid -->
+
+                  </div><!-- /fc-content -->
+                  </div><!-- /fc-scrollable -->
+                </div><!-- /panel -->
+              </section><!-- /tab-forecast -->
 
               <section class="tab-view" id="tab-ai">
                 <div class="panel ai-panel">

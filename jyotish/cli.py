@@ -137,5 +137,64 @@ def geo(
     console.print(f"[green]Файл:[/green] {out_geo}")
 
 
+@app.command()
+def forecast(
+    input: Path = typer.Option(..., help="Путь к birth.json"),
+    out_forecast: Path = typer.Option(..., help="Выходной JSON прогноза"),
+    forecast_date: str = typer.Option(None, help="Дата прогноза YYYY-MM-DD (по умолчанию сегодня)"),
+    language: str = typer.Option("ru", help="Язык: ru или en"),
+):
+    """Рассчитать транзитный прогноз на заданную дату."""
+    from datetime import date as date_type
+    from jyotish.engine.calculator import calculate_chart
+    from jyotish.engine.transits import calculate_forecast
+    from jyotish.knowledge.retrieve import load_interpretations, retrieve_context
+    from jyotish.schemas import BirthInput
+
+    try:
+        raw = json.loads(input.read_text(encoding="utf-8"))
+        birth = BirthInput.model_validate(raw)
+    except Exception as e:
+        console.print(f"[red]Ошибка чтения birth.json:[/red] {e}")
+        raise typer.Exit(1)
+
+    if forecast_date:
+        try:
+            y, m, d = forecast_date.split("-")
+            target_date = date_type(int(y), int(m), int(d))
+        except ValueError:
+            console.print(f"[red]Неверный формат даты:[/red] {forecast_date}. Используйте YYYY-MM-DD.")
+            raise typer.Exit(1)
+    else:
+        target_date = date_type.today()
+
+    try:
+        natal_chart = calculate_chart(birth, places_path=_PLACES, today=target_date)
+    except ValueError as e:
+        console.print(f"[red]Ошибка расчёта натальной карты:[/red] {e}")
+        raise typer.Exit(1)
+
+    try:
+        forecast_data = calculate_forecast(natal_chart, target_date, language=language)
+    except Exception as e:
+        console.print(f"[red]Ошибка расчёта прогноза:[/red] {e}")
+        raise typer.Exit(1)
+
+    # Retrieve interpretation texts for transit keys (fall back to natal keys)
+    interps = load_interpretations(_INTERPS)
+    context = retrieve_context(forecast_data["interp_keys"], interps, language=language)
+    forecast_data["context"] = context
+
+    out_forecast.parent.mkdir(parents=True, exist_ok=True)
+    out_forecast.write_text(
+        json.dumps(forecast_data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    console.print(f"[green]Прогноз на {target_date}:[/green] счёт {forecast_data['score']}/100")
+    console.print(f"  Даша: {forecast_data['active_dasha']['mahadasha']} / "
+                  f"{forecast_data['active_dasha']['antardasha']}")
+    console.print(f"[green]Файл:[/green] {out_forecast}")
+
+
 if __name__ == "__main__":
     app()

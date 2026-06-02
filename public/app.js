@@ -1,5 +1,5 @@
 ﻿const state = {
-  lang: "ru",
+  lang: "en",
   profiles: [],
   currentProfileId: null,
   currentRunId: null,
@@ -129,6 +129,41 @@ const t = {
     geoCities: "Города",
     geoCitiesHint: "Рейтинг по близости к линиям планет",
     newProfile: "Новый профиль",
+    forecastTab: "Прогноз",
+    forecastTitle: "Прогноз на дату",
+    forecastToday: "Сегодня",
+    forecastPrev: "← день",
+    forecastNext: "день →",
+    forecastScore: "Оценка дня",
+    forecastScoreGood: "Благоприятный",
+    forecastScoreMid: "Нейтральный",
+    forecastScoreBad: "Сложный",
+    forecastDasha: "Активная даша",
+    forecastDashaRemaining: "дней до смены антардаши",
+    forecastTransits: "Транзиты планет",
+    forecastAvarga: "Аштакаварга",
+    forecastAvargaTitle: "Баллы транзитных планет",
+    forecastAvargaBAV: "BAV",
+    forecastAvargaSAV: "SAV",
+    forecastAvargaHint: "BAV — баллы планеты (0–8), SAV — сумма всех планет (0–56). Норма: BAV ≥ 4, SAV ≥ 28.",
+    forecastTips: "Советы и предупреждения",
+    forecastAspects: "Аспекты транзитов",
+    forecastAskAI: "Спросить ИИ про этот день",
+    forecastLoading: "Расчёт прогноза...",
+    forecastError: "Ошибка расчёта прогноза",
+    forecastNoRun: "Сначала создайте отчёт",
+    forecastSources: "Трактовки",
+    forecastRetrograde: "Ретро",
+    forecastExalted: "Экзальт.",
+    forecastDebilitated: "Падение",
+    forecastOwnSign: "Своё",
+    forecastHouse: "Дом",
+    forecastSign: "Знак",
+    forecastNakshatra: "Накшатра",
+    forecastDignity: "Достоинство",
+    forecastPlanet: "Планета",
+    forecastAspectTo: "Аспект",
+    forecastOrb: "Орб",
   },
   en: {
     subtitle: "precise calculation, live report",
@@ -249,6 +284,41 @@ const t = {
     geoCities: "Cities",
     geoCitiesHint: "Ranked by proximity to planet lines",
     newProfile: "New profile",
+    forecastTab: "Forecast",
+    forecastTitle: "Daily Forecast",
+    forecastToday: "Today",
+    forecastPrev: "← prev day",
+    forecastNext: "next day →",
+    forecastScore: "Day score",
+    forecastScoreGood: "Favorable",
+    forecastScoreMid: "Neutral",
+    forecastScoreBad: "Challenging",
+    forecastDasha: "Active dasha",
+    forecastDashaRemaining: "days until antardasha ends",
+    forecastTransits: "Planet transits",
+    forecastAvarga: "Ashtakavarga",
+    forecastAvargaTitle: "Transit planet scores",
+    forecastAvargaBAV: "BAV",
+    forecastAvargaSAV: "SAV",
+    forecastAvargaHint: "BAV — planet score (0–8), SAV — all-planet sum (0–56). Norm: BAV ≥ 4, SAV ≥ 28.",
+    forecastTips: "Tips & alerts",
+    forecastAspects: "Transit aspects",
+    forecastAskAI: "Ask AI about this day",
+    forecastLoading: "Calculating forecast...",
+    forecastError: "Forecast calculation error",
+    forecastNoRun: "Generate a report first",
+    forecastSources: "Interpretations",
+    forecastRetrograde: "Retro",
+    forecastExalted: "Exalted",
+    forecastDebilitated: "Debil.",
+    forecastOwnSign: "Own",
+    forecastHouse: "House",
+    forecastSign: "Sign",
+    forecastNakshatra: "Nakshatra",
+    forecastDignity: "Dignity",
+    forecastPlanet: "Planet",
+    forecastAspectTo: "Aspect",
+    forecastOrb: "Orb",
   },
 };
 
@@ -2557,6 +2627,16 @@ function setActiveTab(tab) {
       }
     }, 60);
   }
+
+  if (tab === "forecast") {
+    if (!state.currentRunId) {
+      _fcSetVisible("norun");
+    } else if (!_fcState.data || _fcState.data._runId !== state.currentRunId) {
+      loadForecast(_fcState.date || _fcTodayStr());
+    } else {
+      _fcSetVisible("content");
+    }
+  }
 }
 
 function initReportNav() {
@@ -2619,8 +2699,393 @@ function initLanguage() {
           renderDashas(state.chart);
           renderSources(state.context);
         }
+        // Re-render forecast with new language if already loaded
+        if (_fcState.data) {
+          _fcState.data._runId = null; // force re-fetch with new lang
+          loadForecast(_fcState.date || _fcTodayStr());
+        }
       }
     });
+  });
+}
+
+// ── Forecast tab ────────────────────────────────────────────────────────────
+
+const _fcState = {
+  date: null,
+  data: null,
+};
+
+function _fcTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function _fcShiftDate(dateStr, days) {
+  const d = new Date(dateStr + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + days);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+}
+
+function _fcScoreClass(score) {
+  if (score >= 60) return "good";
+  if (score >= 35) return "mid";
+  return "bad";
+}
+
+function _fcBavClass(bav) {
+  if (bav >= 5) return "good";
+  if (bav >= 3) return "mid";
+  return "bad";
+}
+
+function _fcSetVisible(which) {
+  const map = { loading:"fcLoading", error:"fcError", norun:"fcNoRun", content:"fcContent" };
+  Object.entries(map).forEach(([k, id]) => {
+    const el = $(`#${id}`);
+    if (el) el.classList.toggle("hidden", k !== which);
+  });
+}
+
+async function loadForecast(dateStr) {
+  if (!state.currentRunId) { _fcSetVisible("norun"); return; }
+  _fcState.date = dateStr;
+  const inp = $("#fcDateInput");
+  if (inp) inp.value = dateStr;
+  _fcSetVisible("loading");
+  try {
+    const data = await api(`/api/forecast/${state.currentRunId}?date=${dateStr}&lang=${state.lang}`);
+    data._runId = state.currentRunId;
+    _fcState.data = data;
+    renderForecast(data);
+  } catch (err) {
+    _fcSetVisible("error");
+    console.error("Forecast error:", err);
+  }
+}
+
+function renderForecast(data) {
+  _renderFcScore(data.score || 0);
+  _renderFcMoon(data.lunar_phase, data.transit_planets || []);
+  _renderFcTips(data.tips || []);
+  _renderFcDasha(data.active_dasha || {});
+  _renderFcAvarga(data.transit_avarga || []);
+  _renderFcTransits(data.transit_planets || []);
+  _fcSetVisible("content");
+}
+
+function _renderFcScore(score) {
+  const cls = _fcScoreClass(score);
+  const ringFill = $("#fcRingFill");
+  if (ringFill) {
+    ringFill.style.strokeDashoffset = 427.3 * (1 - score / 100);
+    ringFill.setAttribute("class", `fc-ring-fill ${cls}`);
+  }
+  const numEl = $("#fcScoreNum");
+  if (numEl) numEl.textContent = Math.round(score);
+  const lblEl = $("#fcScoreLabel");
+  if (lblEl) {
+    lblEl.textContent = tr(cls === "good" ? "forecastScoreGood" : cls === "bad" ? "forecastScoreBad" : "forecastScoreMid");
+    lblEl.className = `fc-score-label fc-score-label--${cls}`;
+  }
+  const meta = $("#fcScoreMeta");
+  if (meta) {
+    const scoreStr = `${Math.round(score)}/100`;
+    const isRu = state.lang === "ru";
+    meta.innerHTML = `<span class="fc-score-date">${_fcState.date || ""}</span>` +
+      `<span class="fc-score-badge fc-score-badge--${cls}">${escapeHtml(scoreStr)}</span>`;
+  }
+}
+
+function _renderFcMoon(phase, transitPlanets) {
+  const el = $("#fcMoon");
+  if (!el) return;
+  if (!phase) { el.innerHTML = ""; return; }
+
+  const moonTp = transitPlanets.find(t => t.planet === "moon");
+  const tithi = phase.tithi;
+  const illum = phase.illumination_pct;
+  const isRu = state.lang === "ru";
+  const phaseName = isRu ? phase.phase_name_ru : phase.phase_name_en;
+  const paksha = phase.paksha === "shukla" ? (isRu ? "Шукла" : "Shukla") : (isRu ? "Кришна" : "Krishna");
+
+  // Moon emoji by phase
+  const moonEmoji = tithi <= 2 ? "🌑" : tithi <= 7 ? "🌒" : tithi <= 10 ? "🌓"
+    : tithi <= 14 ? "🌔" : tithi === 15 ? "🌕" : tithi <= 20 ? "🌖"
+    : tithi <= 24 ? "🌗" : tithi <= 28 ? "🌘" : "🌑";
+
+  // Illumination arc (simple CSS variable approach)
+  const arcPct = Math.round(illum);
+
+  const nkText = moonTp ? `${moonTp.nakshatra} ${moonTp.pada}` : "";
+  const houseText = moonTp ? `${isRu ? "дом" : "H"}${moonTp.house}` : "";
+
+  el.innerHTML =
+    `<div class="fc-moon-row">` +
+      `<span class="fc-moon-emoji">${moonEmoji}</span>` +
+      `<div class="fc-moon-info">` +
+        `<div class="fc-moon-top">` +
+          `<span class="fc-moon-phase">${phaseName}</span>` +
+          `<span class="fc-moon-tithi">${isRu ? "Титхи" : "Tithi"} ${tithi} · ${paksha}</span>` +
+        `</div>` +
+        `<div class="fc-moon-bottom">` +
+          `<div class="fc-moon-illum-track"><div class="fc-moon-illum-fill" style="width:${arcPct}%"></div></div>` +
+          `<span class="fc-moon-illum-val">${illum}%</span>` +
+          (nkText ? `<span class="fc-moon-nk">${nkText} · ${houseText}</span>` : "") +
+        `</div>` +
+      `</div>` +
+    `</div>`;
+}
+
+function _renderFcTips(tips) {
+  const el = $("#fcTips");
+  if (!el) return;
+  if (!tips.length) {
+    el.innerHTML = `<div class="fc-tip info"><span class="fc-tip-icon">ℹ</span><span class="fc-tip-text">—</span></div>`;
+    return;
+  }
+  el.innerHTML = tips.map(tip => {
+    const type = tip.type || "info";
+    const ico = tip.icon || "ℹ";
+    const text = state.lang === "ru" ? (tip.text_ru || tip.text || "") : (tip.text_en || tip.text || "");
+    return `<div class="fc-tip ${escapeHtml(type)}">` +
+      `<span class="fc-tip-icon">${escapeHtml(ico)}</span>` +
+      `<span class="fc-tip-text">${escapeHtml(text)}</span>` +
+      `</div>`;
+  }).join("");
+}
+
+function _renderFcDasha(dasha) {
+  const el = $("#fcDasha");
+  if (!el) return;
+  const maha = dasha.mahadasha || "—";
+  const antar = dasha.antardasha || "—";
+  const pratya = dasha.pratyantardasha || null;
+  const days = dasha.antardasha_remaining_days;
+  const mahaColor = PLANET_META[maha.toLowerCase()]?.color || "var(--gold)";
+  const antarColor = PLANET_META[antar.toLowerCase()]?.color || "var(--violet)";
+  const pratyaColor = pratya ? (PLANET_META[pratya.toLowerCase()]?.color || "var(--text-dim)") : null;
+  let html = `<div class="fc-dasha-pill main" style="--pill-color:${mahaColor}">` +
+    `${escapeHtml(maha)}</div>` +
+    `<span class="fc-dasha-sep">/</span>` +
+    `<div class="fc-dasha-pill" style="--pill-color:${antarColor}">` +
+    `${escapeHtml(antar)}</div>`;
+  if (pratya) {
+    html += `<span class="fc-dasha-sep">/</span>` +
+      `<div class="fc-dasha-pill" style="--pill-color:${pratyaColor}">` +
+      `${escapeHtml(pratya)}</div>`;
+  }
+  if (days != null) {
+    html += `<span class="fc-dasha-remaining">${days}d</span>`;
+  }
+  el.innerHTML = html;
+}
+
+function _renderFcAvarga(transitAvarga) {
+  const el = $("#fcAvarga");
+  if (!el) return;
+  const order = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+  const ruLabels = {sun:"☉",moon:"☽",mars:"♂",mercury:"☿",jupiter:"♃",venus:"♀",saturn:"♄"};
+  const rows = order.map(p => {
+    const av = transitAvarga.find(x => x.planet === p);
+    if (!av || av.bav == null) return "";
+    const score = av.bav;
+    const pct = Math.round((score / 8) * 100);
+    const cls = _fcBavClass(score);
+    const pm = PLANET_META[p] || { color: "var(--muted)" };
+    return `<div class="fc-avarga-row">` +
+      `<span class="fc-avarga-glyph" style="color:${pm.color}">${ruLabels[p] || p}</span>` +
+      `<div class="fc-bav-track"><div class="fc-bav-fill ${cls}" style="width:${pct}%"></div></div>` +
+      `<span class="fc-bav-val ${cls}">${score}</span>` +
+      `</div>`;
+  }).filter(Boolean);
+  el.innerHTML = rows.join("") || "—";
+}
+
+function _renderFcTransits(transits) {
+  const el = $("#fcTransits");
+  if (!el) return;
+  if (!transits.length) { el.innerHTML = "—"; return; }
+  const isRu = state.lang === "ru";
+
+  const ruNames = {sun:"Солнце",moon:"Луна",mars:"Марс",mercury:"Меркурий",
+                   jupiter:"Юпитер",venus:"Венера",saturn:"Сатурн",rahu:"Раху",ketu:"Кету"};
+
+  // Human-readable house meanings
+  const houseMeaningRu = {
+    1:"сфера себя и тела", 2:"деньги и речь", 3:"решимость и коммуникации",
+    4:"дом и душевный покой", 5:"творчество и дети", 6:"здоровье и работа",
+    7:"отношения и партнёры", 8:"трансформации и скрытое", 9:"удача и мировоззрение",
+    10:"карьера и статус", 11:"доходы и окружение", 12:"уединение и потери"
+  };
+  const houseMeaningEn = {
+    1:"identity & body", 2:"wealth & speech", 3:"courage & communication",
+    4:"home & peace of mind", 5:"creativity & children", 6:"health & work",
+    7:"relationships & partners", 8:"transformation & hidden", 9:"luck & worldview",
+    10:"career & status", 11:"income & network", 12:"solitude & loss"
+  };
+
+  // Planet themes (short)
+  const planetThemeRu = {
+    sun:"воля и авторитет", moon:"эмоции и привычки", mars:"энергия и действие",
+    mercury:"мышление и общение", jupiter:"рост и мудрость", venus:"любовь и удовольствия",
+    saturn:"дисциплина и ограничения", rahu:"амбиции и перемены", ketu:"духовность и отпускание"
+  };
+  const planetThemeEn = {
+    sun:"willpower & authority", moon:"emotions & habits", mars:"energy & action",
+    mercury:"thinking & communication", jupiter:"growth & wisdom", venus:"love & pleasures",
+    saturn:"discipline & limits", rahu:"ambition & disruption", ketu:"spirituality & release"
+  };
+
+  const dignityTextRu = {exalted:"в силе", own_sign:"в своём знаке", debilitated:"ослаблен"};
+  const dignityTextEn = {exalted:"strong", own_sign:"at home", debilitated:"weakened"};
+  const dignityClassMap = {exalted:"good", own_sign:"mid", debilitated:"bad", neutral:""};
+
+  const rows = transits.map(t => {
+    const pm = PLANET_META[t.planet] || { glyph: "○", color: "var(--text)", label: t.planet };
+    const pName = isRu ? (ruNames[t.planet] || t.planet) : (pm.label || t.planet);
+    const house = t.house || "";
+    const houseMeaning = isRu ? (houseMeaningRu[house] || "") : (houseMeaningEn[house] || "");
+    const theme = isRu ? (planetThemeRu[t.planet] || "") : (planetThemeEn[t.planet] || "");
+    const dig = t.dignity || "neutral";
+    const digText = isRu ? (dignityTextRu[dig] || "") : (dignityTextEn[dig] || "");
+    const digCls = dignityClassMap[dig] || "";
+    const retro = t.retrograde;
+
+    // Compose the "story" line
+    let story = "";
+    if (isRu) {
+      story = `${theme}`;
+      if (houseMeaning) story += ` — в сфере: ${houseMeaning}`;
+      if (retro) story += `. Ретроградный: пересмотр и внутренняя работа`;
+      if (dig === "exalted") story += `. Усилен`;
+      if (dig === "debilitated") story += `. Ослаблен — требует внимания`;
+    } else {
+      story = `${theme}`;
+      if (houseMeaning) story += ` — in the area of: ${houseMeaning}`;
+      if (retro) story += `. Retrograde: review and inner work`;
+      if (dig === "exalted") story += `. Strengthened`;
+      if (dig === "debilitated") story += `. Weakened — needs attention`;
+    }
+
+    const digBadge = digText
+      ? `<span class="fc-tr-dig fc-tr-dig--${digCls}">${escapeHtml(digText)}</span>`
+      : "";
+    const retroBadge = retro ? `<span class="fc-retro-tag">℞</span>` : "";
+
+    return `<div class="fc-tr-card">` +
+      `<div class="fc-tr-head">` +
+        `<span class="fc-tr-glyph" style="color:${pm.color}">${pm.glyph}</span>` +
+        `<span class="fc-tr-name">${escapeHtml(pName)}${retroBadge}</span>` +
+        `<span class="fc-tr-loc">${escapeHtml(t.sign || "")} · ${isRu ? "дом" : "H"}${house}</span>` +
+        digBadge +
+      `</div>` +
+      `<div class="fc-tr-story">${escapeHtml(story)}</div>` +
+      `</div>`;
+  });
+
+  el.innerHTML = rows.join("");
+}
+
+function _renderFcSources(context) {
+  const el = $("#fcSources");
+  if (!el) return;
+  const items = context.items || [];
+  if (!items.length) { el.innerHTML = `<span class="fc-hint">—</span>`; return; }
+  el.innerHTML = items.slice(0, 10).map(item =>
+    `<div class="fc-src-row">` +
+    `<div class="fc-src-key">${escapeHtml(item.key || "")}</div>` +
+    `<div>${escapeHtml(itemText(item))}</div>` +
+    `</div>`
+  ).join("");
+}
+
+function initForecast() {
+  _fcState.date = _fcTodayStr();
+  const inp = $("#fcDateInput");
+  if (inp) inp.value = _fcState.date;
+
+  $("#fcPrevDay")?.addEventListener("click", () =>
+    loadForecast(_fcShiftDate(_fcState.date || _fcTodayStr(), -1)));
+  $("#fcNextDay")?.addEventListener("click", () =>
+    loadForecast(_fcShiftDate(_fcState.date || _fcTodayStr(), 1)));
+  $("#fcToday")?.addEventListener("click", () => loadForecast(_fcTodayStr()));
+  $("#fcDateInput")?.addEventListener("change", (e) => {
+    if (e.target.value) loadForecast(e.target.value);
+  });
+  $("#fcAskAI")?.addEventListener("click", () => {
+    setActiveTab("ai");
+    const d = _fcState.data;
+    if (!d) return;
+    const dateStr = _fcState.date || _fcTodayStr();
+    const isRu = state.lang === "ru";
+
+    const score = d.score ?? "?";
+    const dasha = d.active_dasha || {};
+    const maha = dasha.mahadasha || "?";
+    const antar = dasha.antardasha || "?";
+    const pratya = dasha.pratyantardasha || null;
+    const dashaStr = pratya ? `${maha}/${antar}/${pratya}` : `${maha}/${antar}`;
+
+    // Moon / lunar phase
+    const lp = d.lunar_phase;
+    const moonTp = (d.transit_planets || []).find(t => t.planet === "moon");
+    const moonLine = lp
+      ? (isRu
+        ? `Луна: ${lp.phase_name_ru}, титхи ${lp.tithi} (${lp.paksha === "shukla" ? "Шукла" : "Кришна"}), освещённость ${lp.illumination_pct}%${moonTp ? `, накшатра ${moonTp.nakshatra} пада ${moonTp.pada}, дом ${moonTp.house}` : ""}`
+        : `Moon: ${lp.phase_name_en}, tithi ${lp.tithi} (${lp.paksha}), illumination ${lp.illumination_pct}%${moonTp ? `, nakshatra ${moonTp.nakshatra} pada ${moonTp.pada}, house ${moonTp.house}` : ""}`)
+      : "";
+
+    // Transits summary
+    const ruNames = {sun:"Солнце",moon:"Луна",mars:"Марс",mercury:"Меркурий",
+                     jupiter:"Юпитер",venus:"Венера",saturn:"Сатурн",rahu:"Раху",ketu:"Кету"};
+    const transitLines = (d.transit_planets || []).map(t => {
+      const name = isRu ? (ruNames[t.planet] || t.planet) : t.planet.charAt(0).toUpperCase() + t.planet.slice(1);
+      const retro = t.retrograde ? (isRu ? " ℞" : " Rx") : "";
+      const dig = t.dignity !== "neutral" ? ` (${t.dignity})` : "";
+      return isRu
+        ? `${name}${retro}: ${t.sign}, дом ${t.house}${dig}`
+        : `${name}${retro}: ${t.sign}, house ${t.house}${dig}`;
+    });
+
+    // BAV highlights
+    const bavLines = (d.transit_avarga || [])
+      .filter(av => av.bav != null && (av.bav >= 6 || av.bav <= 2))
+      .map(av => {
+        const name = isRu ? (ruNames[av.planet] || av.planet) : av.planet;
+        return isRu
+          ? `${name}: BAV ${av.bav}/8 ${av.bav >= 6 ? "(сильный транзит)" : "(слабый транзит)"}`
+          : `${name}: BAV ${av.bav}/8 ${av.bav >= 6 ? "(strong transit)" : "(weak transit)"}`;
+      });
+
+    // Tips texts
+    const tipTexts = (d.tips || []).map(t =>
+      isRu ? (t.text_ru || "") : (t.text_en || "")
+    ).filter(Boolean);
+
+    let prompt;
+    if (isRu) {
+      prompt = `Прогноз на ${dateStr}:\n`
+        + `• Оценка дня: ${score}/100\n`
+        + `• Даша: ${dashaStr}\n`
+        + (moonLine ? `• ${moonLine}\n` : "")
+        + (transitLines.length ? `• Транзиты:\n  ${transitLines.join("\n  ")}\n` : "")
+        + (bavLines.length ? `• Аштакаварга: ${bavLines.join(", ")}\n` : "")
+        + (tipTexts.length ? `• Акценты дня: ${tipTexts.join("; ")}\n` : "")
+        + `\nПроанализируй этот день с точки зрения джйотиша. Что стоит учесть, на что обратить внимание?`;
+    } else {
+      prompt = `Forecast for ${dateStr}:\n`
+        + `• Day score: ${score}/100\n`
+        + `• Dasha: ${dashaStr}\n`
+        + (moonLine ? `• ${moonLine}\n` : "")
+        + (transitLines.length ? `• Transits:\n  ${transitLines.join("\n  ")}\n` : "")
+        + (bavLines.length ? `• Ashtakavarga: ${bavLines.join(", ")}\n` : "")
+        + (tipTexts.length ? `• Day highlights: ${tipTexts.join("; ")}\n` : "")
+        + `\nAnalyze this day from a Jyotish perspective. What should I keep in mind?`;
+    }
+
+    const chatInp = $("#chatQuestion");
+    if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
   });
 }
 
@@ -2636,6 +3101,7 @@ function boot() {
   initDashaModal();
   initSettingsModal();
   initChartViewToggle();
+  initForecast();
   $("#birthForm").addEventListener("submit", generateReport);
   $("#refreshProfiles").addEventListener("click", loadProfiles);
   $("#newProfileBtn").addEventListener("click", newProfile);

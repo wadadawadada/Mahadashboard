@@ -33,6 +33,18 @@ A local-first Vedic astrology (Jyotish) workstation. Enter a birth date, time, a
 
 > The AI chat feature requires a free [OpenRouter](https://openrouter.ai/keys) API key. All chart calculations work without it.
 
+### Platform notes
+
+The app runs on **Windows, macOS, and Linux** without code changes. One thing differs per platform: the Python executable name.
+
+| Platform | Default `python` command | Set in `.env` |
+|---|---|---|
+| Windows | `python` | `PYTHON_BIN=python` |
+| macOS | usually `python3` | `PYTHON_BIN=python3` |
+| Linux | usually `python3` | `PYTHON_BIN=python3` |
+
+On macOS/Linux, if `python` is not found, set `PYTHON_BIN=python3` (or the full path, e.g. `/usr/bin/python3`) in your `.env` file.
+
 ---
 
 ## Installation
@@ -165,8 +177,8 @@ mahadashboard/
 **Blank chart after generation**
 → Check the browser console. If you see a 500 error, run `npm start` and look at the terminal output for the Python traceback.
 
-**`pyswisseph` install fails on Windows**
-→ Install the Microsoft C++ Build Tools first: [visualstudio.microsoft.com/visual-cpp-build-tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+**`pyswisseph` install fails**
+→ Pre-built wheels are available for Windows, macOS (Intel + Apple Silicon), and Linux. Make sure `pip` is up to date (`pip install --upgrade pip`) and you are using Python 3.10–3.11. On Windows, if it still fails, install the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
 
 **AI chat returns nothing**
 → Confirm your `OPENROUTER_API_KEY` is set and has credits. You can set or update the key inside the app via the ⚙ settings button.
