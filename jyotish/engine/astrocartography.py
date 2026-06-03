@@ -234,36 +234,46 @@ def _compute_line_for_planet_angle(
     target_lon = planet_trop_lon if angle == "ASC" else (planet_trop_lon + 180.0) % 360.0
     lat_limit = 72.0  # ASC becomes undefined/degenerate beyond arctic circles
 
-    # prev_ramc tracks which bracket we used last, to prefer the continuous branch
     prev_ramc: float | None = None
+    prev_geo_lon: float | None = None  # track unwrapped geo_lon for continuity
 
     for lat_deg in _frange(-lat_limit, lat_limit, lat_step):
         candidates = _find_asc_brackets(target_lon, lat_deg, obl)
         if not candidates:
-            prev_ramc = None
             continue
 
-        # Choose the bracket closest to previous solution for continuity
-        if prev_ramc is not None:
-            def bracket_mid(br):
-                return (br[0] + br[1]) / 2.0
+        # Choose candidate whose resulting geo_lon is closest to previous geo_lon
+        best_ramc = None
+        best_geo_lon = None
+        best_dist = float("inf")
 
-            def ramc_dist(br):
-                m = bracket_mid(br)
-                d = abs(m - prev_ramc)
-                return min(d, 360 - d)
+        for br in candidates:
+            lo, hi = br
+            sol = _bisect_asc(target_lon, lat_deg, obl, lo, hi)
+            if sol is None:
+                continue
+            g = _ramc_to_geolon(sol)
+            if prev_geo_lon is not None:
+                # Wrap-aware distance between geo longitudes
+                d = abs(g - prev_geo_lon)
+                d = min(d, 360.0 - d)
+            else:
+                d = 0.0
+            if d < best_dist:
+                best_dist = d
+                best_ramc = sol
+                best_geo_lon = g
 
-            candidates.sort(key=ramc_dist)
-
-        lo, hi = candidates[0]
-        ramc_sol = _bisect_asc(target_lon, lat_deg, obl, lo, hi)
-        if ramc_sol is None:
-            prev_ramc = None
+        if best_ramc is None:
             continue
 
-        prev_ramc = ramc_sol
-        geo_lon = _ramc_to_geolon(ramc_sol)
-        coords.append([round(geo_lon, 4), round(lat_deg, 4)])
+        # If jump > 30° and we have a previous point, skip (branch switch artifact)
+        if prev_geo_lon is not None and best_dist > 30.0:
+            continue
+
+        prev_ramc = best_ramc
+        prev_geo_lon = best_geo_lon
+        coords.append([round(best_geo_lon, 4), round(lat_deg, 4)])
 
     return coords
 
@@ -402,7 +412,12 @@ def compute_acg_lines(jd: float, language: str = "ru") -> dict:
 
             score = SCORES.get((planet_key, angle), 0)
             color = PLANET_COLORS.get(planet_key, "#aaaaaa")
-            segments = _split_antimeridian(coords)
+            # MC/IC are vertical lines — split at antimeridian for clean rendering
+            # ASC/DSC are curved — pass as one segment, JS unwraps longitudes
+            if angle in ("MC", "IC"):
+                segments = _split_antimeridian(coords)
+            else:
+                segments = [coords] if coords else []
 
             label_ru_en = f"{p_desc[planet_key]} {angle}"
 

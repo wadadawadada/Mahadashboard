@@ -25,7 +25,7 @@ const t = {
     aspects: "Аспекты",
     interpretations: "Интерпретации",
     nodeAspects: "Аспекты узлов",
-    generate: "Сгенерировать отчет",
+    generate: "Построить карту",
     engine: "Swiss Ephemeris · curated sources",
     emptyTitle: "Введите данные и создайте первый расчет",
     emptyText: "Сервис сохранит профиль, запустит локальный расчетный движок и покажет карту, таблицы, источники и отчет в одном интерфейсе.",
@@ -118,6 +118,10 @@ const t = {
     geoTab: "Гео",
     geoLines: "Линии планет",
     geoParans: "Параны",
+    geoSearchPlaceholder: "Поиск города...",
+    geoAskAI: "AI",
+    geoAskAIHint: "Нажмите на карте чтобы выбрать локацию",
+    geoAskAICancel: "Отмена",
     geoLoading: "Расчет астрокартографии...",
     geoError: "Ошибка расчёта карты",
     geoNoRun: "Сначала создайте отчёт",
@@ -180,7 +184,7 @@ const t = {
     aspects: "Aspects",
     interpretations: "Interpretations",
     nodeAspects: "Node aspects",
-    generate: "Generate report",
+    generate: "Generate chart",
     engine: "Swiss Ephemeris · curated sources",
     emptyTitle: "Enter birth data and create the first calculation",
     emptyText: "The service saves a profile, runs the local calculation engine, and shows the chart, tables, sources, and report in one interface.",
@@ -273,6 +277,10 @@ const t = {
     geoTab: "Geo",
     geoLines: "Planet lines",
     geoParans: "Parans",
+    geoSearchPlaceholder: "Search city...",
+    geoAskAI: "AI",
+    geoAskAIHint: "Click on the map to select a location",
+    geoAskAICancel: "Cancel",
     geoLoading: "Calculating astrocartography...",
     geoError: "Map calculation error",
     geoNoRun: "Generate a report first",
@@ -3126,6 +3134,8 @@ function boot() {
   initSettingsModal();
   initChartViewToggle();
   initForecast();
+  initGeoSearch();
+  initGeoAI();
   $("#birthForm").addEventListener("submit", generateReport);
   $("#refreshProfiles").addEventListener("click", loadProfiles);
   $("#newProfileBtn").addEventListener("click", newProfile);
@@ -3180,30 +3190,211 @@ function initGeoMap() {
     center: [20, 0],
     zoom: 2,
     minZoom: 1,
-    maxZoom: 6,
+    maxZoom: 19,
     worldCopyJump: true,
     zoomControl: true,
   });
 
-  // Dark base tiles (no labels)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
+  // Dark base tiles with labels
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: "© CartoDB",
     subdomains: "abcd",
-    maxZoom: 8,
+    maxZoom: 19,
+    maxNativeZoom: 19,
     pane: "tilePane",
-  }).addTo(map);
-
-  // Labels on top (separate layer so lines stay below text)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
-    attribution: "",
-    subdomains: "abcd",
-    maxZoom: 8,
-    pane: "overlayPane",
-    zIndex: 650,
   }).addTo(map);
 
   _geoState.map = map;
   _geoState.initialized = true;
+}
+
+function initGeoSearch() {
+  const input = $("#geoSearchInput");
+  const results = $("#geoSearchResults");
+  if (!input || !results) return;
+
+  let _searchTimer = null;
+
+  input.addEventListener("input", () => {
+    clearTimeout(_searchTimer);
+    const q = input.value.trim();
+    if (q.length < 2) { results.classList.add("hidden"); return; }
+    _searchTimer = setTimeout(() => _geoSearch(q, input, results), 300);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { results.classList.add("hidden"); input.blur(); }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#geoSearchWrap")) results.classList.add("hidden");
+  });
+}
+
+async function _geoSearch(q, input, results) {
+  const lang = state.lang === "ru" ? "ru" : "en";
+  try {
+    const data = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&accept-language=${lang}`
+    ).then(r => r.json());
+
+    if (!data.length) { results.classList.add("hidden"); return; }
+
+    results.innerHTML = data.map((item, i) =>
+      `<div class="geo-search-result-item" data-lat="${item.lat}" data-lon="${item.lon}" data-idx="${i}">
+        ${escapeHtml(item.display_name.split(",").slice(0, 3).join(", "))}
+      </div>`
+    ).join("");
+    results.classList.remove("hidden");
+
+    results.querySelectorAll(".geo-search-result-item").forEach(el => {
+      el.addEventListener("click", () => {
+        const lat = parseFloat(el.dataset.lat);
+        const lon = parseFloat(el.dataset.lon);
+        const map = _geoState.map;
+        if (map) map.flyTo([lat, lon], 8, { duration: 1.2 });
+        input.value = el.textContent.trim();
+        results.classList.add("hidden");
+      });
+    });
+  } catch {
+    results.classList.add("hidden");
+  }
+}
+
+function initGeoAI() {
+  const btn = $("#geoAskAIBtn");
+  const hint = $("#geoAIHint");
+  const cancelBtn = $("#geoAICancelBtn");
+  if (!btn || !hint || !cancelBtn) return;
+
+  let pickMode = false;
+
+  function enterPickMode() {
+    pickMode = true;
+    btn.classList.add("active");
+    hint.style.display = "flex";
+    const mapEl = document.getElementById("geoMap");
+    if (mapEl) mapEl.classList.add("pick-mode");
+  }
+
+  function exitPickMode() {
+    pickMode = false;
+    btn.classList.remove("active");
+    hint.style.display = "none";
+    const mapEl = document.getElementById("geoMap");
+    if (mapEl) mapEl.classList.remove("pick-mode");
+  }
+
+  btn.addEventListener("click", () => {
+    if (pickMode) exitPickMode();
+    else enterPickMode();
+  });
+
+  cancelBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    exitPickMode();
+  });
+
+  document.getElementById("geoMap")?.addEventListener("click", (e) => {
+    if (!pickMode) return;
+    const map = _geoState.map;
+    if (!map) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const point = L.point(e.clientX - rect.left, e.clientY - rect.top);
+    const latlng = map.containerPointToLatLng(point);
+    exitPickMode();
+    _geoAskAIAtPoint(latlng.lat, latlng.lng);
+  });
+}
+
+function _geoAskAIAtPoint(lat, lng) {
+  const isRu = state.lang === "ru";
+
+  // Reverse geocode via Nominatim
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}&format=json&accept-language=${isRu ? "ru" : "en"}`)
+    .then(r => r.json())
+    .catch(() => null)
+    .then(geo => {
+      const locName = geo?.display_name
+        ? geo.display_name.split(",").slice(0, 3).join(",").trim()
+        : `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+      _buildGeoAIPrompt(lat, lng, locName, isRu);
+    });
+}
+
+function _buildGeoAIPrompt(lat, lng, locName, isRu) {
+  // Find nearest ACG lines (within ~15 degrees)
+  const THRESHOLD_DEG = 15;
+  const nearLines = [];
+
+  for (const obj of _geoState.lineObjects) {
+    const { line, allPolylines } = obj;
+    let minDist = Infinity;
+    for (const pl of allPolylines) {
+      const lls = pl.getLatLngs ? pl.getLatLngs() : [];
+      for (const pt of lls) {
+        const d = Math.abs(pt.lng - lng);
+        const wrap = Math.min(d, 360 - d);
+        const dist = Math.sqrt(wrap * wrap + (pt.lat - lat) * (pt.lat - lat));
+        if (dist < minDist) minDist = dist;
+      }
+    }
+    if (minDist <= THRESHOLD_DEG) {
+      nearLines.push({ line, dist: minDist });
+    }
+  }
+
+  nearLines.sort((a, b) => a.dist - b.dist);
+  const top = nearLines.slice(0, 5);
+
+  const ruNames = { sun:"Солнце",moon:"Луна",mars:"Марс",mercury:"Меркурий",
+                    jupiter:"Юпитер",venus:"Венера",saturn:"Сатурн",rahu:"Раху",ketu:"Кету" };
+  const angleRu = { AC:"АС",IC:"IC",DC:"ДС",MC:"MC" };
+
+  const linesDesc = top.map(({ line }) => {
+    const planet = isRu ? (ruNames[line.planet] || line.planet) : (line.planet.charAt(0).toUpperCase() + line.planet.slice(1));
+    const angle  = isRu ? (angleRu[line.angle] || line.angle) : line.angle;
+    const score  = `${line.score > 0 ? "+" : ""}${line.score}`;
+    const label  = line.label || "";
+    return isRu
+      ? `${planet} ${angle} (${label}, ${score})`
+      : `${planet} ${angle} (${label}, ${score})`;
+  });
+
+  const chart = state.chart;
+  const birth = chart?.birth || {};
+  const lagna = chart?.lagna?.sign || "?";
+  const dasha = state.context?.current_dasha;
+  const dashaStr = dasha
+    ? (dasha.pratyantardasha
+        ? `${dasha.mahadasha}/${dasha.antardasha}/${dasha.pratyantardasha}`
+        : `${dasha.mahadasha}/${dasha.antardasha}`)
+    : "?";
+
+  let prompt;
+  if (isRu) {
+    prompt = `Локация: ${locName} (${lat.toFixed(2)}, ${lng.toFixed(2)})\n`
+      + (lagna !== "?" ? `Лагна: ${lagna}\n` : "")
+      + (dashaStr !== "?" ? `Текущая даша: ${dashaStr}\n` : "")
+      + (linesDesc.length
+          ? `Ближайшие линии астрокартографии:\n${linesDesc.map(l => `  • ${l}`).join("\n")}\n`
+          : "Линии ACG рядом не обнаружены.\n")
+      + `\nЧто значит эта локация для меня с точки зрения ведической астрологии и астрокартографии? Какие темы, возможности и испытания она активирует?`;
+  } else {
+    prompt = `Location: ${locName} (${lat.toFixed(2)}, ${lng.toFixed(2)})\n`
+      + (lagna !== "?" ? `Lagna: ${lagna}\n` : "")
+      + (dashaStr !== "?" ? `Current dasha: ${dashaStr}\n` : "")
+      + (linesDesc.length
+          ? `Nearest astrocartography lines:\n${linesDesc.map(l => `  • ${l}`).join("\n")}\n`
+          : "No nearby ACG lines found.\n")
+      + `\nWhat does this location mean for me from a Vedic astrology and astrocartography perspective? What themes, opportunities, and challenges does it activate?`;
+  }
+
+  setActiveTab("ai");
+  const chatInp = $("#chatQuestion");
+  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
 }
 
 async function renderGeo(runId) {
@@ -3267,7 +3458,17 @@ function _drawGeoLines(data) {
       let midLatLng = null;
 
       for (const seg of (line.coords || [])) {
-        const latlngs = seg.map(([lon, lat]) => [lat, lon]);
+        if (seg.length < 2) continue;
+        // Unwrap longitudes so consecutive points stay close (no cross-screen jumps)
+        const latlngs = [];
+        let prevLon = seg[0][0];
+        for (const [lon, lat] of seg) {
+          let d = lon - prevLon;
+          if (d > 180) d -= 360;
+          else if (d < -180) d += 360;
+          prevLon = prevLon + d;
+          latlngs.push([lat, prevLon]);
+        }
         if (latlngs.length < 2) continue;
 
         // Geographic zone polygon

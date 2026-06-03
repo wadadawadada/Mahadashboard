@@ -95,14 +95,14 @@
               <input id="placeQuery" autocomplete="off" data-i18n-placeholder="placePlaceholder" placeholder="Город, страна" />
               <div class="suggestions" id="placeSuggestions"></div>
             </label>
-            <div class="two-col">
+            <div class="two-col" style="display:none">
               <label>
                 <span data-i18n="city">Город</span>
-                <input name="city" required />
+                <input name="city" />
               </label>
               <label>
                 <span data-i18n="country">Страна</span>
-                <input name="country" required />
+                <input name="country" />
               </label>
             </div>
 
@@ -124,7 +124,7 @@
               </label>
             </details>
 
-            <details class="settings-box" open>
+            <details class="settings-box">
               <summary data-i18n="settings">Настройки расчета</summary>
               <div class="two-col">
                 <label>
@@ -174,7 +174,7 @@
 
             <button class="primary-button" id="generateBtn" type="submit">
               <svg class="icon button-icon"><use href="#i-chart"></use></svg>
-              <span data-i18n="generate">Сгенерировать отчет</span>
+              <span data-i18n="generate">Построить карту</span>
             </button>
           </form>
         </section>
@@ -244,7 +244,6 @@
               <section class="tab-view" id="tab-dashas">
                 <div class="dasha-layout">
                   <div class="panel dasha-timeline-panel">
-                    <div class="panel-head"><h2 data-i18n="lifePathTitle">Life Path</h2></div>
                     <div id="dashaTable"></div>
                   </div>
                   <div class="panel dasha-detail-panel hidden" id="dashaDetailPanel">
@@ -326,6 +325,18 @@
                 <div class="geo-layout">
                   <div class="geo-map-wrap">
                     <div id="geoMap" class="geo-map"></div>
+                    <div class="geo-search-wrap" id="geoSearchWrap">
+                      <input class="geo-search-input" id="geoSearchInput" type="text" autocomplete="off" data-i18n-placeholder="geoSearchPlaceholder" placeholder="Поиск города..." />
+                      <div class="geo-search-results hidden" id="geoSearchResults"></div>
+                    </div>
+                    <button class="geo-ai-btn" id="geoAskAIBtn" type="button">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      <span data-i18n="geoAskAI">AI</span>
+                    </button>
+                    <div class="geo-ai-hint hidden" id="geoAIHint">
+                      <span data-i18n="geoAskAIHint">Нажмите на карте чтобы выбрать локацию</span>
+                      <button class="geo-ai-cancel" id="geoAICancelBtn" type="button" data-i18n="geoAskAICancel">Отмена</button>
+                    </div>
                     <div class="geo-loading hidden" id="geoLoading">
                       <div class="geo-loading-spinner"></div>
                       <span data-i18n="geoLoading">Расчет астрокартографии...</span>
