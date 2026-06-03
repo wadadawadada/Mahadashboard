@@ -5,6 +5,8 @@
   "description": "Premium web service wrapper for the deterministic Jyotish engine.",
   "type": "commonjs",
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "prestart": "node scripts/prestart.js",
     "start": "node server.js",
     "check": "node --check server.js && node --check public/app.js && node --check public/chart3d.mjs",
     "test:web": "node tests/web-static.check.mjs"

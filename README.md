@@ -1,6 +1,6 @@
 # Mahadashboard
 
-A local-first Vedic astrology (Jyotish) workstation. Enter a birth date, time, and place — get a precise chart, dasha timeline, curated interpretations, and an AI assistant that answers questions about the chart. Everything runs on your machine; no cloud subscription required.
+A local Vedic astrology (Jyotish) workstation. Enter a birth date, time, and place — get a precise chart, dasha timeline, daily forecast, curated interpretations, and an AI assistant. Everything runs on your machine; no cloud subscription required.
 
 ![Language](https://img.shields.io/badge/language-EN%20%7C%20RU-blue)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -9,11 +9,12 @@ A local-first Vedic astrology (Jyotish) workstation. Enter a birth date, time, a
 
 ---
 
-## Features
+## What's inside
 
-- **Accurate chart calculation** — Swiss Ephemeris via `pyswisseph`; Lahiri ayanamsa, sidereal zodiac, whole-sign houses, Vimshottari dasha from Moon
+- **Accurate chart calculation** — Swiss Ephemeris via pyswisseph; Lahiri ayanamsa, sidereal zodiac, whole-sign houses, Vimshottari dasha from Moon
 - **Multiple chart layers** — D1 Rashi (2D & 3D), D9 Navamsa, planet table, house table, aspect table
-- **Dasha timeline (Life Path)** — full Vimshottari sequence with interactive period cards
+- **Life Path** — full Vimshottari dasha timeline with interactive period cards
+- **Daily Forecast** — transit score for any date, active dasha, Moon phase, Ashtakavarga (BAV), planet-of-the-day tips; navigate day by day or jump to any date
 - **Curated source library** — 3 000+ interpretation snippets for planets, signs, houses, nakshatras, dashas
 - **AI chat** — ask questions about the chart in English or Russian; powered by OpenRouter (bring your own key)
 - **Astrocartography (Geo)** — planet lines and parans overlaid on a world map
@@ -23,83 +24,37 @@ A local-first Vedic astrology (Jyotish) workstation. Enter a birth date, time, a
 
 ---
 
-## Requirements
+## Before you start — install two tools
 
-| Dependency | Version |
-|---|---|
-| Node.js | ≥ 18 |
-| Python | ≥ 3.10 |
-| pip | any recent |
+You need **Node.js** and **Python** installed on your computer. Both are free.
 
-> The AI chat feature requires a free [OpenRouter](https://openrouter.ai/keys) API key. All chart calculations work without it.
+### 1. Install Node.js
 
-### Platform notes
+Go to **[nodejs.org/en/download](https://nodejs.org/en/download/)** and download the installer for your system (choose the **LTS** version). Run it and click through — default options are fine.
 
-The app runs on **Windows, macOS, and Linux** without code changes. One thing differs per platform: the Python executable name.
+> To check it worked, open a terminal and type `node --version`. You should see something like `v20.x.x`.
 
-| Platform | Default `python` command | Set in `.env` |
-|---|---|---|
-| Windows | `python` | `PYTHON_BIN=python` |
-| macOS | usually `python3` | `PYTHON_BIN=python3` |
-| Linux | usually `python3` | `PYTHON_BIN=python3` |
+### 2. Install Python
 
-On macOS/Linux, if `python` is not found, set `PYTHON_BIN=python3` (or the full path, e.g. `/usr/bin/python3`) in your `.env` file.
+Go to **[python.org/downloads](https://www.python.org/downloads/)** and download the latest installer.
+
+**Windows users:** on the first screen of the installer, check the box **"Add Python to PATH"** before clicking Install. This is important.
+
+> To check it worked, open a terminal and type `python --version`. You should see `Python 3.x.x`.
 
 ---
 
 ## Installation
 
-### 1. Clone the repository
+Open a terminal in the folder where you want to keep the project, then run:
 
 ```bash
-git clone https://github.com/your-username/mahadashboard.git
-cd mahadashboard
-```
-
-### 2. Install Node dependencies
-
-```bash
+git clone https://github.com/wadadawadada/Mahadashboard.git
+cd Mahadashboard
 npm install
 ```
 
-### 3. Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-> On some systems you may need `pip3` instead of `pip`, or use a virtual environment:
-> ```bash
-> python -m venv .venv
-> source .venv/bin/activate   # Windows: .venv\Scripts\activate
-> pip install -r requirements.txt
-> ```
-
-### 4. Configure environment
-
-Copy the example env file and edit it:
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in the values:
-
-```env
-PORT=7860
-PYTHON_BIN=python          # or python3, or full path e.g. /usr/bin/python3
-
-# Optional — required only for the AI chat tab
-OPENROUTER_API_KEY=sk-or-v1-...
-OPENROUTER_MODEL=openai/gpt-4o-mini
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-OPENROUTER_SITE_URL=http://localhost:7860
-OPENROUTER_APP_NAME=Mahadashboard
-
-OPEN_BROWSER=true          # set to false to disable auto-open
-```
-
-Get a free OpenRouter key at [openrouter.ai/keys](https://openrouter.ai/keys). Any model listed on [openrouter.ai/models](https://openrouter.ai/models) works — copy its ID (e.g. `openai/gpt-4o-mini`).
+`npm install` will automatically install both Node.js and Python dependencies. You should see a line like `Python dependencies installed successfully.` at the end.
 
 ---
 
@@ -109,54 +64,56 @@ Get a free OpenRouter key at [openrouter.ai/keys](https://openrouter.ai/keys). A
 npm start
 ```
 
-The server starts on `http://localhost:7860` and opens the browser automatically (set `OPEN_BROWSER=false` to disable).
+The app opens at **http://localhost:7860** automatically in your browser.
 
 ---
 
-## Usage
+## First-time setup — AI chat (optional)
 
-1. **Enter birth data** — name, date (DD.MM.YYYY), time, and place in the left panel
-2. **Click "Generate report"** — the Python engine calculates the chart and saves the profile
+The AI chat tab requires a free API key from OpenRouter. Chart calculations work without it.
+
+1. Get a free key at **[openrouter.ai/keys](https://openrouter.ai/keys)**
+2. Click the ⚙ gear icon in the top-left of the app
+3. Paste your key and choose a model (e.g. `openai/gpt-4o-mini` — free on OpenRouter)
+
+---
+
+## How to use
+
+1. **Enter birth data** — name, date, time, and place in the left panel
+2. **Click "Generate report"** — the engine calculates the chart and saves the profile
 3. **Explore the tabs:**
-   - **Chart** — D1 Rashi wheel (switch 2D / 3D), D9 Navamsa grid; click any planet to see its interpretations
+   - **Chart** — D1 Rashi wheel (switch 2D / 3D), D9 Navamsa; click any planet for interpretations
    - **Life Path** — Vimshottari dasha timeline; click a period for a detailed card
-   - **Report** — Overview, curated Sources, planet/house/aspect Tables, and Export
-   - **AI** — chat with an LLM about the calculated chart
+   - **Forecast** — daily transit score, active dasha, Moon, Ashtakavarga (BAV 0–8), planet-of-the-day tips; use the arrows to navigate between days or pick any date
    - **Geo** — astrocartography map with planet lines and city rankings
+   - **Report** — overview, curated sources, tables, and Markdown export
+   - **AI** — chat with an LLM about the calculated chart
 4. **Switch language** — EN / RU toggle in the top-left corner
-5. **Manage profiles** — click any saved profile in the left panel to load it; use the `+` button to start a new chart
+5. **Manage profiles** — click any saved profile in the left panel; use `+` to start a new chart
 
 ---
 
-## Project Structure
+## Troubleshooting
 
-```
-mahadashboard/
-├── server.js               # Node.js HTTP server & API
-├── public/
-│   ├── index.html          # Single-page application shell
-│   ├── app.js              # All frontend logic & i18n
-│   ├── chart3d.mjs         # Three.js 3D chart renderer
-│   └── styles.css
-├── jyotish/                # Python calculation engine
-│   ├── cli.py              # CLI entry point (report, geo commands)
-│   ├── engine/             # Calculator, ephemeris, dashas, aspects …
-│   └── knowledge/          # Interpretation retrieval
-├── data/
-│   ├── knowledge/
-│   │   └── interpretations.jsonl   # 3 000+ bilingual source snippets
-│   ├── service/
-│   │   ├── profiles.json           # Saved birth profiles
-│   │   └── runs/                   # Per-run chart + context files
-│   └── reports/            # Latest run outputs (chart, context, report)
-├── requirements.txt
-├── package.json
-└── .env                    # Local configuration (not committed)
-```
+**`npm install` says Python was not found**
+→ Make sure Python is installed and "Add Python to PATH" was checked during installation. Close and reopen your terminal, then try again.
+
+**`npm start` says Python dependencies are not installed**
+→ Run `npm install` again.
+
+**`pyswisseph` install fails on Windows**
+→ Make sure pip is up to date (`python -m pip install --upgrade pip`). If it still fails, install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+
+**Blank chart after generation**
+→ Open the browser console (F12). If you see a 500 error, check the terminal for the Python traceback.
+
+**AI chat returns nothing**
+→ Confirm your OpenRouter API key is set and has credits. You can update the key any time via the ⚙ gear icon.
 
 ---
 
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
@@ -166,28 +123,6 @@ mahadashboard/
 | Server | Node.js (built-in `http`, no framework) |
 | Ephemeris | [pyswisseph](https://github.com/astrorigin/pyswisseph) (Swiss Ephemeris) |
 | AI | [OpenRouter](https://openrouter.ai/) |
-
----
-
-## Troubleshooting
-
-**`Could not start Python report engine`**
-→ Make sure `PYTHON_BIN` in `.env` points to the correct Python 3.10+ executable. Try `python3` or the full path.
-
-**Blank chart after generation**
-→ Check the browser console. If you see a 500 error, run `npm start` and look at the terminal output for the Python traceback.
-
-**`pyswisseph` install fails**
-→ Pre-built wheels are available for Windows, macOS (Intel + Apple Silicon), and Linux. Make sure `pip` is up to date (`pip install --upgrade pip`) and you are using Python 3.10–3.11. On Windows, if it still fails, install the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
-
-**AI chat returns nothing**
-→ Confirm your `OPENROUTER_API_KEY` is set and has credits. You can set or update the key inside the app via the ⚙ settings button.
-
----
-
-## Contributing
-
-Pull requests are welcome. For significant changes, please open an issue first to discuss what you would like to change.
 
 ---
 
