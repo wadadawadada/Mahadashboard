@@ -2785,7 +2785,7 @@ function renderForecast(data) {
   _renderFcTips(data.tips || []);
   _renderFcDasha(data.active_dasha || {});
   _renderFcAvarga(data.transit_avarga || []);
-  _renderFcTransits(data.transit_planets || []);
+  _renderFcTransits(data.transit_planets || [], data.transit_avarga || []);
   _fcSetVisible("content");
 }
 
@@ -2917,7 +2917,7 @@ function _renderFcAvarga(transitAvarga) {
   el.innerHTML = rows.join("") || "—";
 }
 
-function _renderFcTransits(transits) {
+function _renderFcTransits(transits, transitAvarga) {
   const el = $("#fcTransits");
   if (!el) return;
   if (!transits.length) { el.innerHTML = "—"; return; }
@@ -2988,14 +2988,23 @@ function _renderFcTransits(transits) {
       : "";
     const retroBadge = retro ? `<span class="fc-retro-tag">℞</span>` : "";
 
+    const av = (transitAvarga || []).find(x => x.planet === t.planet);
+    const bavScore = av && av.bav != null ? av.bav : null;
+    const bavBadge = bavScore !== null
+      ? `<span class="fc-tr-bav fc-tr-bav--${_fcBavClass(bavScore)}" title="${isRu ? "Аштакаварга" : "Ashtakavarga"} BAV">${bavScore}/8</span>`
+      : "";
+
     return `<div class="fc-tr-card">` +
-      `<div class="fc-tr-head">` +
+      `<div class="fc-tr-row1">` +
         `<span class="fc-tr-glyph" style="color:${pm.color}">${pm.glyph}</span>` +
         `<span class="fc-tr-name">${escapeHtml(pName)}${retroBadge}</span>` +
+        bavBadge +
+      `</div>` +
+      `<div class="fc-tr-row2">` +
         `<span class="fc-tr-loc">${escapeHtml(t.sign || "")} · ${isRu ? "дом" : "H"}${house}</span>` +
         digBadge +
       `</div>` +
-      `<div class="fc-tr-story">${escapeHtml(story)}</div>` +
+      `<div class="fc-tr-theme">${escapeHtml(theme)}</div>` +
       `</div>`;
   });
 

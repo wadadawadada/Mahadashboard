@@ -5102,10 +5102,8 @@ td {
 }
 
 .fc-col-right .fc-section:last-child .fc-transits-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .fc-section--sources {
@@ -5388,26 +5386,37 @@ td {
 .fc-bav-val.bad  { color: var(--danger); }
 
 /* Transit cards */
-.fc-transits-wrap { display: flex; flex-direction: column; gap: 6px; }
+.fc-transits-wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media (max-width: 1100px) { .fc-transits-wrap { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px)  { .fc-transits-wrap { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .fc-transits-wrap { grid-template-columns: 1fr; } }
 
 .fc-tr-card {
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--line-soft);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 9px 11px;
   transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.fc-tr-card:hover { background: rgba(216,183,100,0.04); }
+.fc-tr-card:hover { background: rgba(216,183,100,0.05); }
 
-.fc-tr-head {
+.fc-tr-row1 {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 3px;
+}
+
+.fc-tr-row2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .fc-tr-glyph {
-  font-size: 16px;
+  font-size: 15px;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -5416,19 +5425,25 @@ td {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-bright);
-  flex-shrink: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fc-tr-loc {
   font-size: 11px;
   color: var(--muted);
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.fc-tr-story {
-  font-size: 12px;
+.fc-tr-theme {
+  font-size: 11px;
   color: var(--text-dim);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .fc-tr-dig {
@@ -5445,6 +5460,20 @@ td {
 
 .fc-cell-muted { color: var(--muted); font-size: 11px; }
 .fc-retro-tag  { font-size: 10px; color: var(--danger); margin-left: 3px; font-style: italic; }
+
+.fc-tr-bav {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: auto;
+  letter-spacing: 0.3px;
+}
+.fc-tr-bav--good { background: rgba(92,211,194,0.13); color: #5cd3c2; }
+.fc-tr-bav--mid  { background: rgba(216,183,100,0.15); color: var(--gold); }
+.fc-tr-bav--bad  { background: rgba(255,106,106,0.13); color: var(--danger); }
 
 /* Avarga tooltip hint */
 .fc-hint--tooltip {
