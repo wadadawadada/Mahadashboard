@@ -593,6 +593,24 @@ function itemText(item) {
   return item.text_ru || item.text || "";
 }
 
+function srcTagType(key) {
+  if (key.includes(":nakshatra:") && key.includes(":pada:")) return "pada";
+  if (key.includes(":nakshatra:")) return "nakshatra";
+  if (key.includes(":sign:")) return "sign";
+  if (key.includes(":house:") || key.match(/house:\d+$/)) return "house";
+  if (key.includes(":lord:")) return "lord";
+  if (key.includes(":mahadasha") || key.includes(":antardasha")) return "dasha";
+  return "base";
+}
+
+function srcTagLabel(key) {
+  const labels = {
+    ru: { base:"Суть", sign:"Знак", nakshatra:"Накшатра", pada:"Пада", house:"Дом", lord:"Лорд", dasha:"Даша" },
+    en: { base:"Core", sign:"Sign", nakshatra:"Nakshatra", pada:"Pada", house:"House", lord:"Lord", dasha:"Dasha" },
+  };
+  return (labels[state.lang] || labels.ru)[srcTagType(key)] || srcTagType(key);
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -1631,26 +1649,154 @@ function initSettingsModal() {
 }
 
 function renderOverview(chart, context) {
+  const isRu = state.lang === "ru";
   const current = chart.dashas?.current || {};
-  const facts = [
-    [tr("birth"), `${chart.birth.local_date} ${chart.birth.local_time}`],
-    [tr("location"), `${chart.birth.city}, ${chart.birth.country} · ${chart.birth.timezone}`],
-    ["UTC", chart.birth.utc_datetime],
-    ["Julian Day", chart.birth.julian_day],
-    [tr("settingsLabel"), `${chart.meta.ayanamsa}, ${chart.meta.zodiac}, ${chart.meta.house_system}, ${chart.meta.dasha_system}`],
-    [tr("currentPeriod"), [current.mahadasha, current.antardasha, current.pratyantardasha].filter(Boolean).join(" / ")],
-    [tr("warnings"), (chart.warnings || []).join("; ") || tr("noWarnings")],
-  ];
-  const sourcePreview = (context.items || [])
-    .slice(0, 6)
-    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong><p>${escapeHtml(itemText(item))}</p></div>`)
-    .join("");
+  const lagna = chart.lagna || {};
+  const planets = chart.planets || {};
+  const items = context.items || [];
+
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев",
+    Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
+    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const signRu = (s) => (isRu && SIGN_RU[s]) ? SIGN_RU[s] : (s || "");
+
+  const PLANET_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
+    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const PLANET_GLYPH = { sun:"☉", moon:"☽", mars:"♂", mercury:"☿", jupiter:"♃",
+    venus:"♀", saturn:"♄", rahu:"☊", ketu:"☋" };
+  const PLANET_COLOR = { sun:"#f0b84a", moon:"#a8d8ea", mars:"#e07060", mercury:"#7dcfbb",
+    jupiter:"#c097ff", venus:"#f9a8c9", saturn:"#8899aa", rahu:"#9988cc", ketu:"#cc9966" };
+  const DIGNITY_RU = { exalted:"экзальтация", debilitated:"падение", own_sign:"свой знак" };
+  const DIGNITY_EN = { exalted:"exalted", debilitated:"debilitated", own_sign:"own sign" };
+  const ELEM_ICON = { Fire:"🔥", Earth:"🌿", Air:"💨", Water:"🌊" };
+  const ELEM_RU   = { Fire:"Огонь", Earth:"Земля", Air:"Воздух", Water:"Вода" };
+
+  const planetRu = (p) => (isRu && PLANET_RU[p]) ? PLANET_RU[p] : (p || "");
+  const dignityLabel = (d) => d && d !== "neutral"
+    ? (isRu ? DIGNITY_RU[d] : DIGNITY_EN[d]) || d : "";
+
+  // формат даты дд.мм.гг
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    return `${d}.${m}.${y?.slice(2)}`;
+  };
+
+  // ── Шапка: рождение ────────────────────────────────────
+  const birthDate = formatDate(chart.birth.local_date);
+  const birthTime = chart.birth.local_time || "";
+  const birthPlace = `${chart.birth.city}, ${chart.birth.country}`;
+
+  // ── Карточки планет ────────────────────────────────────
+  const MAIN_PLANETS = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
+  const planetCardsHtml = MAIN_PLANETS.filter(k => planets[k]).map(k => {
+    const p = planets[k];
+    const col = PLANET_COLOR[k] || "#aaa";
+    const dig = dignityLabel(p.dignity);
+    const ret = p.retrograde ? " ℞" : "";
+    const score = scorePlanet(k, chart);
+    const pct = score * 10;
+    const scoreColor = score >= 7.5 ? "#8ec97a" : score >= 5 ? "#f0b84a" : "#e07060";
+    const digColor = p.dignity === "exalted" ? "#8ec97a" : p.dignity === "debilitated" ? "#e07060" : "#aaa";
+    return `<div class="ov-planet-card">
+      <div class="ov-planet-head" style="--pcol:${col}">
+        <span class="ov-planet-glyph" style="color:${col}">${PLANET_GLYPH[k]}</span>
+        <span class="ov-planet-name">${escapeHtml(planetRu(k))}${ret}</span>
+      </div>
+      <div class="ov-planet-sign">${escapeHtml(signRu(p.sign))}</div>
+      <div class="ov-planet-meta">
+        ${isRu?"дом":"H"}${p.house}
+        ${dig ? `<span class="ov-planet-dig" style="color:${digColor}">${escapeHtml(dig)}</span>` : ""}
+      </div>
+      <div class="ov-planet-score-row">
+        <div class="ov-planet-score-track"><div class="ov-planet-score-fill" style="width:${pct}%;background:${scoreColor}"></div></div>
+        <span class="ov-planet-score-num" style="color:${scoreColor}">${score.toFixed(1)}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  // ── Лагна ──────────────────────────────────────────────
+  const lagnaHtml = lagna.sign ? `
+    <div class="ov-lagna">
+      <span class="ov-lagna-icon">⬆</span>
+      <div>
+        <div class="ov-lagna-label">${isRu?"Лагна (Асцендент)":"Lagna (Ascendant)"}</div>
+        <div class="ov-lagna-value">${escapeHtml(signRu(lagna.sign))}${lagna.nakshatra ? ` · ${escapeHtml(lagna.nakshatra)}` : ""}${lagna.pada ? ` пада ${lagna.pada}` : ""}</div>
+      </div>
+    </div>` : "";
+
+  // ── Текущий период дашей ───────────────────────────────
+  const dashaStr = [current.mahadasha, current.antardasha, current.pratyantardasha]
+    .filter(Boolean).map(planetRu).join(" → ");
+
+  // ── Элементы (по всем планетам D1) ────────────────────
+  const ELEM_ORDER = ["Fire","Earth","Air","Water"];
+  const elemCount = { Fire:0, Earth:0, Air:0, Water:0 };
+  MAIN_PLANETS.filter(k => planets[k]).forEach(k => {
+    const el = SIGN_META[planets[k].sign]?.element;
+    if (el && el in elemCount) elemCount[el]++;
+  });
+  // учитываем лагну
+  if (lagna.sign) {
+    const el = SIGN_META[lagna.sign]?.element;
+    if (el && el in elemCount) elemCount[el]++;
+  }
+  const elemTotal = Object.values(elemCount).reduce((a,b)=>a+b,0) || 1;
+  const elemHtml = ELEM_ORDER.map(el => {
+    const n = elemCount[el];
+    const pct = Math.round((n / elemTotal) * 100);
+    const ELEM_COLOR = { Fire:"#e07060", Earth:"#8ec97a", Air:"#7db3ff", Water:"#7dcfbb" };
+    return `<div class="ov-elem-row">
+      <span class="ov-elem-icon">${ELEM_ICON[el]}</span>
+      <span class="ov-elem-name">${isRu?(ELEM_RU[el]||el):el}</span>
+      <div class="ov-elem-track"><div class="ov-elem-fill" style="width:${pct}%;background:${ELEM_COLOR[el]}"></div></div>
+      <span class="ov-elem-num">${n}</span>
+    </div>`;
+  }).join("");
+
+  // ── Интерпретации ──────────────────────────────────────
+  const pick = (prefix, exclude=[]) => items.find(i =>
+    i.key.startsWith(prefix) && !exclude.some(x => i.key.includes(x)));
+  const interps = [
+    { icon:"⬆", label: isRu?"Лагна":"Lagna",   item: pick("lagna:", [":nakshatra:",":sign:",":pada:"]) },
+    { icon:"☽", label: isRu?"Луна":"Moon",      item: pick("planet:moon:", [":sign:",":nakshatra:",":lord:"]) },
+    { icon:"☉", label: isRu?"Солнце":"Sun",     item: pick("planet:sun:", [":sign:",":nakshatra:",":lord:"]) },
+    { icon:"⏳", label: isRu?"Период":"Period", item: items.find(i => i.key.includes("mahadasha")) },
+  ].filter(x => x.item);
+
+  const interpsHtml = interps.map(x => `
+    <div class="ov-interp">
+      <div class="ov-interp-head">
+        <span class="ov-interp-icon">${x.icon}</span>
+        <span class="ov-interp-label">${escapeHtml(x.label)}</span>
+      </div>
+      <div class="ov-interp-text">${escapeHtml(itemText(x.item))}</div>
+    </div>`).join("");
+
   $("#overviewPanel").innerHTML = `
-    <div class="overview-grid">
-      <dl class="fact-list">
-        ${facts.map(([label, value]) => `<div class="fact-row"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
-      </dl>
-      <div class="overview-sources">${sourcePreview}</div>
+    <div class="ov-wrap">
+
+      <div class="ov-header">
+        <div class="ov-header-birth">
+          <div>
+            <div class="ov-birth-date">${escapeHtml(birthDate)} <span class="ov-birth-time">${escapeHtml(birthTime)}</span></div>
+            <div class="ov-birth-place">${escapeHtml(birthPlace)}</div>
+          </div>
+        </div>
+        ${lagnaHtml}
+        ${dashaStr ? `<div class="ov-dasha">
+          <span class="ov-dasha-label">${isRu?"Текущий период":"Current period"}</span>
+          <span class="ov-dasha-value">${escapeHtml(dashaStr)}</span>
+        </div>` : ""}
+        <div class="ov-elems">${elemHtml}</div>
+      </div>
+
+      <div class="ov-planets-title">${isRu?"Планеты":"Planets"}</div>
+      <div class="ov-planets">${planetCardsHtml}</div>
+
+      <div class="ov-interps-title">${isRu?"Ключевые темы":"Key themes"}</div>
+      <div class="ov-interps">${interpsHtml}</div>
+
     </div>
   `;
 }
@@ -2025,11 +2171,13 @@ function renderSources(context) {
   };
   const tagLabel = (key) => (TAG_LABELS[state.lang] || TAG_LABELS.ru)[tagType(key)] || tagType(key);
 
-  const row = (item) =>
-    `<div class="src-row">
-      <span class="src-tag src-tag--${escapeHtml(tagType(item.key))}">${escapeHtml(tagLabel(item.key))}</span>
+  const row = (item) => {
+    const tt = escapeHtml(tagType(item.key));
+    return `<div class="src-row src-row--${tt}">
+      <span class="src-tag src-tag--${tt}">${escapeHtml(tagLabel(item.key))}</span>
       <span class="src-text">${escapeHtml(itemText(item))}</span>
     </div>`;
+  };
 
   // ── Lagna block ───────────────────────────────────────────
   const lagnaItems = items.filter(i => i.key.startsWith("lagna:"));

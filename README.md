@@ -1,5 +1,7 @@
 # Mahadashboard
 
+![Mahadashboard](img/header.png)
+
 A local Vedic astrology (Jyotish) workstation. Enter a birth date, time, and place — get a precise chart, planetary period timeline, daily forecast, curated interpretations, and an AI assistant. Everything runs on your machine; no cloud subscription required.
 
 ![Language](https://img.shields.io/badge/language-EN%20%7C%20RU-blue)

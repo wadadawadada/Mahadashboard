@@ -2007,12 +2007,328 @@ select:focus {
   align-items: start;
 }
 
+/* ── обзор ───────────────────────────────────────────── */
+.ov-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* шапка */
+.ov-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.ov-header-birth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.03);
+  flex: 1 1 180px;
+}
+
+.ov-birth-icon {
+  font-size: 22px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.ov-birth-date {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.ov-birth-time {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.ov-birth-place {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.ov-lagna {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid rgba(160,144,224,0.25);
+  border-left: 3px solid #a090e0;
+  border-radius: var(--radius);
+  background: rgba(160,144,224,0.05);
+  flex: 1 1 160px;
+}
+
+.ov-lagna-icon {
+  font-size: 20px;
+  color: #a090e0;
+  flex-shrink: 0;
+}
+
+.ov-lagna-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a090e0;
+  font-weight: 700;
+}
+
+.ov-lagna-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 3px;
+}
+
+.ov-dasha {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,180,80,0.2);
+  border-left: 3px solid #f0b84a;
+  border-radius: var(--radius);
+  background: rgba(255,180,80,0.05);
+  flex: 1 1 160px;
+}
+
+.ov-dasha-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f0b84a;
+  font-weight: 700;
+}
+
+.ov-dasha-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ov-elems {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  flex: 1 1 200px;
+  align-self: stretch;
+}
+
+.ov-elem-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ov-elem-icon { font-size: 12px; line-height: 1; flex-shrink: 0; }
+
+.ov-elem-name {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ov-elem-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  min-width: 24px;
+}
+
+.ov-elem-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.ov-elem-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 10px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* планеты */
+.ov-planets-title,
+.ov-interps-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ov-planets {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 8px;
+}
+
+.ov-planet-card {
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid transparent;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: background 0.15s;
+}
+
+.ov-planet-card:hover { background: rgba(255,255,255,0.04); }
+
+.ov-planet-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-top: 2px solid var(--pcol, var(--muted));
+  margin: -8px -10px 5px;
+  padding: 6px 10px 4px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: rgba(255,255,255,0.02);
+}
+
+.ov-planet-glyph {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ov-planet-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ov-planet-sign {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.ov-planet-meta {
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ov-planet-dig {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ov-planet-score-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.ov-planet-score-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.ov-planet-score-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.ov-planet-score-num {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: right;
+}
+
+/* интерпретации */
+.ov-interps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.ov-interp {
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ov-interp-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ov-interp-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ov-interp-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.ov-interp-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(220,215,240,0.88);
+}
+
 .overview-sources {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   overflow-y: auto;
   max-height: 420px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: linear-gradient(170deg, rgba(20,16,40,0.7) 0%, rgba(8,6,18,0.8) 100%);
+  overflow: hidden;
+}
+
+.overview-sources .src-row {
+  margin: 0;
+  padding: 10px 14px;
 }
 
 .source-columns {
@@ -2173,6 +2489,7 @@ td {
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow: hidden;
 }
 
 .src-card--wide {
@@ -2231,44 +2548,58 @@ td {
 
 /* rows inside card */
 .src-row {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 6px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  margin: 0 -12px;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.15s;
 }
 
 .src-row:last-child {
   border-bottom: none;
 }
 
+.src-row:hover {
+  background: rgba(255,255,255,0.03);
+}
+
 .src-tag {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 2px 6px;
-  border-radius: 4px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 20px;
   background: rgba(255,255,255,0.06);
   color: var(--muted);
   white-space: nowrap;
-  justify-self: start;
-  align-self: start;
-  margin-top: 2px;
+  align-self: flex-start;
+  line-height: 1.4;
 }
 
-.src-tag--sign   { background: rgba(100,160,255,0.12); color: #7db3ff; }
-.src-tag--nakshatra { background: rgba(180,120,255,0.12); color: #c097ff; }
-.src-tag--pada   { background: rgba(120,200,180,0.12); color: #7dcfbb; }
-.src-tag--house  { background: rgba(140,120,200,0.12); color: #a090e0; }
-.src-tag--dasha  { background: rgba(255,180,80,0.12);  color: #f0b84a; }
-.src-tag--lord   { background: rgba(255,255,255,0.07); color: var(--muted); }
+.src-tag--sign      { background: rgba(100,160,255,0.15); color: #7db3ff; }
+.src-tag--nakshatra { background: rgba(180,120,255,0.15); color: #c097ff; }
+.src-tag--pada      { background: rgba(120,200,180,0.15); color: #7dcfbb; }
+.src-tag--house     { background: rgba(140,120,200,0.15); color: #a090e0; }
+.src-tag--dasha     { background: rgba(255,180,80,0.15);  color: #f0b84a; }
+.src-tag--lord      { background: rgba(255,255,255,0.07); color: var(--muted); }
+.src-tag--base      { background: rgba(255,220,120,0.12); color: #ffd97a; }
+
+.src-row--sign      { border-left-color: rgba(100,160,255,0.4); }
+.src-row--nakshatra { border-left-color: rgba(180,120,255,0.4); }
+.src-row--pada      { border-left-color: rgba(120,200,180,0.4); }
+.src-row--house     { border-left-color: rgba(140,120,200,0.4); }
+.src-row--dasha     { border-left-color: rgba(255,180,80,0.4);  }
+.src-row--lord      { border-left-color: rgba(255,255,255,0.1); }
+.src-row--base      { border-left-color: rgba(255,220,120,0.3); }
 
 .src-text {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(220, 215, 240, 0.9);
 }
 
 .file-links {
