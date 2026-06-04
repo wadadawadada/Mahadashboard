@@ -153,6 +153,9 @@ const t = {
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
+    calLegendGood: "Благоприятный",
+    calLegendNeutral: "Нейтральный",
+    calLegendHard: "Тяжёлый",
     forecastLoading: "Расчёт прогноза...",
     forecastError: "Ошибка расчёта прогноза",
     forecastNoRun: "Сначала создайте отчёт",
@@ -312,6 +315,9 @@ const t = {
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
+    calLegendGood: "Favorable",
+    calLegendNeutral: "Neutral",
+    calLegendHard: "Challenging",
     forecastLoading: "Calculating forecast...",
     forecastError: "Forecast calculation error",
     forecastNoRun: "Generate a report first",
@@ -2775,6 +2781,13 @@ async function loadForecast(dateStr) {
   _fcState.date = dateStr;
   const inp = $("#fcDateInput");
   if (inp) inp.value = dateStr;
+  // Update calendar button label
+  const lbl = $("#fcDateLabel");
+  if (lbl) {
+    const [y, m, d] = dateStr.split("-");
+    const isRu = state.lang === "ru";
+    lbl.textContent = `${d} ${(isRu ? _MONTHS_RU : _MONTHS_EN)[parseInt(m) - 1]} ${y}`;
+  }
   _fcSetVisible("loading");
   try {
     const data = await api(`/api/forecast/${state.currentRunId}?date=${dateStr}&lang=${state.lang}`);
@@ -3134,6 +3147,7 @@ function boot() {
   initSettingsModal();
   initChartViewToggle();
   initForecast();
+  initFcCalendar();
   initGeoSearch();
   initGeoAI();
   $("#birthForm").addEventListener("submit", generateReport);
@@ -3206,6 +3220,268 @@ function initGeoMap() {
 
   _geoState.map = map;
   _geoState.initialized = true;
+}
+
+// ── Custom forecast calendar ──────────────────────────────────────────────────
+
+const _calState = { year: 0, month: 0, scores: {}, loading: false };
+const _DOW_RU = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const _DOW_EN = ["Mo","Tu","We","Th","Fr","Sa","Su"];
+const _MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const _MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function _scoreClass(score) {
+  if (score >= 72) return "score-great";
+  if (score >= 58) return "score-good";
+  if (score >= 42) return "score-neutral";
+  if (score >= 28) return "score-hard";
+  return "score-bad";
+}
+
+function _scoreDotColor(score) {
+  if (score >= 72) return "#4ade80";
+  if (score >= 58) return "#86efac";
+  if (score >= 42) return "#94a3b8";
+  if (score >= 28) return "#fca5a5";
+  return "#f87171";
+}
+
+function _renderCalGrid() {
+  const isRu = state.lang === "ru";
+  const { year, month, scores } = _calState;
+  const todayStr = _fcTodayStr();
+  const selectedStr = _fcState.date || todayStr;
+
+  // Header title + loading state
+  const monthName = (isRu ? _MONTHS_RU : _MONTHS_EN)[month - 1];
+  const titleEl = $("#fcCalTitle");
+  if (titleEl) {
+    titleEl.innerHTML = _calState.loading
+      ? `${monthName} ${year} <span class="fc-cal-spinner"></span>`
+      : `<span class="fc-cal-title-btn">${monthName}</span> <span class="fc-cal-title-btn">${year}</span>`;
+  }
+  const navBtns = document.querySelectorAll("#fcCalPrev, #fcCalNext");
+  navBtns.forEach(b => { b.disabled = _calState.loading; });
+
+  // DOW header (Mon-first)
+  const dowEl = document.querySelector(".fc-cal-dow");
+  if (dowEl) {
+    const days = isRu ? _DOW_RU : _DOW_EN;
+    dowEl.innerHTML = days.map(d => `<div class="fc-cal-dow-cell">${d}</div>`).join("");
+  }
+
+  // Days grid
+  const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sun
+  const offset = (firstDay + 6) % 7; // Mon-first offset
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const grid = $("#fcCalGrid");
+  if (!grid) return;
+
+  let html = "";
+  for (let i = 0; i < offset; i++) html += `<div class="fc-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const score = scores[dateStr];
+    const hasScore = score !== undefined;
+    const cls = [
+      "fc-cal-day",
+      hasScore ? _scoreClass(score) : "loading",
+      dateStr === todayStr ? "today" : "",
+      dateStr === selectedStr ? "selected" : "",
+    ].filter(Boolean).join(" ");
+    const dotColor = hasScore ? _scoreDotColor(score) : "rgba(255,255,255,0.1)";
+    html += `<div class="${cls}" data-date="${dateStr}">
+      <span class="fc-cal-day-num">${d}</span>
+      <span class="fc-cal-day-dot" style="background:${dotColor}"></span>
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll(".fc-cal-day[data-date]").forEach(el => {
+    el.addEventListener("click", () => {
+      const d = el.dataset.date;
+      _closeCalendar();
+      loadForecast(d);
+    });
+  });
+}
+
+async function _loadCalMonth(year, month) {
+  if (!state.currentRunId) return;
+  _calState.year = year;
+  _calState.month = month;
+  _calState.loading = true;
+  _renderCalGrid();
+
+  try {
+    const data = await api(`/api/forecast/${state.currentRunId}/month?year=${year}&month=${month}&lang=${state.lang}`);
+    for (const { date, score } of (data.days || [])) {
+      _calState.scores[date] = score;
+    }
+  } catch (e) {
+    // silently ignore
+  } finally {
+    _calState.loading = false;
+    _renderCalGrid();
+  }
+}
+
+function _openCalendar() {
+  const popup = $("#fcCalPopup");
+  const btn = $("#fcDateBtn");
+  if (!popup || !btn) return;
+
+  const rect = btn.getBoundingClientRect();
+  popup.classList.remove("hidden");
+  popup.style.top = `${rect.bottom + 6}px`;
+  popup.style.left = `${Math.max(4, rect.left - 100)}px`;
+
+  const now = _fcState.date ? new Date(_fcState.date + "T12:00:00") : new Date();
+  _loadCalMonth(now.getFullYear(), now.getMonth() + 1);
+}
+
+function _closeCalendar() {
+  $("#fcCalPopup")?.classList.add("hidden");
+}
+
+function _showPicker(mode) {
+  const picker = $("#fcCalPicker");
+  const dow = document.querySelector(".fc-cal-dow");
+  const grid = $("#fcCalGrid");
+  if (!picker) return;
+
+  const isRu = state.lang === "ru";
+  const { year, month } = _calState;
+  picker.classList.remove("hidden");
+  if (dow) dow.classList.add("hidden");
+  if (grid) grid.classList.add("hidden");
+
+  if (mode === "month") {
+    const months = isRu ? _MONTHS_RU : _MONTHS_EN;
+    picker.innerHTML = `<div class="fc-picker-grid">${months.map((m, i) =>
+      `<div class="fc-picker-cell${i + 1 === month ? " active" : ""}" data-val="${i + 1}">${m.slice(0,3)}</div>`
+    ).join("")}</div>`;
+    picker.querySelectorAll(".fc-picker-cell").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        _hidePicker();
+        _loadCalMonth(_calState.year, parseInt(el.dataset.val));
+      });
+    });
+  } else {
+    // year: show range ±6 around current
+    const startYear = year - 6;
+    let html = `<div class="fc-picker-grid fc-picker-years">`;
+    for (let y = startYear; y <= startYear + 12; y++) {
+      html += `<div class="fc-picker-cell${y === year ? " active" : ""}" data-val="${y}">${y}</div>`;
+    }
+    html += `</div>`;
+    html += `<div class="fc-picker-year-nav">
+      <button class="fc-cal-nav" id="fcPickerYearPrev" type="button">&#8249;</button>
+      <button class="fc-cal-nav" id="fcPickerYearNext" type="button">&#8250;</button>
+    </div>`;
+    picker.innerHTML = html;
+    picker.querySelectorAll(".fc-picker-cell").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        _hidePicker();
+        _loadCalMonth(parseInt(el.dataset.val), _calState.month);
+      });
+    });
+    picker.querySelector("#fcPickerYearPrev")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      _showPickerYearRange(parseInt(picker.querySelector(".fc-picker-cell").dataset.val) - 13);
+    });
+    picker.querySelector("#fcPickerYearNext")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      _showPickerYearRange(parseInt(picker.querySelector(".fc-picker-cell").dataset.val) + 13);
+    });
+  }
+  _calState._pickerMode = mode;
+}
+
+function _showPickerYearRange(startYear) {
+  const picker = $("#fcCalPicker");
+  if (!picker) return;
+  const { year } = _calState;
+  let html = `<div class="fc-picker-grid fc-picker-years">`;
+  for (let y = startYear; y <= startYear + 12; y++) {
+    html += `<div class="fc-picker-cell${y === year ? " active" : ""}" data-val="${y}">${y}</div>`;
+  }
+  html += `</div>`;
+  html += `<div class="fc-picker-year-nav">
+    <button class="fc-cal-nav" id="fcPickerYearPrev" type="button">&#8249;</button>
+    <button class="fc-cal-nav" id="fcPickerYearNext" type="button">&#8250;</button>
+  </div>`;
+  picker.innerHTML = html;
+  picker.querySelectorAll(".fc-picker-cell").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      _hidePicker();
+      _loadCalMonth(parseInt(el.dataset.val), _calState.month);
+    });
+  });
+  picker.querySelector("#fcPickerYearPrev")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    _showPickerYearRange(startYear - 13);
+  });
+  picker.querySelector("#fcPickerYearNext")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    _showPickerYearRange(startYear + 13);
+  });
+}
+
+function _hidePicker() {
+  const picker = $("#fcCalPicker");
+  const dow = document.querySelector(".fc-cal-dow");
+  const grid = $("#fcCalGrid");
+  picker?.classList.add("hidden");
+  dow?.classList.remove("hidden");
+  grid?.classList.remove("hidden");
+  _calState._pickerMode = null;
+}
+
+function initFcCalendar() {
+  $("#fcDateBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const popup = $("#fcCalPopup");
+    if (popup?.classList.contains("hidden")) _openCalendar();
+    else _closeCalendar();
+  });
+
+  $("#fcCalPrev")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (_calState._pickerMode) return;
+    let { year, month } = _calState;
+    month--; if (month < 1) { month = 12; year--; }
+    _loadCalMonth(year, month);
+  });
+
+  $("#fcCalNext")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (_calState._pickerMode) return;
+    let { year, month } = _calState;
+    month++; if (month > 12) { month = 1; year++; }
+    _loadCalMonth(year, month);
+  });
+
+  // Title clicks — delegate since title is re-rendered
+  $("#fcCalTitle")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const btn = e.target.closest(".fc-cal-title-btn");
+    if (!btn) return;
+    const text = btn.textContent.trim();
+    const isYear = /^\d{4}$/.test(text);
+    if (_calState._pickerMode) { _hidePicker(); return; }
+    _showPicker(isYear ? "year" : "month");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#fcCalPopup") && !e.target.closest("#fcDateBtn")) {
+      _hidePicker();
+      _closeCalendar();
+    }
+  });
 }
 
 function initGeoSearch() {

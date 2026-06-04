@@ -744,6 +744,59 @@ async function route(req, res) {
     return;
   }
 
+  const monthMatch = pathname.match(/^\/api\/forecast\/([a-f0-9-]{36})\/month$/);
+  if (req.method === "GET" && monthMatch) {
+    const runId = monthMatch[1];
+    if (!/^[a-f0-9-]{36}$/.test(runId)) throw new ApiError(400, "Invalid run id.");
+    const runDir = path.join(RUNS_DIR, runId);
+    const params = new URL(req.url, "http://x").searchParams;
+    const year  = parseInt(params.get("year")  || new Date().getFullYear(), 10);
+    const month = parseInt(params.get("month") || new Date().getMonth() + 1, 10);
+    const lang  = params.get("lang") || "ru";
+
+    if (isNaN(year) || isNaN(month) || month < 1 || month > 12) throw new ApiError(400, "Invalid year/month.");
+
+    const manifest = await readJson(path.join(runDir, "manifest.json"));
+    const inputFile = path.join(ROOT, manifest.files.input);
+
+    // Build list of dates for the month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const dates = Array.from({ length: daysInMonth }, (_, i) => {
+      const d = i + 1;
+      return `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    });
+
+    // Run forecasts in parallel (max 8 at a time), use cache if available
+    const CONCURRENCY = 8;
+    const results = [];
+    for (let i = 0; i < dates.length; i += CONCURRENCY) {
+      const chunk = dates.slice(i, i + CONCURRENCY);
+      const chunkResults = await Promise.all(chunk.map(async (dateStr) => {
+        const forecastPath = path.join(runDir, `forecast_${dateStr}_${lang}.json`);
+        try {
+          const cached = await fsp.readFile(forecastPath, "utf8");
+          const data = JSON.parse(cached);
+          return { date: dateStr, score: data.score ?? 50 };
+        } catch (e) {
+          if (e.code !== "ENOENT") throw e;
+        }
+        await runPython([
+          "-m", "jyotish.cli", "forecast",
+          "--input", inputFile,
+          "--out-forecast", forecastPath,
+          "--forecast-date", dateStr,
+          "--language", lang,
+        ]);
+        const data = await readJson(forecastPath);
+        return { date: dateStr, score: data.score ?? 50 };
+      }));
+      results.push(...chunkResults);
+    }
+
+    sendJson(res, 200, { year, month, days: results });
+    return;
+  }
+
   if (req.method === "POST" && pathname === "/api/chat") {
     const body = await parseBody(req);
     const question = String(body.question || "").trim();

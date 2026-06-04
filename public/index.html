@@ -370,7 +370,11 @@
                     <div class="forecast-date-nav">
                       <button class="fc-nav-btn" id="fcPrevDay" type="button" data-i18n="forecastPrev">← день</button>
                       <button class="fc-today-btn" id="fcToday" type="button" data-i18n="forecastToday">Сегодня</button>
-                      <input class="fc-date-input" type="date" id="fcDateInput" />
+                      <button class="fc-date-btn" id="fcDateBtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span id="fcDateLabel">—</span>
+                      </button>
+                      <input class="fc-date-input" type="date" id="fcDateInput" style="display:none" />
                       <button class="fc-nav-btn" id="fcNextDay" type="button" data-i18n="forecastNext">день →</button>
                     </div>
                     <button class="fc-ask-ai-btn" id="fcAskAI" type="button">
@@ -534,6 +538,23 @@
           </div>
         </form>
       </article>
+    </div>
+
+    <!-- Custom calendar popup -->
+    <div class="fc-cal-popup hidden" id="fcCalPopup">
+      <div class="fc-cal-header">
+        <button class="fc-cal-nav" id="fcCalPrev" type="button">&#8249;</button>
+        <span class="fc-cal-title" id="fcCalTitle"></span>
+        <button class="fc-cal-nav" id="fcCalNext" type="button">&#8250;</button>
+      </div>
+      <div class="fc-cal-picker hidden" id="fcCalPicker"></div>
+      <div class="fc-cal-dow"></div>
+      <div class="fc-cal-grid" id="fcCalGrid"></div>
+      <div class="fc-cal-legend">
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#4ade80"></span><span data-i18n="calLegendGood">Благоприятный</span></span>
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#94a3b8"></span><span data-i18n="calLegendNeutral">Нейтральный</span></span>
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#f87171"></span><span data-i18n="calLegendHard">Тяжёлый</span></span>
+      </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
