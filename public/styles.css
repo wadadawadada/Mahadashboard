@@ -4006,6 +4006,19 @@ td {
 
 .dasha-timeline-panel {
   flex-shrink: 0;
+  max-height: 400px;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              padding 0.3s ease;
+  opacity: 1;
+}
+
+.dasha-timeline-panel.lp-timeline-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .dasha-detail-panel {
@@ -4233,13 +4246,28 @@ td {
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.05);
   background: rgba(255,255,255,0.02);
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+
+.dm-antar-item:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
 }
 
 .dm-antar-item.dm-antar-active {
   background: color-mix(in srgb, var(--aplanet-color) 12%, rgba(255,255,255,0.03));
   border-color: color-mix(in srgb, var(--aplanet-color) 50%, transparent);
 }
+
+.dm-antar-arrow {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 14px;
+  opacity: 0.5;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.dm-antar-item:hover .dm-antar-arrow { opacity: 1; transform: translateX(2px); }
 
 .dm-antar-head {
   display: flex;
@@ -4290,6 +4318,282 @@ td {
   background: linear-gradient(90deg, var(--aplanet-color), color-mix(in srgb, var(--aplanet-color) 60%, #fff));
   border-radius: 2px;
   transition: width 0.4s ease;
+}
+
+/* ── Pratyantardasha sub-period bar ─────────────────────────── */
+.dm-pratya-track {
+  position: relative;
+  height: 18px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  overflow: visible;
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.dm-pratya-seg {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--pp-color, #888);
+  opacity: 0.55;
+  border-right: 1px solid rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  cursor: pointer;
+  transition: opacity 0.15s, filter 0.15s;
+  min-width: 4px;
+  border-radius: 2px;
+}
+
+.dm-pratya-seg:hover,
+.dm-pratya-seg:focus {
+  opacity: 1;
+  filter: brightness(1.25);
+  outline: none;
+  z-index: 2;
+}
+
+.dm-pratya-seg.dm-pratya-now {
+  opacity: 1;
+  box-shadow: 0 0 0 2px #fff7 inset;
+  z-index: 3;
+  animation: pratya-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pratya-pulse {
+  0%, 100% { filter: brightness(1); }
+  50%       { filter: brightness(1.5); }
+}
+
+/* "NOW" needle above active segment */
+.dm-pratya-seg.dm-pratya-now::after {
+  content: "▼";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: #fff;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.dm-pratya-glyph {
+  font-size: 9px;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
+/* ── Pratyantardasha popup modal ────────────────────────────── */
+.pratya-modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  border-radius: inherit;
+}
+
+.pratya-modal-overlay.hidden { display: none; }
+
+.pratya-modal-box {
+  background: var(--surface, #1a1825);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 580px;
+  width: 94%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  position: relative;
+}
+
+.pratya-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.pratya-modal-chain {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.pratya-chain-glyph {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.pratya-chain-main {
+  font-size: 22px;
+}
+
+.pratya-chain-sep {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pratya-modal-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pratya-modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+.pratya-modal-sub {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.pratya-modal-dates {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.pratya-modal-body {}
+
+.pratya-modal-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+}
+
+.pratya-personal-block {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(216,183,100,0.06);
+  border: 1px solid rgba(216,183,100,0.18);
+  border-radius: 8px;
+}
+
+.pratya-personal-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--gold);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.pratya-personal-text {
+  color: var(--text);
+  opacity: 0.9;
+  margin-top: 10px;
+}
+.pratya-personal-text:first-of-type { margin-top: 0; }
+
+/* Stat row inside personal block */
+.dp-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 4px;
+}
+
+.dp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12px;
+  color: var(--text);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 60px;
+}
+
+.dp-stat-lbl {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 1px;
+}
+
+/* Period strength bar */
+.dp-strength-wrap {
+  margin-bottom: 12px;
+}
+
+.dp-strength-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.dp-strength-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+}
+
+.dp-strength-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+.dp-strength-badge--good { background: rgba(92,211,194,0.15); color: #5cd3c2; }
+.dp-strength-badge--mid  { background: rgba(216,183,100,0.15); color: var(--gold); }
+.dp-strength-badge--bad  { background: rgba(255,106,106,0.15); color: var(--danger); }
+
+.dp-strength-track {
+  position: relative;
+  height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dp-strength-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 4px;
+  min-width: 6px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.dp-strength-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-size: 9px;
+  color: var(--muted);
+  opacity: 0.5;
 }
 
 @media (max-width: 600px) {

@@ -500,6 +500,8 @@ function compactChartFacts(chart) {
     houses: chart.houses,
     current_dasha: chart.dashas?.current,
     mahadashas: chart.dashas?.mahadashas,
+    antardashas: chart.dashas?.antardashas || [],
+    pratyantardashas: chart.dashas?.pratyantardashas || [],
     active_antardashas: (chart.dashas?.antardashas || []).filter((item) => {
       const current = chart.dashas?.current || {};
       return item.mahadasha === current.mahadasha;

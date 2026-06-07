@@ -1926,6 +1926,13 @@ function renderDashas(chart) {
     if (!antardasha_map[a.mahadasha]) antardasha_map[a.mahadasha] = [];
     antardasha_map[a.mahadasha].push(a);
   });
+  // pratyantardasha_map[maha][antar] = [list]
+  const pratyantardasha_map = {};
+  (chart.dashas?.pratyantardashas || []).forEach((p) => {
+    if (!pratyantardasha_map[p.mahadasha]) pratyantardasha_map[p.mahadasha] = {};
+    if (!pratyantardasha_map[p.mahadasha][p.antardasha]) pratyantardasha_map[p.mahadasha][p.antardasha] = [];
+    pratyantardasha_map[p.mahadasha][p.antardasha].push(p);
+  });
 
   if (!mahadashas.length) {
     $("#dashaTable").innerHTML = `<p class="lp-empty">No dasha data</p>`;
@@ -2043,13 +2050,263 @@ function renderDashas(chart) {
   `;
 
   $("#dashaTable").querySelectorAll(".lp-segment, .lp-legend-item").forEach((el) => {
-    el.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, parseInt(el.dataset.idx)));
-    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDashaModal(mahadashas, antardasha_map, parseInt(el.dataset.idx)); } });
+    el.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, parseInt(el.dataset.idx)));
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, parseInt(el.dataset.idx)); } });
   });
 
 }
 
-function openDashaModal(mahadashas, antardasha_map, idx) {
+const PRATYA_INTERP = {
+  // key: "maha_antar_pratya" (all lowercase)
+  // Each entry: { ru: { title, text }, en: { title, text } }
+  _get(maha, antar, pratya) {
+    const key = `${maha}_${antar}_${pratya}`;
+    return this[key] || null;
+  },
+};
+
+// Populate all 81 combinations
+(function() {
+  const planets = ["sun","moon","mars","rahu","jupiter","saturn","mercury","ketu","venus"];
+  const ru = {
+    sun:"Солнце", moon:"Луна", mars:"Марс", rahu:"Раху",
+    jupiter:"Юпитер", saturn:"Сатурн", mercury:"Меркурий", ketu:"Кету", venus:"Венера"
+  };
+  const en = {
+    sun:"Sun", moon:"Moon", mars:"Mars", rahu:"Rahu",
+    jupiter:"Jupiter", saturn:"Saturn", mercury:"Mercury", ketu:"Ketu", venus:"Venus"
+  };
+
+  // Archetype descriptors for building interpretation strings
+  const arcRu = {
+    sun:     { gives: "власть, признание, отцовская линия, здоровье", risk: "эго-конфликты, давление авторитетов, давление на зрение" },
+    moon:    { gives: "эмоциональный комфорт, поддержка, интуиция, женская линия", risk: "переменчивость, тревожность, слабость границ" },
+    mars:    { gives: "энергия, инициатива, недвижимость, братья", risk: "конфликты, травмы, импульсивность" },
+    rahu:    { gives: "амбиции, неожиданные возможности, иностранное", risk: "иллюзии, обман, хаос, чрезмерные желания" },
+    jupiter: { gives: "рост, мудрость, дети, гуру, удача", risk: "самонадеянность, избыток, расточительность" },
+    saturn:  { gives: "дисциплина, карьера, структура, долгосрочный труд", risk: "задержки, одиночество, ограничения, болезни суставов" },
+    mercury: { gives: "интеллект, торговля, коммуникация, обучение", risk: "нервозность, двойственность, поверхностность" },
+    ketu:    { gives: "духовный рост, отпускание, нетрадиционное знание", risk: "потери, изоляция, рассеянность, болезни" },
+    venus:   { gives: "любовь, искусство, богатство, удовольствия, комфорт", risk: "привязанности, расточительность, дисгармония" },
+  };
+  const arcEn = {
+    sun:     { gives: "power, recognition, paternal line, vitality", risk: "ego conflicts, pressure from authorities, eye strain" },
+    moon:    { gives: "emotional comfort, support, intuition, maternal line", risk: "fluctuation, anxiety, weak boundaries" },
+    mars:    { gives: "energy, initiative, property, siblings", risk: "conflicts, injuries, impulsiveness" },
+    rahu:    { gives: "ambition, unexpected opportunities, foreign affairs", risk: "illusions, deception, chaos, excessive desires" },
+    jupiter: { gives: "growth, wisdom, children, guru, fortune", risk: "overconfidence, excess, extravagance" },
+    saturn:  { gives: "discipline, career, structure, long-term effort", risk: "delays, loneliness, limitations, joint ailments" },
+    mercury: { gives: "intellect, trade, communication, learning", risk: "nervousness, duality, superficiality" },
+    ketu:    { gives: "spiritual growth, release, unconventional knowledge", risk: "losses, isolation, diffuseness, illness" },
+    venus:   { gives: "love, arts, wealth, pleasures, comfort", risk: "attachments, extravagance, disharmony" },
+  };
+
+  // Special combo overrides (highest-quality combos get extra flavor)
+  const specialRu = {
+    "sun_sun_sun": "Тройная солнечная концентрация. Сильный период для самовыражения и лидерства, но риск перегрева и конфликтов с властями.",
+    "jupiter_jupiter_jupiter": "Редкое тройное Юпитерское усиление. Исключительно благоприятный период для роста, духовности и процветания.",
+    "venus_venus_venus": "Тройная Венера. Максимальный потенциал для любви, творчества и материального изобилия.",
+    "saturn_saturn_saturn": "Тройной Сатурн. Самый аскетичный период — испытания, изоляция, но и глубокое созревание.",
+    "rahu_ketu_rahu": "Сильная кармическая развязка: прошлые обязательства выходят на поверхность. Возможны неожиданные перемены.",
+    "ketu_rahu_ketu": "Период мощного духовного напряжения: отпускание иллюзий, кармическое очищение.",
+    "jupiter_venus_jupiter": "Двойное покровительство благоприятных планет. Период роста через любовь, партнёрство и мудрость.",
+    "venus_jupiter_venus": "Богатство, гармония и расширение через творческое самовыражение. Один из лучших периодов.",
+  };
+  const specialEn = {
+    "sun_sun_sun": "Triple solar concentration. Strong period for self-expression and leadership, but risk of burnout and conflicts with authority.",
+    "jupiter_jupiter_jupiter": "Rare triple Jupiter amplification. Exceptionally auspicious for growth, spirituality, and prosperity.",
+    "venus_venus_venus": "Triple Venus. Maximum potential for love, creativity, and material abundance.",
+    "saturn_saturn_saturn": "Triple Saturn. The most austere period — trials, isolation, but also deep maturation.",
+    "rahu_ketu_rahu": "Strong karmic unraveling: past obligations surface. Unexpected changes likely.",
+    "ketu_rahu_ketu": "Period of intense spiritual tension: release of illusions, karmic cleansing.",
+    "jupiter_venus_jupiter": "Double benefic patronage. Period of growth through love, partnership, and wisdom.",
+    "venus_jupiter_venus": "Wealth, harmony, and expansion through creative self-expression. One of the best periods.",
+  };
+
+  for (const maha of planets) {
+    for (const antar of planets) {
+      for (const pratya of planets) {
+        const key = `${maha}_${antar}_${pratya}`;
+        const titleRu = `${ru[maha]} / ${ru[antar]} / ${ru[pratya]}`;
+        const titleEn = `${en[maha]} / ${en[antar]} / ${en[pratya]}`;
+
+        let textRu, textEn;
+        if (specialRu[key]) {
+          textRu = specialRu[key];
+          textEn = specialEn[key];
+        } else {
+          // Same planet triple
+          if (maha === antar && antar === pratya) {
+            textRu = `Полная концентрация энергии ${ru[maha]}. Все темы этой планеты усиливаются до предела: ${arcRu[maha].gives}. Риски также максимальны: ${arcRu[maha].risk}.`;
+            textEn = `Complete concentration of ${en[maha]} energy. All themes intensify to their peak: ${arcEn[maha].gives}. Risks are also maximal: ${arcEn[maha].risk}.`;
+          }
+          // Benefics (jupiter, venus, mercury, moon) as pratya
+          else if (["jupiter","venus"].includes(pratya)) {
+            textRu = `Подпериод ${ru[pratya]} смягчает общий фон ${ru[maha]}/${ru[antar]}, привнося ${arcRu[pratya].gives}. Хорошее время для расширения и гармонии.`;
+            textEn = `The ${en[pratya]} sub-period softens the ${en[maha]}/${en[antar]} backdrop, bringing ${arcEn[pratya].gives}. Good time for expansion and harmony.`;
+          }
+          // Malefics (saturn, mars, rahu, ketu, sun) as pratya
+          else if (["saturn","mars","rahu","ketu"].includes(pratya)) {
+            textRu = `Подпериод ${ru[pratya]} добавляет напряжение к фону ${ru[maha]}/${ru[antar]}: возможны ${arcRu[pratya].risk}. Полезно проявить терпение и дисциплину. Потенциал: ${arcRu[pratya].gives}.`;
+            textEn = `The ${en[pratya]} sub-period adds tension to the ${en[maha]}/${en[antar]} backdrop: expect ${arcEn[pratya].risk}. Patience and discipline are helpful. Potential: ${arcEn[pratya].gives}.`;
+          }
+          // Mixed / neutral
+          else {
+            textRu = `В подпериод ${ru[pratya]} на фоне ${ru[maha]}/${ru[antar]} активизируются темы: ${arcRu[pratya].gives}. Обратите внимание на возможные сложности: ${arcRu[pratya].risk}.`;
+            textEn = `During the ${en[pratya]} sub-period within ${en[maha]}/${en[antar]}, themes activate: ${arcEn[pratya].gives}. Watch for potential challenges: ${arcEn[pratya].risk}.`;
+          }
+        }
+
+        PRATYA_INTERP[key] = {
+          ru: { title: titleRu, text: textRu },
+          en: { title: titleEn, text: textEn },
+        };
+      }
+    }
+  }
+})();
+
+// Shared personalized block for any planet based on natal chart position
+function _buildDashaPersonalized(planetKey, isRu) {
+  const p = state.chart?.planets?.[planetKey];
+  if (!p) return "";
+
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев",
+    Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
+    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const DIGNITY_RU = { exalted:"в экзальтации", own_sign:"в своём знаке",
+    debilitated:"в падении", neutral:"в нейтральном положении" };
+  const DIGNITY_EN = { exalted:"exalted", own_sign:"in own sign",
+    debilitated:"debilitated", neutral:"in neutral position" };
+  const HOUSE_THEME_RU = {
+    1:"личность и тело", 2:"богатство и речь", 3:"решимость и братья",
+    4:"дом и душевный покой", 5:"творчество и дети", 6:"здоровье и препятствия",
+    7:"партнёрство и отношения", 8:"трансформация и скрытое",
+    9:"удача и духовность", 10:"карьера и статус",
+    11:"доходы и окружение", 12:"потери и уединение"
+  };
+  const HOUSE_THEME_EN = {
+    1:"personality & body", 2:"wealth & speech", 3:"courage & siblings",
+    4:"home & peace of mind", 5:"creativity & children", 6:"health & obstacles",
+    7:"partnership & relationships", 8:"transformation & hidden matters",
+    9:"fortune & spirituality", 10:"career & status",
+    11:"income & social circle", 12:"losses & seclusion"
+  };
+  const HOUSE_QUALITY_RU = {
+    1:"угловой", 4:"угловой", 7:"угловой", 10:"угловой",
+    5:"трикона", 9:"трикона",
+    6:"дупхастхана", 8:"дупхастхана", 12:"дупхастхана"
+  };
+  const HOUSE_QUALITY_EN = {
+    1:"angular", 4:"angular", 7:"angular", 10:"angular",
+    5:"trikona", 9:"trikona",
+    6:"duphsthana", 8:"duphsthana", 12:"duphsthana"
+  };
+
+  const sign = p.sign || "";
+  const house = p.house;
+  const dignity = p.dignity || "neutral";
+  const retro = p.retrograde;
+  const nakshatra = p.nakshatra || "";
+  const pada = p.pada;
+  const rulerOf = p.ruler_of_houses || [];
+
+  const pLabel = PLANET_META[planetKey]?.label || planetKey;
+  const signLabel = isRu ? (SIGN_RU[sign] || sign) : sign;
+  const digLabel = isRu ? (DIGNITY_RU[dignity] || dignity) : (DIGNITY_EN[dignity] || dignity);
+  const houseTheme = isRu ? (HOUSE_THEME_RU[house] || "") : (HOUSE_THEME_EN[house] || "");
+  const houseQuality = isRu ? (HOUSE_QUALITY_RU[house] || "") : (HOUSE_QUALITY_EN[house] || "");
+
+  // Returns array of paragraphs — each rendered as a separate <p>
+  const paras = [];
+
+  if (isRu) {
+    // Para 1: position facts as a compact stat row
+    const retroStr = retro ? " · ℞ ретроградная" : "";
+    const nakshatraStr = nakshatra ? `${nakshatra}${pada ? ` пада ${pada}` : ""}` : "";
+    paras.push(
+      `<div class="dp-stat-row">` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Знак</span>${escapeHtml(signLabel)}</span>` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Дом</span>${house}${houseQuality ? ` · ${houseQuality}` : ""}</span>` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Сфера</span>${escapeHtml(houseTheme)}</span>` +
+      (nakshatraStr ? `<span class="dp-stat"><span class="dp-stat-lbl">Накшатра</span>${escapeHtml(nakshatraStr)}</span>` : "") +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Достоинство</span>${escapeHtml(digLabel)}${escapeHtml(retroStr)}</span>` +
+      `</div>`
+    );
+
+    // Para 2: dignity insight
+    if (dignity === "exalted") {
+      paras.push(`Планета в экзальтации — её энергия выражается полно и уверенно. Всё, что она обещает в этот период, реализуется с наибольшей силой.`);
+    } else if (dignity === "own_sign") {
+      paras.push(`В своём знаке планета стабильна и комфортна. Темы периода разворачиваются ровно, без лишних помех — надёжная база для действий.`);
+    } else if (dignity === "debilitated") {
+      paras.push(`Планета в падении — потенциал есть, но реализуется через трение и напряжение. Период требует особой осознанности: важно не игнорировать сигналы и работать с темами этой планеты целенаправленно.`);
+    } else {
+      paras.push(`Планета в нейтральном положении — без особых усилений или ослаблений. Темы периода проявятся в меру, зависит от общего контекста карты.`);
+    }
+
+    // Para 3: retrograde
+    if (retro) {
+      paras.push(`Планета ретроградна: энергия направлена внутрь, а не вовне. Лучшее применение этого периода — переосмысление, завершение незаконченного и углубление уже начатого. Новые крупные инициативы лучше отложить.`);
+    }
+
+    // Para 4: house quality
+    if ([6, 8, 12].includes(house)) {
+      paras.push(`${house}-й дом (дупхастхана) — арена скрытого напряжения. Темы этого дома в данный период могут требовать внутренней работы, терпения или принятия потерь. Это не повод для тревоги — такие периоды дают глубину опыта.`);
+    } else if ([1, 4, 7, 10].includes(house)) {
+      paras.push(`${house}-й дом — угловой: планета здесь сильна позиционно. События периода будут конкретными, ощутимыми и могут напрямую менять внешние обстоятельства жизни.`);
+    } else if ([5, 9].includes(house)) {
+      paras.push(`${house}-й дом — трикона, одна из самых благоприятных позиций. Период несёт поддержку и рост в соответствующих темах, удача приходит естественным образом.`);
+    }
+
+    // Para 5: lordship
+    if (rulerOf.length) {
+      paras.push(`${pLabel} управляет ${rulerOf.map(h => `${h}-м домом`).join(" и ")}. Темы этих домов особенно активизируются в данный период — обратите внимание на соответствующие сферы жизни.`);
+    }
+  } else {
+    const retroStr = retro ? " · ℞ retrograde" : "";
+    const nakshatraStr = nakshatra ? `${nakshatra}${pada ? ` pada ${pada}` : ""}` : "";
+    paras.push(
+      `<div class="dp-stat-row">` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Sign</span>${escapeHtml(signLabel)}</span>` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">House</span>${house}${houseQuality ? ` · ${houseQuality}` : ""}</span>` +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Sphere</span>${escapeHtml(houseTheme)}</span>` +
+      (nakshatraStr ? `<span class="dp-stat"><span class="dp-stat-lbl">Nakshatra</span>${escapeHtml(nakshatraStr)}</span>` : "") +
+      `<span class="dp-stat"><span class="dp-stat-lbl">Dignity</span>${escapeHtml(digLabel)}${escapeHtml(retroStr)}</span>` +
+      `</div>`
+    );
+
+    if (dignity === "exalted") {
+      paras.push(`The planet is exalted — its energy expresses fully and confidently. Everything it promises for this period manifests with maximum force.`);
+    } else if (dignity === "own_sign") {
+      paras.push(`In its own sign the planet is stable and at ease. The period's themes unfold smoothly without excess friction — a reliable foundation for action.`);
+    } else if (dignity === "debilitated") {
+      paras.push(`The planet is debilitated — potential exists but is realized through friction and tension. This period calls for heightened mindfulness: don't ignore the planet's signals, work with its themes deliberately.`);
+    } else {
+      paras.push(`The planet is in a neutral position — neither especially strengthened nor weakened. The period's themes will manifest moderately, depending on the broader chart context.`);
+    }
+
+    if (retro) {
+      paras.push(`The planet is retrograde: energy turns inward rather than outward. The best use of this period is reflection, completing unfinished matters, and deepening what is already underway. Major new launches are better postponed.`);
+    }
+
+    if ([6, 8, 12].includes(house)) {
+      paras.push(`House ${house} (duphsthana) is a zone of hidden tension. Its themes during this period may require inner work, patience, or accepting losses. These are not reasons for alarm — such periods grant depth of experience.`);
+    } else if ([1, 4, 7, 10].includes(house)) {
+      paras.push(`House ${house} is angular: the planet is positionally strong here. Events of this period will be concrete, tangible, and may directly reshape external life circumstances.`);
+    } else if ([5, 9].includes(house)) {
+      paras.push(`House ${house} is a trikona — one of the most auspicious positions. This period brings natural support and growth in the corresponding themes; fortune arrives without force.`);
+    }
+
+    if (rulerOf.length) {
+      paras.push(`${pLabel} rules house${rulerOf.length > 1 ? "s" : ""} ${rulerOf.join(" and ")}. The themes of those houses are especially activated during this period — pay attention to the corresponding life areas.`);
+    }
+  }
+
+  return paras;
+}
+
+function openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, idx) {
   const m = mahadashas[idx];
   if (!m) return;
   const pKey = m.planet.toLowerCase();
@@ -2065,6 +2322,8 @@ function openDashaModal(mahadashas, antardasha_map, idx) {
 
   const themesHtml = txt ? txt.themes.map((th) => `<li>${escapeHtml(th)}</li>`).join("") : "";
 
+  const pratyas = pratyantardasha_map[m.planet] || {};
+
   const antarHtml = antars.length ? `
     <div class="dm-section dm-section-full">
       <h4 class="dm-section-title">${escapeHtml(tr("dashaModalAntardasha"))}</h4>
@@ -2074,21 +2333,61 @@ function openDashaModal(mahadashas, antardasha_map, idx) {
           const aMeta = PLANET_META[apKey] || { glyph: "?", color: "#888", label: a.antardasha };
           const isCurrentAntar = currentAntar && a.antardasha === currentAntar.antardasha;
           const elapsed = isCurrentAntar ? Math.max(0, (now - new Date(a.start)) / (new Date(a.end) - new Date(a.start))) : 0;
-          return `<div class="dm-antar-item${isCurrentAntar ? " dm-antar-active" : ""}" style="--aplanet-color:${aMeta.color}">
+          const subperiods = pratyas[a.antardasha] || [];
+          const antarStart = new Date(a.start);
+          const antarEnd = new Date(a.end);
+          const antarSpanMs = antarEnd - antarStart;
+
+          const subBarHtml = subperiods.length ? `
+            <div class="dm-pratya-track">
+              ${subperiods.map((p) => {
+                const pStart = new Date(p.start);
+                const pEnd = new Date(p.end);
+                const pLeft = Math.max(0, ((pStart - antarStart) / antarSpanMs) * 100);
+                const pWidth = Math.max(0.5, ((pEnd - pStart) / antarSpanMs) * 100);
+                const ppKey = p.pratyantardasha.toLowerCase();
+                const ppMeta = PLANET_META[ppKey] || { glyph: "?", color: "#888", label: p.pratyantardasha };
+                const isNow = now >= pStart && now < pEnd;
+                return `<div class="dm-pratya-seg${isNow ? " dm-pratya-now" : ""}"
+                  style="left:${pLeft.toFixed(2)}%;width:${pWidth.toFixed(2)}%;--pp-color:${ppMeta.color}"
+                  data-maha="${escapeHtml(m.planet)}"
+                  data-antar="${escapeHtml(a.antardasha)}"
+                  data-pratya="${escapeHtml(p.pratyantardasha)}"
+                  data-start="${escapeHtml(p.start)}"
+                  data-end="${escapeHtml(p.end)}"
+                  title="${escapeHtml(ppMeta.label)} · ${formatDate(p.start)} — ${formatDate(p.end)}"
+                  role="button" tabindex="0"
+                ><span class="dm-pratya-glyph">${ppMeta.glyph}</span></div>`;
+              }).join("")}
+            </div>` : "";
+
+          return `<div class="dm-antar-item${isCurrentAntar ? " dm-antar-active" : ""}"
+            style="--aplanet-color:${aMeta.color}"
+            role="button" tabindex="0"
+            data-antar-planet="${escapeHtml(apKey)}"
+            data-antar-maha="${escapeHtml(pKey)}"
+            data-antar-start="${escapeHtml(a.start)}"
+            data-antar-end="${escapeHtml(a.end)}">
             <div class="dm-antar-head">
               <span class="dm-antar-glyph">${aMeta.glyph}</span>
               <span class="dm-antar-name">${escapeHtml(aMeta.label)}</span>
               ${isCurrentAntar ? `<span class="dm-antar-now">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
               <span class="dm-antar-dates">${formatDate(a.start)} — ${formatDate(a.end)}</span>
+              <span class="dm-antar-arrow">›</span>
             </div>
             ${isCurrentAntar ? `<div class="dm-antar-progress"><div class="dm-antar-bar" style="width:${(elapsed * 100).toFixed(1)}%"></div></div>` : ""}
+            ${subBarHtml}
           </div>`;
         }).join("")}
       </div>
     </div>` : "";
 
+  const isRu = state.lang === "ru";
+  const mahaPersonalized = _buildDashaPersonalized(pKey, isRu);
+
   const interpHtml = txt ? `
     <div class="dm-essence">${escapeHtml(txt.essence)}</div>
+    ${_renderPersonalBlock(mahaPersonalized, isRu, pKey)}
     <div class="dm-sections">
       ${themesHtml ? `<div class="dm-section">
         <h4 class="dm-section-title">${escapeHtml(tr("dashaModalThemes"))}</h4>
@@ -2143,9 +2442,37 @@ function openDashaModal(mahadashas, antardasha_map, idx) {
     <div class="dasha-modal-body">${interpHtml}</div>
   `;
 
-  inner.querySelector("#dmPrev")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, prevIdx));
-  inner.querySelector("#dmNext")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, nextIdx));
+  inner.querySelector("#dmPrev")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, prevIdx));
+  inner.querySelector("#dmNext")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, nextIdx));
   inner.querySelector("#dmClose")?.addEventListener("click", closeDashaModal);
+
+  // Wire antardasha row clicks → antardasha popup
+  inner.querySelectorAll(".dm-antar-item[data-antar-planet]").forEach((row) => {
+    const open = () => openAntarModal({
+      maha: row.dataset.antarMaha,
+      antar: row.dataset.antarPlanet,
+      start: row.dataset.antarStart,
+      end: row.dataset.antarEnd,
+    });
+    row.addEventListener("click", (e) => {
+      if (e.target.closest(".dm-pratya-seg")) return; // let pratya handle its own clicks
+      open();
+    });
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  });
+
+  // Wire pratya segment clicks
+  inner.querySelectorAll(".dm-pratya-seg").forEach((seg) => {
+    const open = () => openPratyaModal({
+      maha: seg.dataset.maha,
+      antar: seg.dataset.antar,
+      pratya: seg.dataset.pratya,
+      start: seg.dataset.start,
+      end: seg.dataset.end,
+    });
+    seg.addEventListener("click", (e) => { e.stopPropagation(); open(); });
+    seg.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  });
 
   panel.classList.remove("hidden");
 
@@ -2153,11 +2480,215 @@ function openDashaModal(mahadashas, antardasha_map, idx) {
   $$(`[data-idx="${idx}"]`).forEach((el) => el.classList.add("lp-selected"));
 
   panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  // Collapse timeline on scroll — dasha-modal-body is rendered dynamically, grab after innerHTML set
+  const timelinePanel = $(".dasha-timeline-panel");
+  if (timelinePanel) {
+    timelinePanel.classList.remove("lp-timeline-collapsed");
+    // dasha-modal-body is inside inner, grab it now
+    const scrollEl = inner.querySelector(".dasha-modal-body");
+    if (scrollEl) {
+      scrollEl.removeEventListener("scroll", scrollEl._dashaScrollHandler);
+      scrollEl._dashaScrollHandler = () => {
+        timelinePanel.classList.toggle("lp-timeline-collapsed", scrollEl.scrollTop > 30);
+      };
+      scrollEl.addEventListener("scroll", scrollEl._dashaScrollHandler, { passive: true });
+      scrollEl.scrollTop = 0;
+    }
+  }
 }
 
 function closeDashaModal() {
   $("#dashaDetailPanel")?.classList.add("hidden");
   $$(".lp-segment, .lp-legend-item").forEach((el) => el.classList.remove("lp-selected"));
+}
+
+// Antardasha popup — shows natal position of antardasha planet + period context
+function openAntarModal({ maha, antar, start, end }) {
+  const mahaKey = maha.toLowerCase();
+  const antarKey = antar.toLowerCase();
+  const isRu = state.lang === "ru";
+
+  const mahaM = PLANET_META[mahaKey] || { glyph: "?", color: "#888", label: maha };
+  const antarM = PLANET_META[antarKey] || { glyph: "?", color: "#888", label: antar };
+
+  const now = new Date();
+  const isNow = now >= new Date(start) && now <= new Date(end);
+
+  // Generic antardasha archetype text
+  const arcRu = {
+    sun:     "Воля, авторитет, отношения с отцом и государством. Период проверки лидерских качеств.",
+    moon:    "Эмоции, интуиция, отношения с матерью и женщинами. Настроение переменчиво, важен уход за собой.",
+    mars:    "Энергия, инициатива, возможные конфликты. Хорошее время для действий, но нужна осторожность в спорах.",
+    rahu:    "Амбиции, нетрадиционные пути, иностранное. Возможны неожиданные повороты и иллюзии.",
+    jupiter: "Рост, мудрость, удача, духовность. Один из самых благоприятных подпериодов для расширения.",
+    saturn:  "Дисциплина, труд, кармические уроки. Медленный, но устойчивый прогресс через усердие.",
+    mercury: "Интеллект, коммуникации, торговля, обучение. Период благоприятен для переговоров и учёбы.",
+    ketu:    "Духовный поиск, отпускание, нетрадиционные знания. Возможны потери или уход от мирского.",
+    venus:   "Любовь, искусство, комфорт, богатство. Благоприятный период для отношений и творчества.",
+  };
+  const arcEn = {
+    sun:     "Willpower, authority, father and government matters. A test of leadership qualities.",
+    moon:    "Emotions, intuition, mother and women. Mood fluctuates; self-care is important.",
+    mars:    "Energy, initiative, potential conflicts. Good for action, but caution in disputes.",
+    rahu:    "Ambitions, unconventional paths, foreign affairs. Unexpected turns and illusions possible.",
+    jupiter: "Growth, wisdom, fortune, spirituality. One of the most auspicious sub-periods for expansion.",
+    saturn:  "Discipline, labor, karmic lessons. Slow but steady progress through diligence.",
+    mercury: "Intellect, communications, trade, learning. Favorable for negotiations and study.",
+    ketu:    "Spiritual search, release, unconventional knowledge. Possible losses or withdrawal from worldly affairs.",
+    venus:   "Love, arts, comfort, wealth. Favorable period for relationships and creativity.",
+  };
+
+  const arcText = isRu ? (arcRu[antarKey] || "") : (arcEn[antarKey] || "");
+  const personalizedText = _buildDashaPersonalized(antarKey, isRu);
+
+  const modal = $("#pratyaModal");
+  const inner = $("#pratyaModalInner");
+  if (!modal || !inner) return;
+
+  inner.innerHTML = `
+    <div class="pratya-modal-head">
+      <div class="pratya-modal-chain">
+        <span class="pratya-chain-glyph" style="color:${mahaM.color}">${mahaM.glyph}</span>
+        <span class="pratya-chain-sep">›</span>
+        <span class="pratya-chain-glyph pratya-chain-main" style="color:${antarM.color}">${antarM.glyph}</span>
+        <div class="pratya-modal-titles">
+          <div class="pratya-modal-title">${escapeHtml(mahaM.label)} / ${escapeHtml(antarM.label)}</div>
+          <div class="pratya-modal-sub">${isRu ? "Антардаша" : "Antardasha"}</div>
+        </div>
+        ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
+      </div>
+      <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+    </div>
+    <div class="pratya-modal-dates">${formatDate(start)} — ${formatDate(end)}</div>
+    <div class="pratya-modal-body">
+      ${arcText ? `<p class="pratya-modal-text">${escapeHtml(arcText)}</p>` : ""}
+      ${_renderPersonalBlock(personalizedText, isRu, antarKey)}
+    </div>
+  `;
+
+  inner.querySelector("#pratyaClose")?.addEventListener("click", closePratyaModal);
+  modal.onclick = (e) => { if (e.target === modal) closePratyaModal(); };
+  modal.classList.remove("hidden");
+}
+
+function _buildPratyaPersonalized(pratyaKey, isRu) {
+  return _buildDashaPersonalized(pratyaKey, isRu);
+}
+
+// Score 0–100 based on natal planet position
+function _calcPlanetStrength(planetKey) {
+  const p = state.chart?.planets?.[planetKey];
+  if (!p) return null;
+
+  let score = 50; // neutral baseline
+
+  const digScores = { exalted: 35, own_sign: 20, neutral: 0, debilitated: -30 };
+  score += digScores[p.dignity] ?? 0;
+
+  const trikonaH = [5, 9];
+  const angularH = [1, 4, 7, 10];
+  const duphH    = [6, 8, 12];
+  if (trikonaH.includes(p.house))      score += 20;
+  else if (angularH.includes(p.house)) score += 12;
+  else if (duphH.includes(p.house))    score -= 18;
+
+  if (p.retrograde) score -= 8;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function _renderPersonalBlock(paras, isRu, planetKey) {
+  if (!paras || !paras.length) return "";
+  const label = isRu ? "В вашей карте" : "In your chart";
+
+  let strengthBar = "";
+  if (planetKey) {
+    const score = _calcPlanetStrength(planetKey);
+    if (score !== null) {
+      // score 0–100: red→yellow→green gradient fill
+      const cls = score >= 65 ? "good" : score >= 38 ? "mid" : "bad";
+      const labelTxt = isRu
+        ? (score >= 65 ? "Благоприятный" : score >= 38 ? "Нейтральный" : "Напряжённый")
+        : (score >= 65 ? "Favorable"     : score >= 38 ? "Neutral"     : "Challenging");
+      // interpolate hue 0(red)→120(green) based on score
+      const hue = Math.round((score / 100) * 120);
+      const fillColor = `hsl(${hue}, 72%, 52%)`;
+      strengthBar = `
+        <div class="dp-strength-wrap">
+          <div class="dp-strength-label-row">
+            <span class="dp-strength-title">${isRu ? "Сила периода" : "Period strength"}</span>
+            <span class="dp-strength-badge dp-strength-badge--${cls}">${labelTxt}</span>
+          </div>
+          <div class="dp-strength-track">
+            <div class="dp-strength-fill" style="width:${score}%;background:${fillColor}"></div>
+          </div>
+          <div class="dp-strength-ticks">
+            <span>0</span><span>50</span><span>100</span>
+          </div>
+        </div>`;
+    }
+  }
+
+  const inner = paras.map(p =>
+    p.startsWith("<div") ? p : `<p class="pratya-modal-text pratya-personal-text">${escapeHtml(p)}</p>`
+  ).join("");
+  return `<div class="pratya-personal-block"><div class="pratya-personal-label">${label}</div>${strengthBar}${inner}</div>`;
+}
+
+function openPratyaModal({ maha, antar, pratya, start, end }) {
+  const mahaKey = maha.toLowerCase();
+  const antarKey = antar.toLowerCase();
+  const pratyaKey = pratya.toLowerCase();
+  const interpKey = `${mahaKey}_${antarKey}_${pratyaKey}`;
+  const interp = PRATYA_INTERP[interpKey];
+  const txt = interp ? interp[state.lang] || interp.en : null;
+
+  const mahaM = PLANET_META[mahaKey] || { glyph: "?", color: "#888", label: maha };
+  const antarM = PLANET_META[antarKey] || { glyph: "?", color: "#888", label: antar };
+  const pratyaM = PLANET_META[pratyaKey] || { glyph: "?", color: "#888", label: pratya };
+
+  const now = new Date();
+  const isNow = now >= new Date(start) && now <= new Date(end);
+  const isRu = state.lang === "ru";
+
+  const personalizedText = _buildPratyaPersonalized(pratyaKey, isRu);
+
+  const modal = $("#pratyaModal");
+  const inner = $("#pratyaModalInner");
+  if (!modal || !inner) return;
+
+  inner.innerHTML = `
+    <div class="pratya-modal-head" style="--pratya-color:${pratyaM.color}">
+      <div class="pratya-modal-chain">
+        <span class="pratya-chain-glyph" style="color:${mahaM.color}">${mahaM.glyph}</span>
+        <span class="pratya-chain-sep">›</span>
+        <span class="pratya-chain-glyph" style="color:${antarM.color}">${antarM.glyph}</span>
+        <span class="pratya-chain-sep">›</span>
+        <span class="pratya-chain-glyph pratya-chain-main" style="color:${pratyaM.color}">${pratyaM.glyph}</span>
+        <div class="pratya-modal-titles">
+          <div class="pratya-modal-title">${escapeHtml(txt ? txt.title : `${mahaM.label} / ${antarM.label} / ${pratyaM.label}`)}</div>
+          <div class="pratya-modal-sub">${isRu ? "Пратьяантардаша" : "Pratyantardasha"}</div>
+        </div>
+        ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
+      </div>
+      <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+    </div>
+    <div class="pratya-modal-dates">${formatDate(start)} — ${formatDate(end)}</div>
+    <div class="pratya-modal-body">
+      ${txt ? `<p class="pratya-modal-text">${escapeHtml(txt.text)}</p>` : ""}
+      ${_renderPersonalBlock(personalizedText, isRu, pratyaKey)}
+      ${!txt && (!personalizedText || !personalizedText.length) ? `<p class="dm-no-interp">${isRu ? "Нет трактовки" : "No interpretation available."}</p>` : ""}
+    </div>
+  `;
+
+  inner.querySelector("#pratyaClose")?.addEventListener("click", closePratyaModal);
+  modal.onclick = (e) => { if (e.target === modal) closePratyaModal(); };
+  modal.classList.remove("hidden");
+}
+
+function closePratyaModal() {
+  $("#pratyaModal")?.classList.add("hidden");
 }
 
 function renderSources(context) {
@@ -2754,7 +3285,10 @@ function titleCase(value) {
 
 function formatDate(value) {
   if (!value) return "";
-  return String(value).slice(0, 10);
+  const s = String(value).slice(0, 10); // "YYYY-MM-DD"
+  const [y, m, d] = s.split("-");
+  if (!y || !m || !d) return s;
+  return `${d}-${m}-${y}`;
 }
 
 function initSummaryGrid() {
@@ -2823,10 +3357,16 @@ function setActiveTab(tab) {
       if (!antardasha_map[a.mahadasha]) antardasha_map[a.mahadasha] = [];
       antardasha_map[a.mahadasha].push(a);
     });
+    const pratyantardasha_map = {};
+    (state.chart.dashas?.pratyantardashas || []).forEach((p) => {
+      if (!pratyantardasha_map[p.mahadasha]) pratyantardasha_map[p.mahadasha] = {};
+      if (!pratyantardasha_map[p.mahadasha][p.antardasha]) pratyantardasha_map[p.mahadasha][p.antardasha] = [];
+      pratyantardasha_map[p.mahadasha][p.antardasha].push(p);
+    });
     const now = new Date();
     const currentIdx = mahadashas.findIndex((m) => now >= new Date(m.start) && now <= new Date(m.end));
     if (currentIdx !== -1) {
-      setTimeout(() => openDashaModal(mahadashas, antardasha_map, currentIdx), 120);
+      setTimeout(() => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, currentIdx), 120);
     }
   }
 }
@@ -3110,16 +3650,16 @@ function _renderFcDayRating(transitAvarga, transitPlanets) {
 
   const spheres = isRu ? [
     {
-      icon: "♀", label: "Любовь",
+      icon: "☉", label: "Карьера",
+      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
+        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
+        retro("saturn"))
+    },
+    {
+      icon: "☽", label: "Любовь",
       score: raw(bavTo10((getBav("venus") + getBav("moon")) / 2),
         getDignityMod("venus") + getDignityMod("moon"),
         retro("venus") + retro("moon"))
-    },
-    {
-      icon: "♃", label: "Деньги",
-      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
-        getDignityMod("jupiter") + getDignityMod("mercury"),
-        retro("jupiter") + retro("mercury"))
     },
     {
       icon: "♂", label: "Энергия",
@@ -3134,29 +3674,29 @@ function _renderFcDayRating(transitAvarga, transitPlanets) {
         retro("mercury"))
     },
     {
-      icon: "☉", label: "Карьера",
-      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
-        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
-        retro("saturn"))
+      icon: "♃", label: "Деньги",
+      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
+        getDignityMod("jupiter") + getDignityMod("mercury"),
+        retro("jupiter") + retro("mercury"))
     },
     {
-      icon: "♃", label: "Удача",
+      icon: "♀", label: "Удача",
       score: raw(bavTo10(getBav("jupiter")),
         getDignityMod("jupiter"),
         retro("jupiter"))
     },
   ] : [
     {
-      icon: "♀", label: "Love",
+      icon: "☉", label: "Career",
+      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
+        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
+        retro("saturn"))
+    },
+    {
+      icon: "☽", label: "Love",
       score: raw(bavTo10((getBav("venus") + getBav("moon")) / 2),
         getDignityMod("venus") + getDignityMod("moon"),
         retro("venus") + retro("moon"))
-    },
-    {
-      icon: "♃", label: "Money",
-      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
-        getDignityMod("jupiter") + getDignityMod("mercury"),
-        retro("jupiter") + retro("mercury"))
     },
     {
       icon: "♂", label: "Energy",
@@ -3171,13 +3711,13 @@ function _renderFcDayRating(transitAvarga, transitPlanets) {
         retro("mercury"))
     },
     {
-      icon: "☉", label: "Career",
-      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
-        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
-        retro("saturn"))
+      icon: "♃", label: "Money",
+      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
+        getDignityMod("jupiter") + getDignityMod("mercury"),
+        retro("jupiter") + retro("mercury"))
     },
     {
-      icon: "♃", label: "Luck",
+      icon: "♀", label: "Luck",
       score: raw(bavTo10(getBav("jupiter")),
         getDignityMod("jupiter"),
         retro("jupiter"))
