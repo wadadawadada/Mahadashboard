@@ -329,10 +329,19 @@
                       <input class="geo-search-input" id="geoSearchInput" type="text" autocomplete="off" data-i18n-placeholder="geoSearchPlaceholder" placeholder="Поиск города..." />
                       <div class="geo-search-results hidden" id="geoSearchResults"></div>
                     </div>
-                    <button class="geo-ai-btn" id="geoAskAIBtn" type="button">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      <span data-i18n="geoAskAI">AI</span>
-                    </button>
+                    <div class="geo-map-btns">
+                      <button class="geo-ai-btn" id="geoAskAIBtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span data-i18n="geoAskAI">AI</span>
+                      </button>
+                      <button class="geo-ai-btn geo-hover-rating-btn" id="geoHoverRatingBtn" type="button" title="Рейтинг точки на карте">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                          <circle cx="12" cy="12" r="3"/>
+                          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                          <path d="M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+                        </svg>
+                      </button>
+                    </div>
                     <div class="geo-ai-hint hidden" id="geoAIHint">
                       <span data-i18n="geoAskAIHint">Нажмите на карте чтобы выбрать локацию</span>
                       <button class="geo-ai-cancel" id="geoAICancelBtn" type="button" data-i18n="geoAskAICancel">Отмена</button>
@@ -345,17 +354,13 @@
                   <aside class="geo-sidebar">
                     <div class="geo-sidebar-head">
                       <h3 data-i18n="geoLines">Линии планет</h3>
-                      <p class="geo-sidebar-hint" data-i18n="geoToggleHint">Нажми на планету чтобы скрыть/показать</p>
+                      <p class="geo-sidebar-hint" data-i18n="geoToggleHint">Кликни на планету чтобы скрыть её линии · кликни на значок — перейти на карте</p>
                     </div>
                     <div class="geo-legend" id="geoLegend"></div>
-                    <div class="geo-parans-section">
-                      <h4 data-i18n="geoParans">Параны</h4>
-                      <p class="geo-sidebar-hint" data-i18n="geoParansHint">Пересечения линий — зоны усиленного влияния</p>
-                      <div class="geo-parans-list" id="geoParansList"></div>
-                    </div>
+
                     <div class="geo-cities-section">
                       <h4 data-i18n="geoCities">Города</h4>
-                      <p class="geo-sidebar-hint" data-i18n="geoCitiesHint">Рейтинг по близости к линиям планет</p>
+                      <p class="geo-sidebar-hint" data-i18n="geoCitiesHint">Рейтинг по астрологическому потенциалу для жизни</p>
                       <div id="geoCityRankings"></div>
                     </div>
                   </aside>
@@ -424,10 +429,9 @@
 
                         <div class="fc-section">
                           <div class="fc-section-head">
-                            <span data-i18n="forecastAvarga">Аштакаварга</span>
-                            <span class="fc-hint fc-hint--tooltip" data-tooltip-ru="Числа 0–8 показывают насколько благоприятен транзит планеты через этот дом. 5+ — хорошо, 3 и ниже — сложнее." data-tooltip-en="Scores 0–8 show how favorable each planet's transit through that house is. 5+ is good, 3 or below is challenging.">BAV 0–8 (?)</span>
+                            <span data-i18n="forecastDayRating">Рейтинг дня</span>
                           </div>
-                          <div class="fc-avarga-wrap" id="fcAvarga"></div>
+                          <div class="fc-dayrating-wrap" id="fcDayRating"></div>
                         </div>
 
                       </div><!-- /fc-col-left -->

@@ -223,9 +223,9 @@ def _compute_line_for_planet_angle(
 
     if angle in ("MC", "IC"):
         mc_ramc = _planet_ramc_for_angle(planet_trop_lon, obl, "MC")
-        mc_lon = _mc_longitude_at(mc_ramc, obl)
-        target_lon = mc_lon if angle == "MC" else (mc_lon + 180.0) % 360.0
-        geo_lon = target_lon if target_lon <= 180 else target_lon - 360.0
+        ic_ramc = (mc_ramc + 180.0) % 360.0
+        ramc = mc_ramc if angle == "MC" else ic_ramc
+        geo_lon = _ramc_to_geolon(ramc)
         for lat in _frange(-85, 85, lat_step):
             coords.append([round(geo_lon, 4), round(lat, 4)])
         return coords

@@ -117,7 +117,7 @@ const t = {
     dashaModalEnd: "Конец",
     geoTab: "Гео",
     geoLines: "Линии планет",
-    geoParans: "Параны",
+    geoParans: "Горячие точки",
     geoSearchPlaceholder: "Поиск города...",
     geoAskAI: "AI",
     geoAskAIHint: "Нажмите на карте чтобы выбрать локацию",
@@ -128,10 +128,10 @@ const t = {
     geoScoreGood: "благоприятно",
     geoScoreBad: "испытание",
     geoFilterAll: "Все",
-    geoToggleHint: "Нажми на планету чтобы скрыть/показать",
-    geoParansHint: "Пересечения линий — зоны усиленного влияния",
+    geoToggleHint: "Кликни на планету чтобы скрыть её линии · кликни на значок — перейти на карте",
+    geoParansHint: "Где на Земле сходятся сразу несколько планетных влияний",
     geoCities: "Города",
-    geoCitiesHint: "Рейтинг по близости к линиям планет",
+    geoCitiesHint: "Рейтинг по астрологическому потенциалу для жизни",
     newProfile: "Новый профиль",
     forecastTab: "Прогноз",
     forecastTitle: "Прогноз на дату",
@@ -150,6 +150,7 @@ const t = {
     forecastAvargaBAV: "BAV",
     forecastAvargaSAV: "SAV",
     forecastAvargaHint: "BAV — баллы планеты (0–8), SAV — сумма всех планет (0–56). Норма: BAV ≥ 4, SAV ≥ 28.",
+    forecastDayRating: "Рейтинг дня",
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
@@ -279,7 +280,7 @@ const t = {
     dashaModalEnd: "End",
     geoTab: "Geo",
     geoLines: "Planet lines",
-    geoParans: "Parans",
+    geoParans: "Hot spots",
     geoSearchPlaceholder: "Search city...",
     geoAskAI: "AI",
     geoAskAIHint: "Click on the map to select a location",
@@ -290,10 +291,10 @@ const t = {
     geoScoreGood: "favorable",
     geoScoreBad: "challenge",
     geoFilterAll: "All",
-    geoToggleHint: "Click a planet to show/hide its lines",
-    geoParansHint: "Line intersections — zones of combined influence",
+    geoToggleHint: "Click a planet to hide its lines · click an icon to jump on map",
+    geoParansHint: "Places on Earth where multiple planetary influences converge",
     geoCities: "Cities",
-    geoCitiesHint: "Ranked by proximity to planet lines",
+    geoCitiesHint: "Ranked by astrological potential for living",
     newProfile: "New profile",
     forecastTab: "Forecast",
     forecastTitle: "Daily Forecast",
@@ -312,6 +313,7 @@ const t = {
     forecastAvargaBAV: "BAV",
     forecastAvargaSAV: "SAV",
     forecastAvargaHint: "BAV — planet score (0–8), SAV — all-planet sum (0–56). Norm: BAV ≥ 4, SAV ≥ 28.",
+    forecastDayRating: "Day Rating",
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
@@ -875,15 +877,28 @@ function applyReport(run, chart, context, markdown) {
   saveActiveProfileId(state.currentProfileId);
   // Reset geo state for new run
   _geoState.lineObjects = [];
+  _geoState.paranObjects = [];
   _geoState.filterActive.clear();
   if (_geoState.map) {
     Object.values(_geoState.layers).forEach((lg) => _geoState.map.removeLayer(lg));
+    if (_geoState.cityMarkersLayer) {
+      _geoState.map.removeLayer(_geoState.cityMarkersLayer);
+      _geoState.cityMarkersLayer = null;
+    }
   }
   _geoState.layers = {};
+  _geoState.loadedRunId = null;
+  _geoState._renderSeq++;
+  const geoLegendEl = document.getElementById("geoLegend");
+  if (geoLegendEl) geoLegendEl.innerHTML = `<p class="geo-empty" style="opacity:0.4">${state.lang === "ru" ? "Загрузка..." : "Loading..."}</p>`;
+  const geoCityEl = document.getElementById("geoCityRankings");
+  if (geoCityEl) geoCityEl.innerHTML = "";
   state.currentRunId = run.id;
   state.chart = chart;
   state.context = context;
   state.markdown = markdown;
+  const wasVisible = !$("#resultLayout").classList.contains("hidden");
+  const currentTab = wasVisible ? (document.querySelector(".tab.active")?.dataset.tab || "chart") : "chart";
   $("#emptyState").classList.add("hidden");
   $("#resultLayout").classList.remove("hidden");
   renderSummary(run.summary);
@@ -894,7 +909,7 @@ function applyReport(run, chart, context, markdown) {
   renderDashas(chart);
   renderSources(context);
   renderReport(run, markdown);
-  setActiveTab("chart");
+  setActiveTab(currentTab);
   renderChatHistory([]);
 }
 
@@ -2785,7 +2800,7 @@ function setActiveTab(tab) {
     setTimeout(() => {
       initGeoMap();
       if (_geoState.map) _geoState.map.invalidateSize();
-      if (state.currentRunId && !_geoState.lineObjects.length) {
+      if (state.currentRunId && _geoState.loadedRunId !== state.currentRunId) {
         renderGeo(state.currentRunId);
       }
     }, 60);
@@ -2953,7 +2968,7 @@ function renderForecast(data) {
   _renderFcMoon(data.lunar_phase, data.transit_planets || []);
   _renderFcTips(data.tips || []);
   _renderFcDasha(data.active_dasha || {});
-  _renderFcAvarga(data.transit_avarga || []);
+  _renderFcDayRating(data.transit_avarga || [], data.transit_planets || []);
   _renderFcTransits(data.transit_planets || [], data.transit_avarga || []);
   _fcSetVisible("content");
 }
@@ -3065,25 +3080,122 @@ function _renderFcDasha(dasha) {
   el.innerHTML = html;
 }
 
-function _renderFcAvarga(transitAvarga) {
-  const el = $("#fcAvarga");
+function _renderFcDayRating(transitAvarga, transitPlanets) {
+  const el = $("#fcDayRating");
   if (!el) return;
-  const order = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
-  const ruLabels = {sun:"☉",moon:"☽",mars:"♂",mercury:"☿",jupiter:"♃",venus:"♀",saturn:"♄"};
-  const rows = order.map(p => {
-    const av = transitAvarga.find(x => x.planet === p);
-    if (!av || av.bav == null) return "";
-    const score = av.bav;
-    const pct = Math.round((score / 8) * 100);
-    const cls = _fcBavClass(score);
-    const pm = PLANET_META[p] || { color: "var(--muted)" };
+  const isRu = state.lang === "ru";
+
+  // Map planets to life themes based on their BAV scores + dignity
+  // Each life sphere is driven by specific planetary influences
+  const getBav = (planet) => {
+    const av = transitAvarga.find(x => x.planet === planet);
+    return av && av.bav != null ? av.bav : 4;
+  };
+  const getDignityMod = (planet) => {
+    const tp = transitPlanets.find(x => x.planet === planet);
+    if (!tp) return 0;
+    if (tp.dignity === "exalted") return 1.5;
+    if (tp.dignity === "own_sign") return 0.7;
+    if (tp.dignity === "debilitated") return -1.5;
+    return 0;
+  };
+  const retro = (planet) => {
+    const tp = transitPlanets.find(x => x.planet === planet);
+    return tp && tp.retrograde ? -0.5 : 0;
+  };
+
+  // Raw score (0–10) for each sphere
+  const raw = (base, mod, r) => Math.max(0, Math.min(10, base + mod + r));
+  const bavTo10 = (bav) => (bav / 8) * 10;
+
+  const spheres = isRu ? [
+    {
+      icon: "♀", label: "Любовь",
+      score: raw(bavTo10((getBav("venus") + getBav("moon")) / 2),
+        getDignityMod("venus") + getDignityMod("moon"),
+        retro("venus") + retro("moon"))
+    },
+    {
+      icon: "♃", label: "Деньги",
+      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
+        getDignityMod("jupiter") + getDignityMod("mercury"),
+        retro("jupiter") + retro("mercury"))
+    },
+    {
+      icon: "♂", label: "Энергия",
+      score: raw(bavTo10((getBav("mars") + getBav("sun")) / 2),
+        getDignityMod("mars") + getDignityMod("sun"),
+        retro("mars"))
+    },
+    {
+      icon: "☿", label: "Ум и общение",
+      score: raw(bavTo10(getBav("mercury")),
+        getDignityMod("mercury"),
+        retro("mercury"))
+    },
+    {
+      icon: "☉", label: "Карьера",
+      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
+        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
+        retro("saturn"))
+    },
+    {
+      icon: "♃", label: "Удача",
+      score: raw(bavTo10(getBav("jupiter")),
+        getDignityMod("jupiter"),
+        retro("jupiter"))
+    },
+  ] : [
+    {
+      icon: "♀", label: "Love",
+      score: raw(bavTo10((getBav("venus") + getBav("moon")) / 2),
+        getDignityMod("venus") + getDignityMod("moon"),
+        retro("venus") + retro("moon"))
+    },
+    {
+      icon: "♃", label: "Money",
+      score: raw(bavTo10((getBav("jupiter") + getBav("mercury")) / 2),
+        getDignityMod("jupiter") + getDignityMod("mercury"),
+        retro("jupiter") + retro("mercury"))
+    },
+    {
+      icon: "♂", label: "Energy",
+      score: raw(bavTo10((getBav("mars") + getBav("sun")) / 2),
+        getDignityMod("mars") + getDignityMod("sun"),
+        retro("mars"))
+    },
+    {
+      icon: "☿", label: "Mental",
+      score: raw(bavTo10(getBav("mercury")),
+        getDignityMod("mercury"),
+        retro("mercury"))
+    },
+    {
+      icon: "☉", label: "Career",
+      score: raw(bavTo10((getBav("sun") + getBav("saturn")) / 2),
+        getDignityMod("sun") + getDignityMod("saturn") * 0.5,
+        retro("saturn"))
+    },
+    {
+      icon: "♃", label: "Luck",
+      score: raw(bavTo10(getBav("jupiter")),
+        getDignityMod("jupiter"),
+        retro("jupiter"))
+    },
+  ];
+
+  const rows = spheres.map(s => {
+    const pct = Math.round((s.score / 10) * 100);
+    const cls = s.score >= 6.5 ? "good" : s.score >= 4 ? "mid" : "bad";
+    const scoreRound = Math.round(s.score * 10) / 10;
     return `<div class="fc-avarga-row">` +
-      `<span class="fc-avarga-glyph" style="color:${pm.color}">${ruLabels[p] || p}</span>` +
+      `<span class="fc-avarga-glyph fc-dr-icon">${s.icon}</span>` +
+      `<span class="fc-dr-label">${escapeHtml(s.label)}</span>` +
       `<div class="fc-bav-track"><div class="fc-bav-fill ${cls}" style="width:${pct}%"></div></div>` +
-      `<span class="fc-bav-val ${cls}">${score}</span>` +
+      `<span class="fc-bav-val ${cls}">${scoreRound}</span>` +
       `</div>`;
-  }).filter(Boolean);
-  el.innerHTML = rows.join("") || "—";
+  });
+  el.innerHTML = rows.join("");
 }
 
 function _renderFcTransits(transits, transitAvarga) {
@@ -3159,21 +3271,29 @@ function _renderFcTransits(transits, transitAvarga) {
 
     const av = (transitAvarga || []).find(x => x.planet === t.planet);
     const bavScore = av && av.bav != null ? av.bav : null;
-    const bavBadge = bavScore !== null
-      ? `<span class="fc-tr-bav fc-tr-bav--${_fcBavClass(bavScore)}" title="${isRu ? "Аштакаварга" : "Ashtakavarga"} BAV">${bavScore}/8</span>`
+    const bavBar = bavScore !== null
+      ? (() => {
+          const pct = Math.round((bavScore / 8) * 100);
+          const cls = _fcBavClass(bavScore);
+          return `<div class="fc-tr-bav-row">` +
+            `<span class="fc-tr-bav-lbl">BAV</span>` +
+            `<div class="fc-bav-track"><div class="fc-bav-fill ${cls}" style="width:${pct}%"></div></div>` +
+            `<span class="fc-tr-bav fc-tr-bav--${cls}">${bavScore}/8</span>` +
+            `</div>`;
+        })()
       : "";
 
     return `<div class="fc-tr-card">` +
       `<div class="fc-tr-row1">` +
         `<span class="fc-tr-glyph" style="color:${pm.color}">${pm.glyph}</span>` +
         `<span class="fc-tr-name">${escapeHtml(pName)}${retroBadge}</span>` +
-        bavBadge +
       `</div>` +
       `<div class="fc-tr-row2">` +
         `<span class="fc-tr-loc">${escapeHtml(t.sign || "")} · ${isRu ? "дом" : "H"}${house}</span>` +
         digBadge +
       `</div>` +
       `<div class="fc-tr-theme">${escapeHtml(theme)}</div>` +
+      bavBar +
       `</div>`;
   });
 
@@ -3298,6 +3418,7 @@ function boot() {
   initFcCalendar();
   initGeoSearch();
   initGeoAI();
+  initGeoHoverRating();
   $("#birthForm").addEventListener("submit", generateReport);
   $("#refreshProfiles").addEventListener("click", loadProfiles);
   $("#newProfileBtn").addEventListener("click", newProfile);
@@ -3331,6 +3452,13 @@ const _geoState = {
   filterActive: new Set(),
   initialized: false,
   _hoverTimer: null,
+  cityMarkersLayer: null,
+  loadedRunId: null,   // runId currently drawn on map
+  _renderSeq: 0,       // incremented on each new render request; stale responses are ignored
+  hoverRatingActive: false,
+  _hoverRatingMarker: null,
+  _hoverRatingHandler: null,
+  rawLines: [],
 };
 
 function _geoScoreColor(score) {
@@ -3355,11 +3483,16 @@ function initGeoMap() {
     maxZoom: 19,
     worldCopyJump: true,
     zoomControl: true,
+    attributionControl: false,
   });
+
+  L.control.attribution({ prefix: '<a href="https://leafletjs.com">Leaflet</a>' })
+    .addAttribution("© CartoDB")
+    .addTo(map);
 
   // Dark base tiles with labels
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: "© CartoDB",
+    attribution: "",
     subdomains: "abcd",
     maxZoom: 19,
     maxNativeZoom: 19,
@@ -3733,6 +3866,128 @@ function initGeoAI() {
   });
 }
 
+function initGeoHoverRating() {
+  const btn = $("#geoHoverRatingBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    _geoState.hoverRatingActive = !_geoState.hoverRatingActive;
+    btn.classList.toggle("active", _geoState.hoverRatingActive);
+    const map = _geoState.map;
+    if (!map) return;
+
+    if (_geoState.hoverRatingActive) {
+      document.getElementById("geoMap")?.classList.add("hover-rating-mode");
+
+      // create invisible marker to host the tooltip
+      const marker = L.marker([0, 0], {
+        icon: L.divIcon({ className: "", html: "", iconSize: [0, 0] }),
+        interactive: false,
+        zIndexOffset: 9999,
+      }).addTo(map);
+      const tooltip = L.tooltip({
+        className: "geo-tooltip geo-city-tooltip geo-hover-tooltip",
+        direction: "top",
+        offset: [0, -6],
+        permanent: true,
+        interactive: false,
+      });
+      marker.bindTooltip(tooltip);
+      _geoState._hoverRatingMarker = marker;
+
+      _geoState._hoverRatingHandler = (e) => {
+        const { lat, lng } = e.latlng;
+        marker.setLatLng([lat, lng]);
+        const html = _geoHoverRatingHtml(lat, lng);
+        marker.setTooltipContent(html);
+        if (!marker.isTooltipOpen()) marker.openTooltip();
+      };
+      map.on("mousemove", _geoState._hoverRatingHandler);
+      map.on("mouseout", () => marker.closeTooltip());
+
+    } else {
+      document.getElementById("geoMap")?.classList.remove("hover-rating-mode");
+      if (_geoState._hoverRatingHandler) {
+        map.off("mousemove", _geoState._hoverRatingHandler);
+        _geoState._hoverRatingHandler = null;
+      }
+      if (_geoState._hoverRatingMarker) {
+        map.removeLayer(_geoState._hoverRatingMarker);
+        _geoState._hoverRatingMarker = null;
+      }
+    }
+  });
+}
+
+function _geoHoverRatingHtml(lat, lng) {
+  const isRu = state.lang === "ru";
+  const lines = _geoState.rawLines;
+  if (!lines.length) {
+    return `<div class="gct-head"><span style="color:#666">${isRu ? "Нет данных" : "No data"}</span></div>`;
+  }
+
+  // Reuse the same scoring as city markers
+  const { total, influences } = _scoreCityFromLines(lat, lng, lines);
+
+  if (!influences.length) {
+    return `<div class="gct-head"><span style="color:#666">${isRu ? "Нет линий рядом" : "No lines nearby"}</span></div>`;
+  }
+
+  const PLANET_SYMBOLS = { sun:"☉", moon:"☽", mars:"♂", mercury:"☿", jupiter:"♃", venus:"♀", saturn:"♄", rahu:"☊", ketu:"☋" };
+  const ANGLE_ICON_RU  = { ASC:"👤 Личность", MC:"🏆 Карьера", DSC:"🤝 Отношения", IC:"🏠 Дом" };
+  const ANGLE_ICON_EN  = { ASC:"👤 Self", MC:"🏆 Career", DSC:"🤝 Relations", IC:"🏠 Home" };
+  const PLANET_EFFECT_RU = {
+    sun:     { pos:"признание",   neg:"напряжение" },
+    moon:    { pos:"уют",         neg:"нестабильность" },
+    mars:    { pos:"энергия",     neg:"конфликты" },
+    mercury: { pos:"общение",     neg:"путаница" },
+    jupiter: { pos:"удача",       neg:"избыток" },
+    venus:   { pos:"гармония",    neg:"зависимость" },
+    saturn:  { pos:"структура",   neg:"ограничения" },
+    rahu:    { pos:"возможности", neg:"хаос" },
+    ketu:    { pos:"рост духа",   neg:"отчуждение" },
+  };
+  const PLANET_EFFECT_EN = {
+    sun:     { pos:"recognition", neg:"tension" },
+    moon:    { pos:"comfort",     neg:"instability" },
+    mars:    { pos:"energy",      neg:"conflict" },
+    mercury: { pos:"clarity",     neg:"confusion" },
+    jupiter: { pos:"luck",        neg:"excess" },
+    venus:   { pos:"harmony",     neg:"dependency" },
+    saturn:  { pos:"structure",   neg:"limits" },
+    rahu:    { pos:"opportunity", neg:"chaos" },
+    ketu:    { pos:"growth",      neg:"detachment" },
+  };
+
+  // influences[].label is like "♃ASC" — parse planet symbol and angle
+  const rows = influences.map(inf => {
+    const raw   = inf.label.replace(/^[♀♂♃♄☿☉☽☊☋]/, "");
+    const angle = Object.keys(ANGLE_ICON_RU).find(a => raw.includes(a)) || raw;
+    const pk    = Object.keys(PLANET_SYMBOLS).find(p => inf.label.startsWith(PLANET_SYMBOLS[p]));
+    const sym   = pk ? PLANET_SYMBOLS[pk] : inf.label[0];
+    const isPos = inf.score > 0;
+    const areaLbl = isRu ? (ANGLE_ICON_RU[angle] || angle) : (ANGLE_ICON_EN[angle] || angle);
+    const effect = pk
+      ? (isRu
+          ? (isPos ? PLANET_EFFECT_RU[pk].pos : PLANET_EFFECT_RU[pk].neg)
+          : (isPos ? PLANET_EFFECT_EN[pk].pos : PLANET_EFFECT_EN[pk].neg))
+      : "";
+    const color = _geoScoreColor(inf.score);
+    const arrow = isPos ? "↑" : "↓";
+    return `<div class="gct-row">
+      <span class="gct-sym" style="color:${color}">${sym}</span>
+      <span class="gct-area">${areaLbl}</span>
+      <span class="gct-fx" style="color:${color}">${arrow}${effect}</span>
+    </div>`;
+  });
+
+  const tot = (total > 0 ? "+" : "") + total.toFixed(1);
+  const totColor = _geoScoreColor(total);
+  const coordLabel = `${Math.abs(lat).toFixed(1)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lng).toFixed(1)}°${lng >= 0 ? "E" : "W"}`;
+
+  return `<div class="gct-head"><b style="color:#aaa;font-weight:400;font-size:11px">${coordLabel}</b><span class="gct-score" style="color:${totColor}">${tot}</span></div><div class="gct-rows">${rows.join("")}</div>`;
+}
+
 function _geoAskAIAtPoint(lat, lng) {
   const isRu = state.lang === "ru";
 
@@ -3828,17 +4083,21 @@ async function renderGeo(runId) {
     return;
   }
 
+  const seq = ++_geoState._renderSeq;
   const loading = document.getElementById("geoLoading");
   if (loading) loading.classList.remove("hidden");
 
   try {
     const data = await api(`/api/geo/${runId}`);
+    if (seq !== _geoState._renderSeq) return; // superseded by newer request
     _drawGeoLines(data);
+    _geoState.loadedRunId = runId;
   } catch (err) {
+    if (seq !== _geoState._renderSeq) return;
     const legend = document.getElementById("geoLegend");
     if (legend) legend.innerHTML = `<p class="geo-empty geo-error">${tr("geoError")}: ${escapeHtml(err.message)}</p>`;
   } finally {
-    if (loading) loading.classList.add("hidden");
+    if (seq === _geoState._renderSeq && loading) loading.classList.add("hidden");
   }
 }
 
@@ -3853,6 +4112,10 @@ function _drawGeoLines(data) {
   _geoState.lineObjects = [];
   _geoState.paranObjects = [];
   _geoState.filterActive.clear();
+  if (_geoState.cityMarkersLayer) {
+    map.removeLayer(_geoState.cityMarkersLayer);
+    _geoState.cityMarkersLayer = null;
+  }
 
   const lines = data.lines || [];
   const parans = data.parans || [];
@@ -3962,12 +4225,13 @@ function _drawGeoLines(data) {
     _geoState.paranObjects.push({ p, marker, glowMarker, color, r });
   }
 
+  _geoState.rawLines = lines || [];
   _buildGeoSidebar(planetLines, PLANET_ORDER_GEO, parans, lines);
 }
 
 function _buildGeoSidebar(planetLines, order, parans, lines) {
   _buildGeoPlanetList(planetLines, order);
-  _buildParansList(parans);
+  // _buildParansList(parans); — hidden from sidebar
   _buildCityRankings(lines || []);
 }
 
@@ -4006,86 +4270,207 @@ function _geoFlyToLine(pk, angle) {
   } catch (e) { /* ignore */ }
 }
 
+function _geoLinePoint(line) {
+  for (const seg of (line.coords || [])) {
+    if (seg?.length) return seg[Math.floor(seg.length / 2)];
+  }
+  return null;
+}
+
+function _geoHemisphere(value, positive, negative) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "";
+  const abs = Math.abs(num);
+  const rounded = abs >= 10 ? abs.toFixed(0) : abs.toFixed(1);
+  return `${rounded}°${num >= 0 ? positive : negative}`;
+}
+
+function _geoFormatLinePosition(line, isRu) {
+  const point = _geoLinePoint(line);
+  if (!point) return "";
+  const lon = ((Number(point[0]) + 540) % 360) - 180;
+  const lat = Number(point[1]);
+  const lonLabel = _geoHemisphere(lon, "E", "W");
+  const latLabel = _geoHemisphere(lat, "N", "S");
+  if (!lonLabel || !latLabel) return "";
+  if (line.angle === "MC" || line.angle === "IC") {
+    return `${isRu ? "долг." : "lon"} ${lonLabel}`;
+  }
+  return `${latLabel} · ${lonLabel}`;
+}
+
+function _handleGeoLegendClick(e) {
+  const chip = e.target.closest(".geo-angle-chip");
+  if (chip) {
+    _geoFlyToLine(chip.dataset.planet, chip.dataset.angle);
+    return;
+  }
+  const row = e.target.closest(".geo-planet-row");
+  if (!row) return;
+  const pk = row.dataset.planet;
+  const lg = _geoState.layers[pk];
+  if (!lg) return;
+  if (_geoState.filterActive.has(pk)) {
+    _geoState.map?.removeLayer(lg);
+    _geoState.filterActive.delete(pk);
+    row.classList.add("geo-planet-row--hidden");
+  } else {
+    _geoState.map?.addLayer(lg);
+    _geoState.filterActive.add(pk);
+    row.classList.remove("geo-planet-row--hidden");
+  }
+}
+
 function _buildGeoPlanetList(planetLines, order) {
   const el = document.getElementById("geoLegend");
   if (!el) return;
 
-  const ANGLE_DESC_SHORT = {
-    ru: { ASC: "Асц — личность", MC: "МС — карьера", DSC: "Дес — отношения", IC: "НС — дом" },
-    en: { ASC: "ASC — identity", MC: "MC — career", DSC: "DSC — relations", IC: "IC — home" },
+  const isRu = state.lang !== "en";
+
+  // Human-readable angle meaning per life area
+  const ANGLE_LIFE = {
+    ru: {
+      ASC: { label: "Личность",  icon: "👤", tip: "Линия личности — здоровье, внешность, как тебя воспринимают" },
+      MC:  { label: "Карьера",   icon: "🏆", tip: "Линия карьеры — репутация, статус, профессиональная реализация" },
+      DSC: { label: "Отношения", icon: "🤝", tip: "Линия партнёрств — любовь, брак, деловые союзы" },
+      IC:  { label: "Дом",       icon: "🏠", tip: "Линия дома — семья, корни, эмоциональная безопасность" },
+    },
+    en: {
+      ASC: { label: "Identity",     icon: "👤", tip: "Identity line — health, appearance, first impressions" },
+      MC:  { label: "Career",       icon: "🏆", tip: "Career line — reputation, status, professional fulfilment" },
+      DSC: { label: "Partnership",  icon: "🤝", tip: "Partnership line — love, marriage, business alliances" },
+      IC:  { label: "Home",         icon: "🏠", tip: "Home line — family, roots, emotional security" },
+    },
   };
-  const lang = state.lang === "en" ? "en" : "ru";
-  const adesc = ANGLE_DESC_SHORT[lang];
+  const alife = ANGLE_LIFE[isRu ? "ru" : "en"];
 
   const rows = order
     .filter((pk) => planetLines[pk])
     .map((pk) => {
       const meta = PLANET_META[pk] || { glyph: "?", color: "#888", label: pk };
       const lines = planetLines[pk] || [];
-      const angleTags = lines.map((l) => {
+
+      // Sort: MC, ASC, DSC, IC
+      const ANGLE_ORDER = ["MC", "ASC", "DSC", "IC"];
+      const sorted = [...lines].sort((a, b) => ANGLE_ORDER.indexOf(a.angle) - ANGLE_ORDER.indexOf(b.angle));
+
+      const angleTags = sorted.map((l) => {
         const sc = l.score;
         const col = _geoScoreColor(sc);
         const sign = sc > 0 ? `+${sc}` : `${sc}`;
-        const tip = `${adesc[l.angle] || l.angle}: ${sign}`;
-        return `<span class="geo-angle-chip" data-planet="${pk}" data-angle="${l.angle}" style="--chip-color:${col}" title="${escapeHtml(tip)}">${l.angle}<sub>${sign}</sub></span>`;
+        const al = alife[l.angle] || { label: l.angle, icon: "", tip: l.angle };
+        const position = _geoFormatLinePosition(l, isRu);
+        const tip = `${al.icon} ${al.tip}\n${l.label || `${meta.label} ${l.angle}`}${position ? ` · ${position}` : ""}\n${sign}`;
+        return `<span class="geo-angle-chip" data-planet="${pk}" data-angle="${l.angle}" style="--chip-color:${col}" title="${escapeHtml(tip)}">
+          <span class="geo-chip-icon">${al.icon}</span>
+          <span class="geo-chip-label">${al.label}</span>
+          ${position ? `<span class="geo-chip-coord">${escapeHtml(position)}</span>` : ""}
+          <span class="geo-chip-score">${sign}</span>
+        </span>`;
       }).join("");
 
+      const planetDesc = isRu ? _GEO_PLANET_THEMES_RU[pk] : _GEO_PLANET_THEMES_EN[pk];
+
       return `<div class="geo-planet-row" data-planet="${pk}" style="--planet-color:${meta.color}">
-        <span class="geo-planet-glyph">${meta.glyph}</span>
-        <span class="geo-planet-name">${meta.label}</span>
-        <span class="geo-planet-angles">${angleTags}</span>
+        <div class="geo-planet-header">
+          <span class="geo-planet-glyph">${meta.glyph}</span>
+          <span class="geo-planet-name">${meta.label}</span>
+          ${planetDesc ? `<span class="geo-planet-theme">${planetDesc}</span>` : ""}
+        </div>
+        <div class="geo-planet-angles">${angleTags}</div>
       </div>`;
     })
     .join("");
 
   el.innerHTML = rows;
+  el.scrollTop = 0;
 
-  el.addEventListener("click", (e) => {
-    const chip = e.target.closest(".geo-angle-chip");
-    if (chip) {
-      _geoFlyToLine(chip.dataset.planet, chip.dataset.angle);
-      return;
-    }
-    const row = e.target.closest(".geo-planet-row");
-    if (!row) return;
-    const pk = row.dataset.planet;
-    const lg = _geoState.layers[pk];
-    if (!lg) return;
-    if (_geoState.filterActive.has(pk)) {
-      _geoState.map?.removeLayer(lg);
-      _geoState.filterActive.delete(pk);
-      row.classList.add("geo-planet-row--hidden");
-    } else {
-      _geoState.map?.addLayer(lg);
-      _geoState.filterActive.add(pk);
-      row.classList.remove("geo-planet-row--hidden");
-    }
-  });
+  if (!el._geoLegendClickBound) {
+    el.addEventListener("click", _handleGeoLegendClick);
+    el._geoLegendClickBound = true;
+  }
 }
+
+const _GEO_PLANET_THEMES_RU = {
+  sun:     "воля · признание",
+  moon:    "эмоции · семья",
+  mars:    "действие · конфликт",
+  mercury: "общение · обучение",
+  jupiter: "рост · удача",
+  venus:   "любовь · творчество",
+  saturn:  "труд · ограничения",
+  rahu:    "перемены · амбиции",
+  ketu:    "отречение · духовность",
+};
+const _GEO_PLANET_THEMES_EN = {
+  sun:     "will · recognition",
+  moon:    "emotions · family",
+  mars:    "action · conflict",
+  mercury: "communication · learning",
+  jupiter: "growth · luck",
+  venus:   "love · creativity",
+  saturn:  "discipline · limits",
+  rahu:    "change · ambition",
+  ketu:    "detachment · spirit",
+};
 
 function _buildParansList(parans) {
   const el = document.getElementById("geoParansList");
   if (!el) return;
 
+  const isRu = state.lang !== "en";
   const top = parans.slice(0, 12);
   if (!top.length) { el.innerHTML = ""; return; }
+
+  // Angle → life area
+  const ANGLE_AREA = {
+    ru: { ASC: "личность", MC: "карьера", DSC: "отношения", IC: "дом" },
+    en: { ASC: "identity", MC: "career",  DSC: "partnership", IC: "home" },
+  };
+  const aarea = ANGLE_AREA[isRu ? "ru" : "en"];
+
+  // Build region label from latitude
+  function latRegion(lat) {
+    const abs = Math.abs(lat);
+    const ns = lat > 0 ? (isRu ? "сев." : "N") : (isRu ? "юж." : "S");
+    if (abs < 15) return isRu ? `экватор (${ns}${abs.toFixed(0)}°)` : `equator (${ns}${abs.toFixed(0)}°)`;
+    if (abs < 35) return isRu ? `тропики (${ns}${abs.toFixed(0)}°)` : `tropics (${ns}${abs.toFixed(0)}°)`;
+    if (abs < 55) return isRu ? `умеренный пояс (${ns}${abs.toFixed(0)}°)` : `temperate zone (${ns}${abs.toFixed(0)}°)`;
+    return isRu ? `высокие широты (${ns}${abs.toFixed(0)}°)` : `high latitudes (${ns}${abs.toFixed(0)}°)`;
+  }
 
   el.innerHTML = top.map((p, idx) => {
     const color = _geoScoreColor(p.score);
     const sign = p.score > 0 ? "+" : "";
     const metaA = PLANET_META[p.planet_a] || { glyph: "?", color: "#888", label: p.planet_a };
     const metaB = PLANET_META[p.planet_b] || { glyph: "?", color: "#888", label: p.planet_b };
-    const lat = `${p.latitude > 0 ? "N" : "S"}${Math.abs(p.latitude).toFixed(0)}°`;
+
+    const areaA = aarea[p.angle_a] || p.angle_a;
+    const areaB = aarea[p.angle_b] || p.angle_b;
+    const region = latRegion(p.latitude);
+
+    // Combined theme: most impactful angle pair
+    const isGood = p.score > 0;
+    const mood = isGood
+      ? (isRu ? "усиливает" : "boosts")
+      : (isRu ? "напрягает" : "challenges");
+    // Unique areas, deduplicated
+    const areas = [...new Set([areaA, areaB])].join(" + ");
+
     return `<div class="geo-paran-row" data-paran-idx="${idx}">
-      <span class="geo-paran-score" style="color:${color}">${sign}${p.score}</span>
-      <span class="geo-paran-body">
-        <span class="geo-paran-pair">
-          <span style="color:${metaA.color}">${metaA.glyph}</span>${metaA.label} ${p.angle_a}
-          <span class="geo-paran-x">×</span>
-          <span style="color:${metaB.color}">${metaB.glyph}</span>${metaB.label} ${p.angle_b}
+      <div class="geo-paran-pill" style="background:${color}22; border-color:${color}55">
+        <span class="geo-paran-score" style="color:${color}">${sign}${p.score}</span>
+        <span class="geo-paran-mood" style="color:${color}">${mood}</span>
+        <span class="geo-paran-areas">${areas}</span>
+      </div>
+      <div class="geo-paran-detail">
+        <span class="geo-paran-planets">
+          <span style="color:${metaA.color}">${metaA.glyph} ${metaA.label}</span>
+          <span class="geo-paran-x">·</span>
+          <span style="color:${metaB.color}">${metaB.glyph} ${metaB.label}</span>
         </span>
-        <span class="geo-paran-lat">${lat}</span>
-      </span>
+        <span class="geo-paran-region">${region}</span>
+      </div>
     </div>`;
   }).join("");
 }
@@ -4324,6 +4709,105 @@ function _buildCityRankings(lines) {
     const lon = parseFloat(row.dataset.lon);
     _geoState.map?.flyTo([lat, lon], 5, { duration: 0.8 });
   });
+
+  _drawCityMarkers(best, worst);
+}
+
+function _drawCityMarkers(best, worst) {
+  const map = _geoState.map;
+  if (!map) return;
+  if (_geoState.cityMarkersLayer) map.removeLayer(_geoState.cityMarkersLayer);
+
+  const layer = L.layerGroup().addTo(map);
+  _geoState.cityMarkersLayer = layer;
+
+  const isRu = state.lang === "ru";
+
+  function addMarker(city, rank, kind) {
+    const isGood = kind === "best";
+    const borderColor = isGood ? "#4ade80" : "#f87171";
+    const bgColor     = isGood ? "rgba(20,40,20,0.88)" : "rgba(40,15,15,0.88)";
+    const numColor    = isGood ? "#4ade80" : "#f87171";
+    const sign        = city.total > 0 ? "+" : "";
+
+    const icon = L.divIcon({
+      className: "",
+      html: `<div class="geo-city-pin ${isGood ? "geo-city-pin--good" : "geo-city-pin--bad"}">
+        <span class="geo-city-pin-rank">${rank}</span>
+      </div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    });
+
+    const tipLabel = isGood
+      ? (isRu ? "Лучший" : "Best")
+      : (isRu ? "Сложный" : "Challenging");
+
+    const PLANET_SYMBOLS = { sun:"☉", moon:"☽", mars:"♂", mercury:"☿", jupiter:"♃", venus:"♀", saturn:"♄", rahu:"☊", ketu:"☋" };
+    const ANGLE_ICON_RU  = { ASC: "👤 Личность", MC: "🏆 Карьера", DSC: "🤝 Отношения", IC: "🏠 Дом" };
+    const ANGLE_ICON_EN  = { ASC: "👤 Self", MC: "🏆 Career", DSC: "🤝 Relations", IC: "🏠 Home" };
+    const PLANET_EFFECT_RU = {
+      sun:     { pos: "признание",  neg: "напряжение" },
+      moon:    { pos: "уют",        neg: "нестабильность" },
+      mars:    { pos: "энергия",    neg: "конфликты" },
+      mercury: { pos: "общение",    neg: "путаница" },
+      jupiter: { pos: "удача",      neg: "избыток" },
+      venus:   { pos: "гармония",   neg: "зависимость" },
+      saturn:  { pos: "структура",  neg: "ограничения" },
+      rahu:    { pos: "возможности",neg: "хаос" },
+      ketu:    { pos: "рост духа",  neg: "отчуждение" },
+    };
+    const PLANET_EFFECT_EN = {
+      sun:     { pos: "recognition", neg: "tension" },
+      moon:    { pos: "comfort",     neg: "instability" },
+      mars:    { pos: "energy",      neg: "conflict" },
+      mercury: { pos: "clarity",     neg: "confusion" },
+      jupiter: { pos: "luck",        neg: "excess" },
+      venus:   { pos: "harmony",     neg: "dependency" },
+      saturn:  { pos: "structure",   neg: "limits" },
+      rahu:    { pos: "opportunity", neg: "chaos" },
+      ketu:    { pos: "growth",      neg: "detachment" },
+    };
+
+    const descRows = city.influences.slice(0, 3).map(inf => {
+      const raw   = inf.label.replace(/^[♀♂♃♄☿☉☽☊☋]/, "");
+      const angle = Object.keys(ANGLE_ICON_RU).find(a => raw.includes(a)) || "";
+      const pk    = Object.keys(PLANET_SYMBOLS).find(p => inf.label.startsWith(PLANET_SYMBOLS[p]));
+      if (!pk || !angle) return null;
+
+      const sym    = PLANET_SYMBOLS[pk];
+      const isPos  = inf.score > 0;
+      const areaLbl = isRu ? ANGLE_ICON_RU[angle] : ANGLE_ICON_EN[angle];
+      const effect  = isRu
+        ? (isPos ? PLANET_EFFECT_RU[pk].pos : PLANET_EFFECT_RU[pk].neg)
+        : (isPos ? PLANET_EFFECT_EN[pk].pos : PLANET_EFFECT_EN[pk].neg);
+      const color  = _geoScoreColor(inf.score);
+      const arrow  = isPos ? "↑" : "↓";
+      return `<div class="gct-row">
+        <span class="gct-sym" style="color:${color}">${sym}</span>
+        <span class="gct-area">${areaLbl}</span>
+        <span class="gct-fx" style="color:${color}">${arrow}${effect}</span>
+      </div>`;
+    }).filter(Boolean);
+
+    const descHtml = descRows.length
+      ? `<div class="gct-rows">${descRows.join("")}</div>`
+      : "";
+
+    const marker = L.marker([city.lat, city.lon], { icon, zIndexOffset: isGood ? 800 : 700 })
+      .addTo(layer)
+      .bindTooltip(
+        `<div class="gct-head"><b>${city.name}</b><span class="gct-score" style="color:${numColor}">${sign}${city.total}</span></div><div class="gct-rank">${tipLabel} #${rank}</div>${descHtml}`,
+        { className: "geo-tooltip geo-city-tooltip", direction: "top", offset: [0, -12] }
+      );
+
+    marker.on("click", () => {
+      map.flyTo([city.lat, city.lon], 5, { duration: 0.8 });
+    });
+  }
+
+  best.forEach((city, i) => addMarker(city, i + 1, "best"));
+  worst.forEach((city, i) => addMarker(city, i + 1, "worst"));
 }
 
 function debounce(fn, delay) {

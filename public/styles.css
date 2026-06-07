@@ -4881,6 +4881,53 @@ td {
 
 /* CartoDB Dark Matter tiles are already dark — no filter needed */
 
+.leaflet-control-zoom {
+  border: 1px solid rgba(216, 183, 100, 0.18) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background: rgba(14, 12, 28, 0.88) !important;
+  color: #a9a3c2 !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(216, 183, 100, 0.12) !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 16px !important;
+  font-weight: 300 !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+.leaflet-control-zoom-out {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background: rgba(216, 183, 100, 0.12) !important;
+  color: #f5ecd8 !important;
+}
+
+.leaflet-control-attribution {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #555 !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a,
+.leaflet-control-attribution span {
+  color: #555 !important;
+}
+
+.leaflet-attribution-flag {
+  display: none !important;
+}
+
 .geo-search-wrap {
   position: absolute;
   top: 10px;
@@ -4924,11 +4971,17 @@ td {
   color: var(--gold);
 }
 
-.geo-ai-btn {
+.geo-map-btns {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 700;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.geo-ai-btn {
+  position: static;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -4950,6 +5003,13 @@ td {
 .geo-ai-btn.active {
   background: var(--gold);
   color: #1a1035;
+}
+.geo-hover-rating-btn {
+  padding: 6px 8px;
+}
+#geoMap.hover-rating-mode { cursor: crosshair !important; }
+.geo-hover-tooltip {
+  pointer-events: none !important;
 }
 
 .geo-ai-hint {
@@ -5061,91 +5121,177 @@ td {
 
 /* Planet rows — each is a toggle */
 .geo-planet-row {
-  display: grid;
-  grid-template-columns: 20px 68px 1fr;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px 7px;
   cursor: pointer;
   border-left: 2px solid transparent;
   transition: background 0.1s, border-color 0.1s, opacity 0.15s;
 }
 
 .geo-planet-row:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   border-left-color: var(--planet-color);
 }
 
 .geo-planet-row:hover .geo-planet-glyph {
-  transform: scale(1.25);
-}
-
-.geo-planet-glyph {
-  transition: transform 0.15s;
+  transform: scale(1.2);
 }
 
 .geo-planet-row--hidden {
-  opacity: 0.3;
+  opacity: 0.28;
+}
+
+.geo-planet-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .geo-planet-glyph {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--planet-color);
-  text-align: center;
   line-height: 1;
+  transition: transform 0.15s;
+  flex-shrink: 0;
 }
 
 .geo-planet-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
 }
 
+.geo-planet-theme {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .geo-planet-angles {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 4px;
 }
 
-/* Angle chips: ASC/MC/DSC/IC with colored border + score subscript */
+/* Angle chips: life-area label + score */
 .geo-angle-chip {
   display: inline-flex;
-  align-items: baseline;
-  gap: 1px;
-  padding: 1px 4px 1px 5px;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px 2px 5px;
   border: 1px solid var(--chip-color, #888);
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--chip-color, #888) 12%, transparent);
-  font-size: 9px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--chip-color, #888) 10%, transparent);
   cursor: pointer;
   transition: background 0.12s, transform 0.1s;
-  font-weight: 700;
-  color: var(--chip-color, #aaa);
   white-space: nowrap;
-  cursor: default;
 }
 
 .geo-angle-chip:hover {
-  background: color-mix(in srgb, var(--chip-color, #888) 28%, transparent);
-  transform: scale(1.1);
+  background: color-mix(in srgb, var(--chip-color, #888) 25%, transparent);
+  transform: scale(1.05);
 }
 
-.geo-angle-chip sub {
-  font-size: 8px;
+.geo-chip-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.geo-chip-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--chip-color, #aaa);
+}
+
+.geo-chip-coord {
+  font-size: 9px;
+  color: var(--text-dim);
   opacity: 0.85;
-  vertical-align: baseline;
-  margin-left: 1px;
 }
 
+.geo-chip-score {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--chip-color, #aaa);
+  opacity: 0.9;
+}
+
+/* Parans section */
 .geo-paran-row {
-  border-radius: 3px;
-  transition: background 0.1s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-radius: 5px;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  transition: border-color 0.1s, background 0.1s;
+  cursor: default;
 }
 
 .geo-paran-row:hover {
-  background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255,255,255,0.06);
+}
+
+.geo-paran-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.geo-paran-score {
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.geo-paran-mood {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.geo-paran-areas {
+  font-size: 10px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.geo-paran-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 2px;
+}
+
+.geo-paran-planets {
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.geo-paran-x {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.geo-paran-region {
+  font-size: 9px;
+  color: var(--muted);
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .geo-parans-section {
@@ -5176,46 +5322,11 @@ td {
 .geo-parans-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 2px 10px 6px;
+  gap: 3px;
+  padding: 2px 8px 6px;
   overflow-y: auto;
   flex: 1 1 0;
   min-height: 0;
-}
-
-.geo-paran-row {
-  display: grid;
-  grid-template-columns: 26px 1fr;
-  align-items: start;
-  gap: 6px;
-}
-
-.geo-paran-score {
-  font-weight: 700;
-  font-size: 11px;
-  padding-top: 1px;
-}
-
-.geo-paran-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.geo-paran-pair {
-  font-size: 10px;
-  color: var(--text);
-  line-height: 1.4;
-}
-
-.geo-paran-x {
-  margin: 0 3px;
-  color: var(--muted);
-}
-
-.geo-paran-lat {
-  font-size: 9px;
-  color: var(--muted);
 }
 
 .geo-empty {
@@ -5378,6 +5489,72 @@ td {
   min-width: 28px;
   text-align: right;
 }
+
+/* ─── Geo city map pins ─────────────────────────────────── */
+
+.geo-city-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,0,0,0.6);
+  transition: transform 0.15s;
+}
+
+.geo-city-pin:hover {
+  transform: scale(1.2);
+}
+
+.geo-city-pin--good {
+  border-color: #4ade80;
+  background: rgba(20, 45, 25, 0.92);
+  color: #4ade80;
+}
+
+.geo-city-pin--bad {
+  border-color: #f87171;
+  background: rgba(45, 15, 15, 0.92);
+  color: #f87171;
+}
+
+.geo-city-tooltip {
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal !important;
+  min-width: 200px !important;
+  max-width: 220px !important;
+  padding: 6px 8px !important;
+}
+.gct-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 1px;
+}
+.gct-head b { font-size: 13px; color: #e8dfc8; }
+.gct-score  { font-size: 13px; font-weight: 700; }
+.gct-rank   { font-size: 10px; color: #777; margin-bottom: 6px; }
+.gct-rows   { display: flex; flex-direction: column; gap: 3px; }
+.gct-row    {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+.gct-sym  { font-size: 13px; text-align: center; }
+.gct-area { font-size: 11px; color: #c8bfa8; white-space: nowrap; }
+.gct-fx   { font-size: 11px; font-weight: 600; white-space: nowrap; text-align: right; }
 
 /* ─── Forecast Tab ─────────────────────────────────────── */
 
@@ -5705,7 +5882,7 @@ td {
 .fc-col-left {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   border-right: 1px solid var(--line-soft);
   padding-right: 18px;
   overflow-y: auto;
@@ -5715,7 +5892,7 @@ td {
 .fc-col-right {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   min-width: 0;
   min-height: 0;
 }
@@ -5971,8 +6148,9 @@ td {
 .fc-dasha-sep { color: var(--muted); font-size: 12px; }
 .fc-dasha-remaining { font-size: 11px; color: var(--muted); }
 
-/* Ashtakavarga */
-.fc-avarga-wrap { display: flex; flex-direction: column; gap: 6px; }
+/* Day Rating & Ashtakavarga bars */
+.fc-avarga-wrap,
+.fc-dayrating-wrap { display: flex; flex-direction: column; gap: 6px; }
 
 .fc-avarga-row { display: flex; align-items: center; gap: 7px; }
 
@@ -5981,6 +6159,19 @@ td {
   line-height: 1;
   width: 18px;
   text-align: center;
+  flex-shrink: 0;
+}
+
+.fc-dr-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.fc-dr-label {
+  font-size: 11px;
+  color: var(--text-muted, var(--muted));
+  white-space: nowrap;
+  min-width: 88px;
   flex-shrink: 0;
 }
 
@@ -6102,6 +6293,30 @@ td {
 .fc-tr-bav--mid  { background: rgba(216,183,100,0.15); color: var(--gold); }
 .fc-tr-bav--bad  { background: rgba(255,106,106,0.13); color: var(--danger); }
 
+.fc-tr-bav-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+.fc-tr-bav-lbl {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  flex-shrink: 0;
+  width: 20px;
+}
+.fc-tr-bav-row .fc-bav-track { flex: 1; height: 5px; }
+.fc-tr-bav-row .fc-tr-bav {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 /* Avarga tooltip hint */
 .fc-hint--tooltip {
   cursor: help;
@@ -6143,4 +6358,3 @@ td {
 .fc-col-left::-webkit-scrollbar-thumb:hover {
   background: rgba(216,183,100,0.5);
 }
-
