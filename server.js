@@ -662,7 +662,9 @@ async function route(req, res) {
   if (req.method === "GET" && exportMatch) {
     const { chart, context } = await loadRun(exportMatch[1]);
     const name = (chart.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
-    const md = buildExportMarkdown(chart, context);
+    const urlParams = new URL("http://x" + req.url).searchParams;
+    const lang = urlParams.get("lang") === "en" ? "en" : "ru";
+    const md = buildExportMarkdown(chart, context, lang);
     res.writeHead(200, {
       "content-type": "text/markdown; charset=utf-8",
       "content-disposition": `attachment; filename="${name}_jyotish.md"`,
@@ -910,10 +912,11 @@ async function serveStatic(pathname, res) {
   }
 }
 
-function buildExportMarkdown(chart, context) {
+function buildExportMarkdown(chart, context, lang = "ru") {
+  const isEn = lang === "en";
   const b = chart.birth || {};
   const meta = chart.meta || {};
-  const interp = Object.fromEntries((context.items || []).map((i) => [i.key, i.text]));
+  const interp = Object.fromEntries((context.items || []).map((i) => [i.key, isEn ? (i.text_en || i.text || "") : (i.text_ru || i.text || "")]));
 
   const lines = [];
 
@@ -923,32 +926,41 @@ function buildExportMarkdown(chart, context) {
   const blank = () => lines.push("");
   const para = (text) => { if (text) { lines.push(text); blank(); } };
 
-  h(1, `Джйотиш-карта: ${b.name || "—"}`);
+  h(1, isEn ? `Jyotish chart: ${b.name || "—"}` : `Джйотиш-карта: ${b.name || "—"}`);
   blank();
 
   // Birth data
-  h(2, "Данные рождения");
-  lines.push(`- **Имя:** ${b.name || "—"}`);
-  lines.push(`- **Дата и время:** ${b.local_date || ""} ${b.local_time || ""}`);
-  lines.push(`- **Место:** ${b.city || ""}, ${b.country || ""}`);
-  lines.push(`- **Координаты:** ${b.latitude}, ${b.longitude}`);
-  lines.push(`- **Часовой пояс:** ${b.timezone}`);
+  h(2, isEn ? "Birth data" : "Данные рождения");
+  lines.push(`- **${isEn ? "Name" : "Имя"}:** ${b.name || "—"}`);
+  lines.push(`- **${isEn ? "Date & time" : "Дата и время"}:** ${b.local_date || ""} ${b.local_time || ""}`);
+  lines.push(`- **${isEn ? "Place" : "Место"}:** ${b.city || ""}, ${b.country || ""}`);
+  lines.push(`- **${isEn ? "Coordinates" : "Координаты"}:** ${b.latitude}, ${b.longitude}`);
+  lines.push(`- **${isEn ? "Timezone" : "Часовой пояс"}:** ${b.timezone}`);
   lines.push(`- **UTC:** ${b.utc_datetime}`);
-  lines.push(`- **Настройки:** ${meta.ayanamsa}, ${meta.zodiac}, ${meta.house_system}, ${meta.dasha_system}`);
+  lines.push(`- **${isEn ? "Settings" : "Настройки"}:** ${meta.ayanamsa}, ${meta.zodiac}, ${meta.house_system}, ${meta.dasha_system}`);
   blank();
 
   // Lagna
   const lagna = chart.lagna || {};
-  h(2, "Лагна (Асцендент)");
-  lines.push(`**${lagna.sign || "—"}** · ${lagna.degree_formatted || ""} · Накшатра: ${lagna.nakshatra || "—"}, пада ${lagna.pada || "—"}`);
+  h(2, isEn ? "Lagna (Ascendant)" : "Лагна (Асцендент)");
+  lines.push(`**${lagna.sign || "—"}** · ${lagna.degree_formatted || ""} · ${isEn ? "Nakshatra" : "Накшатра"}: ${lagna.nakshatra || "—"}, ${isEn ? "pada" : "пада"} ${lagna.pada || "—"}`);
   blank();
   const lagnaInterp = (lagna.clickable_keys || []).map((k) => interp[k]).filter(Boolean).join("\n\n");
   if (lagnaInterp) para(lagnaInterp);
 
   // Planets
-  h(2, "Планеты");
+  h(2, isEn ? "Planets" : "Планеты");
   blank();
-  row("Планета", "Знак", "Градус", "Дом", "Накшатра", "Пада", "R", "Достоинство");
+  row(
+    isEn ? "Planet" : "Планета",
+    isEn ? "Sign" : "Знак",
+    isEn ? "Degree" : "Градус",
+    isEn ? "House" : "Дом",
+    "Nakshatra",
+    isEn ? "Pada" : "Пада",
+    "R",
+    isEn ? "Dignity" : "Достоинство"
+  );
   sep(8);
   const PLANET_ORDER = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
   for (const key of PLANET_ORDER) {
@@ -959,7 +971,7 @@ function buildExportMarkdown(chart, context) {
   blank();
 
   // Planet interpretations
-  h(2, "Интерпретации планет");
+  h(2, isEn ? "Planet interpretations" : "Интерпретации планет");
   blank();
   for (const key of PLANET_ORDER) {
     const p = chart.planets?.[key];
@@ -971,9 +983,14 @@ function buildExportMarkdown(chart, context) {
   }
 
   // Houses
-  h(2, "Дома");
+  h(2, isEn ? "Houses" : "Дома");
   blank();
-  row("Дом", "Знак", "Управитель", "Планеты");
+  row(
+    isEn ? "House" : "Дом",
+    isEn ? "Sign" : "Знак",
+    isEn ? "Lord" : "Управитель",
+    isEn ? "Planets" : "Планеты"
+  );
   sep(4);
   const houses = Object.values(chart.houses || {}).sort((a, b) => a.number - b.number);
   for (const house of houses) {
@@ -982,20 +999,26 @@ function buildExportMarkdown(chart, context) {
   blank();
 
   // House interpretations
-  h(2, "Интерпретации домов");
+  h(2, isEn ? "House interpretations" : "Интерпретации домов");
   blank();
   for (const house of houses) {
     const texts = (house.clickable_keys || []).map((k) => interp[k]).filter(Boolean);
     if (!texts.length) continue;
-    h(3, `Дом ${house.number} — ${house.sign}`);
+    h(3, isEn ? `House ${house.number} — ${house.sign}` : `Дом ${house.number} — ${house.sign}`);
     texts.forEach((t) => para(t));
   }
 
   // Aspects
   if ((chart.aspects || []).length) {
-    h(2, "Аспекты (Граха дришти)");
+    h(2, isEn ? "Aspects (Graha drishti)" : "Аспекты (Граха дришти)");
     blank();
-    row("Планета", "Из дома", "Аспект", "В дом", "В знак");
+    row(
+      isEn ? "Planet" : "Планета",
+      isEn ? "From house" : "Из дома",
+      isEn ? "Aspect" : "Аспект",
+      isEn ? "To house" : "В дом",
+      isEn ? "To sign" : "В знак"
+    );
     sep(5);
     for (const asp of chart.aspects) {
       row(asp.from_planet, asp.from_house, asp.aspect, asp.to_house, asp.to_sign);
@@ -1006,9 +1029,9 @@ function buildExportMarkdown(chart, context) {
   // D9
   const d9 = chart.divisional_charts?.D9;
   if (d9?.planets) {
-    h(2, "D9 Навамша");
+    h(2, isEn ? "D9 Navamsha" : "D9 Навамша");
     blank();
-    row("Планета", "Знак в D9");
+    row(isEn ? "Planet" : "Планета", isEn ? "Sign in D9" : "Знак в D9");
     sep(2);
     for (const key of PLANET_ORDER) {
       const p = d9.planets[key];
@@ -1017,19 +1040,19 @@ function buildExportMarkdown(chart, context) {
     blank();
   }
 
-  // Dashas
+  // Periods
   const dashas = chart.dashas || {};
-  h(2, "Вимшоттари Даша");
+  h(2, isEn ? "Planetary periods" : "Планетарные периоды");
   blank();
   if (dashas.current) {
     const cur = dashas.current;
-    lines.push(`**Текущий период:** ${[cur.mahadasha, cur.antardasha, cur.pratyantardasha].filter(Boolean).join(" / ")}`);
+    lines.push(`**${isEn ? "Current period" : "Текущий период"}:** ${[cur.mahadasha, cur.antardasha, cur.pratyantardasha].filter(Boolean).join(" / ")}`);
     blank();
   }
   if ((dashas.mahadashas || []).length) {
-    h(3, "Хронология Махадаш");
+    h(3, isEn ? "Period chronology" : "Хронология периодов");
     blank();
-    row("Планета", "Начало", "Конец", "Лет");
+    row(isEn ? "Planet" : "Планета", isEn ? "Start" : "Начало", isEn ? "End" : "Конец", isEn ? "Years" : "Лет");
     sep(4);
     for (const m of dashas.mahadashas) {
       row(m.planet, m.start?.slice(0, 10), m.end?.slice(0, 10), m.duration_years?.toFixed(1) || "");
@@ -1039,9 +1062,9 @@ function buildExportMarkdown(chart, context) {
   const currentMahadasha = dashas.current?.mahadasha;
   const currentAntars = (dashas.antardashas || []).filter((a) => a.mahadasha === currentMahadasha);
   if (currentAntars.length) {
-    h(3, `Антардаши текущей Махадаши (${currentMahadasha})`);
+    h(3, isEn ? `Sub-periods of current period (${currentMahadasha})` : `Подпериоды текущего периода (${currentMahadasha})`);
     blank();
-    row("Антардаша", "Начало", "Конец");
+    row(isEn ? "Sub-period" : "Подпериод", isEn ? "Start" : "Начало", isEn ? "End" : "Конец");
     sep(3);
     for (const a of currentAntars) {
       row(a.antardasha, a.start?.slice(0, 10), a.end?.slice(0, 10));
@@ -1049,7 +1072,7 @@ function buildExportMarkdown(chart, context) {
     blank();
   }
 
-  // Interpretations from context not yet covered
+  // Extra interpretations
   const coveredKeys = new Set([
     ...(lagna.clickable_keys || []),
     ...PLANET_ORDER.flatMap((k) => chart.planets?.[k]?.clickable_keys || []),
@@ -1057,16 +1080,16 @@ function buildExportMarkdown(chart, context) {
   ]);
   const extraItems = (context.items || []).filter((i) => !coveredKeys.has(i.key));
   if (extraItems.length) {
-    h(2, "Дополнительные интерпретации");
+    h(2, isEn ? "Additional interpretations" : "Дополнительные интерпретации");
     blank();
     for (const item of extraItems) {
       h(3, item.key);
-      para(item.text);
+      para(isEn ? (item.text_en || item.text || "") : (item.text_ru || item.text || ""));
     }
   }
 
   if ((chart.warnings || []).length) {
-    h(2, "Предупреждения");
+    h(2, isEn ? "Warnings" : "Предупреждения");
     chart.warnings.forEach((w) => lines.push(`- ${w}`));
     blank();
   }

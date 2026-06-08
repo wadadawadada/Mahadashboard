@@ -63,12 +63,12 @@ const t = {
     inputJson: "Input JSON",
     exportNav: "Export",
     exportTitle: "Export для AI",
-    exportDesc: "Единый Markdown-файл с полными данными карты, интерпретациями и дашас — готов к загрузке в любой AI-ассистент.",
+    exportDesc: "Единый Markdown-файл с полными данными карты, интерпретациями и периодами — готов к загрузке в любой AI-ассистент.",
     exportDownload: "Скачать гороскоп .md",
     exportContents1: "Данные рождения и настройки расчёта",
     exportContents2: "Лагна, планеты, дома, аспекты, D9",
     exportContents3: "Интерпретации по каждому элементу карты",
-    exportContents4: "Хронология Вимшоттари Даша",
+    exportContents4: "Хронология планетарных периодов",
     missingApiKey: "OPENROUTER_API_KEY не задан в .env.",
     deleteProfile: "Удалить профиль",
     deleteConfirm: "Удалить профиль и его отчеты?",
@@ -83,7 +83,7 @@ const t = {
     promptRisks: "Риски",
     promptMoney: "Деньги",
     promptCareerText: "Что в моей карте связано с карьерой и профессиональной реализацией?",
-    promptDashaText: "Объясни текущий Vimshottari период и какие темы сейчас активны.",
+    promptDashaText: "Объясни текущий планетарный период и какие темы сейчас активны.",
     promptRelationshipsText: "Что рассчитанная карта показывает по теме отношений?",
     promptStrengthsText: "Какие самые сильные стороны видны в рассчитанной карте?",
     promptRisksText: "Какие риски или напряженные темы стоит учитывать по карте?",
@@ -110,7 +110,7 @@ const t = {
     dashaModalFavorable: "Благоприятное",
     dashaModalChallenging: "Испытания",
     dashaModalSpiritual: "Духовная работа",
-    dashaModalAntardasha: "Антардаши",
+    dashaModalAntardasha: "Подпериоды",
     dashaModalAntarNote: "О подпериодах",
     dashaModalDuration: "Длительность",
     dashaModalStart: "Начало",
@@ -142,8 +142,8 @@ const t = {
     forecastScoreGood: "Благоприятный",
     forecastScoreMid: "Нейтральный",
     forecastScoreBad: "Сложный",
-    forecastDasha: "Активная даша",
-    forecastDashaRemaining: "дней до смены антардаши",
+    forecastDasha: "Активный период",
+    forecastDashaRemaining: "дней до смены подпериода",
     forecastTransits: "Транзиты планет",
     forecastAvarga: "Аштакаварга",
     forecastAvargaTitle: "Баллы транзитных планет",
@@ -226,12 +226,12 @@ const t = {
     inputJson: "Input JSON",
     exportNav: "Export",
     exportTitle: "Export for AI",
-    exportDesc: "A single Markdown file with full chart data, interpretations, and dashas — ready to upload to any AI assistant.",
+    exportDesc: "A single Markdown file with full chart data, interpretations, and periods — ready to upload to any AI assistant.",
     exportDownload: "Download horoscope .md",
     exportContents1: "Birth data and calculation settings",
     exportContents2: "Lagna, planets, houses, aspects, D9",
     exportContents3: "Interpretations for each chart element",
-    exportContents4: "Vimshottari Dasha chronology",
+    exportContents4: "Planetary periods chronology",
     missingApiKey: "OPENROUTER_API_KEY is missing in .env.",
     deleteProfile: "Delete profile",
     deleteConfirm: "Delete this profile and its reports?",
@@ -246,7 +246,7 @@ const t = {
     promptRisks: "Risks",
     promptMoney: "Money",
     promptCareerText: "What in my chart is connected with career and professional direction?",
-    promptDashaText: "Explain the current Vimshottari period and which themes are active now.",
+    promptDashaText: "Explain the current planetary period and which themes are active now.",
     promptRelationshipsText: "What does the calculated chart show about relationships?",
     promptStrengthsText: "What are the strongest qualities visible in the calculated chart?",
     promptRisksText: "Which risks or tense themes should be considered from the chart?",
@@ -273,7 +273,7 @@ const t = {
     dashaModalFavorable: "Favorable",
     dashaModalChallenging: "Challenges",
     dashaModalSpiritual: "Spiritual Work",
-    dashaModalAntardasha: "Antardasha Periods",
+    dashaModalAntardasha: "Sub-periods",
     dashaModalAntarNote: "About sub-periods",
     dashaModalDuration: "Duration",
     dashaModalStart: "Start",
@@ -305,8 +305,8 @@ const t = {
     forecastScoreGood: "Favorable",
     forecastScoreMid: "Neutral",
     forecastScoreBad: "Challenging",
-    forecastDasha: "Active dasha",
-    forecastDashaRemaining: "days until antardasha ends",
+    forecastDasha: "Active period",
+    forecastDashaRemaining: "days until sub-period ends",
     forecastTransits: "Planet transits",
     forecastAvarga: "Ashtakavarga",
     forecastAvargaTitle: "Transit planet scores",
@@ -378,190 +378,190 @@ const DASHA_INTERP = {
   sun: {
     years: 6,
     ru: {
-      title: "Махадаша Солнца",
+      title: "Период Солнца",
       essence: "Период самоопределения, власти и кармической ответственности. Солнце — атмакарака, планета души — выводит на поверхность вопрос: кто вы есть на самом деле, вне социальных ролей и чужих ожиданий.",
       themes: ["Самоидентичность и личная воля", "Карьера, власть, государственные структуры", "Отец и мужские архетипы", "Здоровье: сердце, позвоночник, глаза", "Духовная работа с эго"],
       favorable: "Признание, продвижение по службе, усиление авторитета. Благоприятно для руководящих ролей, правительственных должностей, публичной деятельности. Отцовские или мужские фигуры оказывают поддержку.",
       challenging: "Чрезмерная гордость, конфликты с властью, изоляция от близких. Риск высокомерия и жёсткости. Здоровье: нагрузка на сердце и органы зрения.",
       spiritual: "Исследуйте природу своего эго. Солнечная дашa — время честного диалога с тем, что вы называете 'я'. Практики: сурья-намаскар, медитация на свет, служение.",
-      antardasha_note: "Антардаша внутри Солнечной дашa длится от нескольких месяцев до года. Каждая подпланета окрашивает период своей природой: Луна смягчает, Марс обостряет, Юпитер расширяет.",
+      antardasha_note: "Подпериод внутри Солнечного периода длится от нескольких месяцев до года. Каждая подпланета окрашивает период своей природой: Луна смягчает, Марс обостряет, Юпитер расширяет.",
     },
     en: {
-      title: "Sun Mahadasha",
+      title: "Sun Period",
       essence: "A period of self-definition, authority, and karmic responsibility. The Sun — the planet of the soul — brings the core question to the surface: who are you, beyond social roles and others' expectations?",
       themes: ["Self-identity and personal will", "Career, power, government structures", "Father and masculine archetypes", "Health: heart, spine, eyes", "Spiritual work with the ego"],
       favorable: "Recognition, career advancement, strengthened authority. Favorable for leadership roles, government positions, and public life. Paternal or masculine figures offer support.",
       challenging: "Excessive pride, conflicts with authority, isolation from loved ones. Risk of arrogance and rigidity. Health: strain on the heart and vision.",
       spiritual: "Explore the nature of your ego. The Sun dasha is the time for an honest dialogue with what you call 'I'. Practices: surya namaskar, light meditation, service.",
-      antardasha_note: "Each antardasha within the Sun dasha lasts from a few months to a year, colored by the sub-planet's nature: Moon softens, Mars sharpens, Jupiter expands.",
+      antardasha_note: "Each sub-period within the Sun period lasts from a few months to a year, colored by the sub-planet's nature: Moon softens, Mars sharpens, Jupiter expands.",
     },
   },
   moon: {
     years: 10,
     ru: {
-      title: "Махадаша Луны",
+      title: "Период Луны",
       essence: "Десятилетие глубокого погружения в мир чувств, памяти и бессознательного. Луна управляет умом (манас), и в этот период внутренний мир становится столь же реальным, как внешний.",
       themes: ["Эмоциональная жизнь и психика", "Мать, женские фигуры, материнский архетип", "Дом, семья, корни", "Интуиция и сновидения", "Здоровье: жидкости тела, лёгкие, ментальное состояние"],
       favorable: "Расцвет интуиции, эмоциональный рост, укрепление семейных связей. Благоприятно для дел, связанных с публикой, торговлей, заботой о других. Духовные практики дают глубокие результаты.",
-      challenging: "Эмоциональная нестабильность, тревожность, чрезмерная привязанность. Лунная даша усиливает как радости, так и страхи. Риск зависимости от чужого одобрения.",
+      challenging: "Эмоциональная нестабильность, тревожность, чрезмерная привязанность. Лунный период усиливает как радости, так и страхи. Риск зависимости от чужого одобрения.",
       spiritual: "Работа с корневыми травмами и родовыми паттернами. Луна — хранитель прошлого; эта дашa предлагает исцелить то, что было подавлено. Практики: работа со сновидениями, медитация на воду, чадная пуджа.",
-      antardasha_note: "Луна — быстрая планета, её подпериоды ощущаются особенно живо. Антардаша Марса может принести нервозность, антардаша Юпитера — мудрость и расширение.",
+      antardasha_note: "Луна — быстрая планета, её подпериоды ощущаются особенно живо. Подпериод Марса может принести нервозность, подпериод Юпитера — мудрость и расширение.",
     },
     en: {
-      title: "Moon Mahadasha",
+      title: "Moon Period",
       essence: "A decade of deep immersion in the world of feelings, memory, and the unconscious. The Moon rules the mind (manas), and during this period the inner world becomes as real as the outer one.",
       themes: ["Emotional life and psyche", "Mother, feminine figures, maternal archetype", "Home, family, roots", "Intuition and dreams", "Health: bodily fluids, lungs, mental state"],
       favorable: "Blossoming intuition, emotional growth, strengthening of family bonds. Favorable for public dealings, trade, care-giving. Spiritual practices yield deep results.",
-      challenging: "Emotional instability, anxiety, excessive attachment. The Moon dasha amplifies both joys and fears. Risk of dependence on others' approval.",
-      spiritual: "Work with core wounds and ancestral patterns. The Moon is the keeper of the past; this dasha offers healing of what was suppressed. Practices: dream journaling, water meditation, chandra puja.",
-      antardasha_note: "The Moon is a fast planet; its sub-periods are felt vividly. The Mars antardasha can bring nervousness, Jupiter antardasha — wisdom and expansion.",
+      challenging: "Emotional instability, anxiety, excessive attachment. The Moon period amplifies both joys and fears. Risk of dependence on others' approval.",
+      spiritual: "Work with core wounds and ancestral patterns. The Moon is the keeper of the past; this period offers healing of what was suppressed. Practices: dream journaling, water meditation, chandra puja.",
+      antardasha_note: "The Moon is a fast planet; its sub-periods are felt vividly. The Mars sub-period can bring nervousness, Jupiter sub-period — wisdom and expansion.",
     },
   },
   mars: {
     years: 7,
     ru: {
-      title: "Махадаша Марса",
+      title: "Период Марса",
       essence: "Семь лет действия, борьбы и испытания воли. Марс — Кшатрия среди планет, воин и строитель. Этот период требует мужества и ставит перед выбором: применять силу созидательно или деструктивно.",
       themes: ["Энергия, воля, действие", "Конкуренция, конфликты, суды", "Братья, мужское окружение", "Недвижимость, земля, технологии", "Здоровье: кровь, мышцы, травмы"],
       favorable: "Высокая продуктивность, реализация проектов, физическая сила. Хорошо для спорта, армии, хирургии, строительства. Способность защищать себя и близких.",
       challenging: "Вспышки гнева, несчастные случаи, операции. Риск поспешных решений, конфликтов с братьями или коллегами-мужчинами. Возможны судебные тяжбы.",
       spiritual: "Марсова дашa — тест на зрелость воина. Учитесь направлять агрессию в дисциплину, а не в разрушение. Практики: физические садханы, хануман-пуджа, пост по вторникам.",
-      antardasha_note: "Марсовы антардаши короткие и интенсивные. Подпериод Раху создаёт неожиданные конфликты; Сатурн замедляет и заставляет работать системно.",
+      antardasha_note: "Подпериоды Марса короткие и интенсивные. Подпериод Раху создаёт неожиданные конфликты; Сатурн замедляет и заставляет работать системно.",
     },
     en: {
-      title: "Mars Mahadasha",
+      title: "Mars Period",
       essence: "Seven years of action, struggle, and testing of will. Mars is the Kshatriya among planets — warrior and builder. This period demands courage and forces a choice: use strength constructively or destructively.",
       themes: ["Energy, will, action", "Competition, conflicts, litigation", "Brothers, male companions", "Real estate, land, technology", "Health: blood, muscles, injuries"],
       favorable: "High productivity, project execution, physical strength. Good for sports, military, surgery, construction. Ability to protect oneself and loved ones.",
       challenging: "Outbursts of anger, accidents, surgeries. Risk of hasty decisions, conflicts with brothers or male colleagues. Possible legal disputes.",
-      spiritual: "The Mars dasha is a test of a warrior's maturity. Learn to channel aggression into discipline rather than destruction. Practices: physical sadhanas, Hanuman puja, Tuesday fasting.",
-      antardasha_note: "Mars antardasha periods are short and intense. The Rahu sub-period creates unexpected conflicts; Saturn slows things down and demands systematic effort.",
+      spiritual: "The Mars period is a test of a warrior's maturity. Learn to channel aggression into discipline rather than destruction. Practices: physical sadhanas, Hanuman puja, Tuesday fasting.",
+      antardasha_note: "Mars sub-periods are short and intense. The Rahu sub-period creates unexpected conflicts; Saturn slows things down and demands systematic effort.",
     },
   },
   mercury: {
     years: 17,
     ru: {
-      title: "Махадаша Меркурия",
+      title: "Период Меркурия",
       essence: "Семнадцать лет интеллектуального расцвета, коммуникации и адаптации. Меркурий — Будха — планета разума, слова и торговли. Этот период активирует ум и открывает новые информационные каналы.",
       themes: ["Интеллект, обучение, письмо", "Торговля, бизнес, переговоры", "Коммуникации, СМИ, языки", "Сестры и младшие братья", "Здоровье: нервная система, кожа, речь"],
       favorable: "Быстрое обучение, успех в бизнесе и переговорах, литературные достижения. Хорошо для программирования, журналистики, бухгалтерии. Меркурий в силе даёт остроту ума и дипломатичность.",
       challenging: "Рассеянность, двуличность, мелкое мошенничество. Чрезмерная рационализация в ущерб чувствам. Нервное напряжение. Риск сделок с нечестными партнёрами.",
       spiritual: "Меркуриальная дашa — время осознать силу слова. Каждая сказанная вами фраза — это семя. Практики: мантра-джапа, изучение санскрита или священных текстов, молчаливые ретриты.",
-      antardasha_note: "17 лет Меркурия содержат длинные антардаши. Антардаша Венеры (около 2.8 лет) — период искусства и удовольствий; Сатурна — испытание дисциплиной.",
+      antardasha_note: "17 лет Меркурия содержат длинные подпериоды. Подпериод Венеры (около 2.8 лет) — период искусства и удовольствий; Сатурна — испытание дисциплиной.",
     },
     en: {
-      title: "Mercury Mahadasha",
+      title: "Mercury Period",
       essence: "Seventeen years of intellectual flourishing, communication, and adaptation. Mercury — Budha — is the planet of mind, word, and trade. This period activates the intellect and opens new information channels.",
       themes: ["Intellect, learning, writing", "Trade, business, negotiations", "Communications, media, languages", "Sisters and younger siblings", "Health: nervous system, skin, speech"],
       favorable: "Rapid learning, success in business and negotiations, literary achievements. Good for programming, journalism, accounting. Mercury in strength gives sharpness of mind and diplomacy.",
       challenging: "Scattered attention, duplicity, petty deceit. Over-rationalization at the expense of feelings. Nervous strain. Risk of dealings with dishonest partners.",
-      spiritual: "The Mercury dasha is a time to recognize the power of words. Every phrase you speak is a seed. Practices: mantra japa, study of Sanskrit or sacred texts, silent retreats.",
-      antardasha_note: "The 17 years of Mercury contain long antardasha periods. The Venus antardasha (~2.8 years) is a period of art and pleasures; Saturn's — a test of discipline.",
+      spiritual: "The Mercury period is a time to recognize the power of words. Every phrase you speak is a seed. Practices: mantra japa, study of Sanskrit or sacred texts, silent retreats.",
+      antardasha_note: "The 17 years of Mercury contain long sub-periods. The Venus sub-period (~2.8 years) is a period of art and pleasures; Saturn's — a test of discipline.",
     },
   },
   jupiter: {
     years: 16,
     ru: {
-      title: "Махадаша Юпитера",
-      essence: "Шестнадцать лет роста, мудрости и благодати. Юпитер — Гуру, Брихаспати — главный благотворец в Джйотиш. Его дашa считается одной из самых благоприятных: она расширяет горизонты и приносит плоды прошлых добродетелей.",
+      title: "Период Юпитера",
+      essence: "Шестнадцать лет роста, мудрости и благодати. Юпитер — Гуру, Брихаспати — главный благотворец в Джйотиш. Его период считается одним из самых благоприятных: он расширяет горизонты и приносит плоды прошлых добродетелей.",
       themes: ["Мудрость, учителя, философия", "Дети, беременность, потомки", "Закон, религия, высшее образование", "Финансовый рост, процветание", "Здоровье: печень, жир, рост"],
       favorable: "Духовный расцвет, удача в делах, рождение детей. Хорошо для обучения, юридических дел, религиозной деятельности. Встречи с мудрыми наставниками, международные связи.",
       challenging: "Чрезмерный оптимизм, расточительность, религиозный догматизм. При поражённом Юпитере — ожирение, проблемы с печенью, высокомерие. Риск упустить важные детали из-за видения 'большой картины'.",
       spiritual: "Юпитерова дашa — кульминация духовного пути. Ищите настоящего гуру, углубляйте сатсанг. Это время передавать знания другим. Практики: брахмачарья, чтение Вед и Упанишад, пуджа Брихаспати.",
-      antardasha_note: "Антардаши Юпитера длинные и трансформирующие. Подпериод Раху (около 2.5 лет) может принести иностранные связи и нетрадиционные знания.",
+      antardasha_note: "Подпериоды Юпитера длинные и трансформирующие. Подпериод Раху (около 2.5 лет) может принести иностранные связи и нетрадиционные знания.",
     },
     en: {
-      title: "Jupiter Mahadasha",
-      essence: "Sixteen years of growth, wisdom, and grace. Jupiter — Guru, Brihaspati — is the supreme benefic in Jyotish. His dasha is considered one of the most auspicious: it expands horizons and bears the fruits of past virtues.",
+      title: "Jupiter Period",
+      essence: "Sixteen years of growth, wisdom, and grace. Jupiter — Guru, Brihaspati — is the supreme benefic in Jyotish. His period is considered one of the most auspicious: it expands horizons and bears the fruits of past virtues.",
       themes: ["Wisdom, teachers, philosophy", "Children, pregnancy, progeny", "Law, religion, higher education", "Financial growth, prosperity", "Health: liver, fat, growth"],
       favorable: "Spiritual blossoming, business success, birth of children. Good for education, legal matters, religious activity. Meetings with wise mentors, international connections.",
       challenging: "Excessive optimism, wastefulness, religious dogmatism. With an afflicted Jupiter — obesity, liver problems, arrogance. Risk of missing important details by focusing on the 'big picture'.",
-      spiritual: "The Jupiter dasha is the culmination of the spiritual path. Seek a true guru, deepen satsang. This is the time to transmit knowledge to others. Practices: brahmacharya, reading Vedas and Upanishads, Brihaspati puja.",
-      antardasha_note: "Jupiter antardasha periods are long and transformative. The Rahu sub-period (~2.5 years) may bring foreign connections and unconventional knowledge.",
+      spiritual: "The Jupiter period is the culmination of the spiritual path. Seek a true guru, deepen satsang. This is the time to transmit knowledge to others. Practices: brahmacharya, reading Vedas and Upanishads, Brihaspati puja.",
+      antardasha_note: "Jupiter sub-periods are long and transformative. The Rahu sub-period (~2.5 years) may bring foreign connections and unconventional knowledge.",
     },
   },
   venus: {
     years: 20,
     ru: {
-      title: "Махадаша Венеры",
+      title: "Период Венеры",
       essence: "Двадцать лет — самая длинная дашa в системе. Венера — Шукра — планета желаний, красоты, любви и материального процветания. Этот период ставит вопрос: что для вас по-настоящему ценно?",
       themes: ["Любовь, отношения, брак", "Искусство, красота, творчество", "Комфорт, удовольствия, роскошь", "Финансы, накопления, ювелирные изделия", "Здоровье: репродуктивная система, почки, лицо"],
       favorable: "Брак или углубление отношений, финансовый рост, успех в искусстве. Хорошо для торговли предметами роскоши, моды, развлечений. Венус в силе даёт магнетизм и эстетический вкус.",
       challenging: "Гедонизм, зависимость от удовольствий, финансовые потери через роскошь. Ревность, измены в отношениях. При поражённой Венере — проблемы с почками, гормональные нарушения.",
       spiritual: "Венерова дашa раскрывает природу желания. Шукра — гуру асуров, владеющий тайной бессмертия. Практики: лакшми-пуджа, янтра Шукры, почитание красоты как проявления Брахмана.",
-      antardasha_note: "20 лет Венеры содержат самые длинные антардаши. Подпериод Сатурна (около 3.2 лет) — трудовые усилия и ограничения; Юпитера — духовная трансформация через отношения.",
+      antardasha_note: "20 лет Венеры содержат самые длинные подпериоды. Подпериод Сатурна (около 3.2 лет) — трудовые усилия и ограничения; Юпитера — духовная трансформация через отношения.",
     },
     en: {
-      title: "Venus Mahadasha",
-      essence: "Twenty years — the longest dasha in the system. Venus — Shukra — is the planet of desires, beauty, love, and material prosperity. This period poses the question: what is truly valuable to you?",
+      title: "Venus Period",
+      essence: "Twenty years — the longest period in the system. Venus — Shukra — is the planet of desires, beauty, love, and material prosperity. This period poses the question: what is truly valuable to you?",
       themes: ["Love, relationships, marriage", "Art, beauty, creativity", "Comfort, pleasures, luxury", "Finances, accumulation, jewelry", "Health: reproductive system, kidneys, face"],
       favorable: "Marriage or deepening of relationships, financial growth, success in art. Good for trade in luxury goods, fashion, entertainment. Venus in strength gives magnetism and aesthetic taste.",
       challenging: "Hedonism, addiction to pleasures, financial losses through luxury. Jealousy, infidelity. With an afflicted Venus — kidney problems, hormonal disorders.",
-      spiritual: "The Venus dasha reveals the nature of desire. Shukra is the guru of the asuras, holding the secret of immortality. Practices: Lakshmi puja, Shukra yantra, honoring beauty as a manifestation of Brahman.",
-      antardasha_note: "The 20 years of Venus contain the longest antardasha periods. The Saturn sub-period (~3.2 years) brings laborious effort and limitations; Jupiter's — spiritual transformation through relationships.",
+      spiritual: "The Venus period reveals the nature of desire. Shukra is the guru of the asuras, holding the secret of immortality. Practices: Lakshmi puja, Shukra yantra, honoring beauty as a manifestation of Brahman.",
+      antardasha_note: "The 20 years of Venus contain the longest sub-periods. The Saturn sub-period (~3.2 years) brings laborious effort and limitations; Jupiter's — spiritual transformation through relationships.",
     },
   },
   saturn: {
     years: 19,
     ru: {
-      title: "Махадаша Сатурна",
+      title: "Период Сатурна",
       essence: "Девятнадцать лет испытаний, дисциплины и кармической очистки. Сатурн — Шани — строгий учитель: он убирает лишнее, тестирует терпение и вознаграждает честный труд. Это не проклятие, а предельная школа реальности.",
       themes: ["Труд, дисциплина, ответственность", "Ограничения, потери, задержки", "Долг, слуги, низшие касты", "Смерть, хроническая болезнь, одиночество", "Здоровье: кости, суставы, зубы, хроника"],
       favorable: "Если Сатурн йогакарака или хорошо расположен — долгосрочный успех через упорный труд. Уважение за честность и надёжность. Финансовая стабильность через терпение.",
       challenging: "Депрессия, изоляция, потери имущества. Конфликты с властями и работодателями. Болезни суставов, хронические состояния. Разлука с близкими.",
       spiritual: "Шани-дашa — глубочайшая карма-шода (очищение кармы). Примите ограничения как учителя. Практики: шани-пуджа по субботам, сесамовое масло, служение малоимущим, медитации на непостоянство.",
-      antardasha_note: "Антардаши внутри Сатурна проверяют разные сферы жизни. Подпериод Меркурия — облегчение через коммуникацию; Венеры — краткий отдых и удовольствие.",
+      antardasha_note: "Подпериоды внутри Сатурна проверяют разные сферы жизни. Подпериод Меркурия — облегчение через коммуникацию; Венеры — краткий отдых и удовольствие.",
     },
     en: {
-      title: "Saturn Mahadasha",
+      title: "Saturn Period",
       essence: "Nineteen years of trials, discipline, and karmic purification. Saturn — Shani — is the strict teacher: he removes the superfluous, tests patience, and rewards honest labor. This is not a curse but the ultimate school of reality.",
       themes: ["Labor, discipline, responsibility", "Limitations, losses, delays", "Debt, servants, lower castes", "Death, chronic illness, loneliness", "Health: bones, joints, teeth, chronic conditions"],
       favorable: "If Saturn is yogakaraka or well-placed — long-term success through persistent effort. Respect for honesty and reliability. Financial stability through patience.",
       challenging: "Depression, isolation, loss of property. Conflicts with authorities and employers. Joint diseases, chronic conditions. Separation from loved ones.",
-      spiritual: "The Shani dasha is the deepest karma-shodhana (karmic purification). Accept limitations as teachers. Practices: Shani puja on Saturdays, sesame oil, service to the poor, meditations on impermanence.",
-      antardasha_note: "Antardasha periods within Saturn test different areas of life. The Mercury sub-period brings relief through communication; Venus — brief rest and pleasure.",
+      spiritual: "The Shani period is the deepest karma-shodhana (karmic purification). Accept limitations as teachers. Practices: Shani puja on Saturdays, sesame oil, service to the poor, meditations on impermanence.",
+      antardasha_note: "Sub-periods within Saturn test different areas of life. The Mercury sub-period brings relief through communication; Venus — brief rest and pleasure.",
     },
   },
   rahu: {
     years: 18,
     ru: {
-      title: "Махадаша Раху",
+      title: "Период Раху",
       essence: "Восемнадцать лет амбиций, нарушения границ и кармических уроков северного узла. Раху — теневая планета без физического тела — действует через одержимость и иллюзии. Он усиливает всё, к чему прикасается, вызывая нездоровое желание.",
       themes: ["Иностранное, чужое, нетрадиционное", "Амбиции, материализм, манипуляции", "Технологии, массмедиа, политика", "Карма прошлых жизней, неожиданные изменения", "Здоровье: нервная система, яды, загадочные болезни"],
       favorable: "При сильном и хорошо расположенном Раху — стремительный взлёт, неожиданный успех. Умение работать с иностранцами, нестандартное мышление. Раху даёт мирской успех через нетрадиционные пути.",
       challenging: "Иллюзии и самообман. Потеря нравственных ориентиров, скандалы. Зависимости, тяга к запрещённому. Предательства. Невротические страхи и паранойя.",
       spiritual: "Раху-дашa раскрывает, где вы ищете бесконечное в конечном. Вся эта тяга — указатель на духовный голод. Практики: раху-шанти пуджа, гомам, работа с тенью, медитации на иллюзорность.",
-      antardasha_note: "Антардашa Юпитера внутри Раху (около 2.5 лет) — наиболее благоприятна: мудрость укрощает теневые желания. Кету — интенсивная развязка кармических узлов.",
+      antardasha_note: "Подпериод Юпитера внутри Раху (около 2.5 лет) — наиболее благоприятен: мудрость укрощает теневые желания. Кету — интенсивная развязка кармических узлов.",
     },
     en: {
-      title: "Rahu Mahadasha",
+      title: "Rahu Period",
       essence: "Eighteen years of ambition, boundary-crossing, and karmic lessons of the north node. Rahu — a shadow planet with no physical body — operates through obsession and illusions. It amplifies everything it touches, generating unhealthy craving.",
       themes: ["Foreign, alien, unconventional", "Ambitions, materialism, manipulation", "Technology, mass media, politics", "Past-life karma, sudden changes", "Health: nervous system, poisons, mysterious illnesses"],
       favorable: "With a strong and well-placed Rahu — rapid ascent, unexpected success. Ability to work with foreigners, unconventional thinking. Rahu grants worldly success through unorthodox paths.",
       challenging: "Illusions and self-deception. Loss of moral bearings, scandals. Addictions, craving for the forbidden. Betrayals. Neurotic fears and paranoia.",
-      spiritual: "The Rahu dasha reveals where you seek the infinite in the finite. All this craving is a pointer to spiritual hunger. Practices: Rahu shanti puja, homa, shadow work, meditations on illusion.",
-      antardasha_note: "The Jupiter antardasha within Rahu (~2.5 years) is the most favorable: wisdom tames shadow desires. Ketu — an intense resolution of karmic knots.",
+      spiritual: "The Rahu period reveals where you seek the infinite in the finite. All this craving is a pointer to spiritual hunger. Practices: Rahu shanti puja, homa, shadow work, meditations on illusion.",
+      antardasha_note: "The Jupiter sub-period within Rahu (~2.5 years) is the most favorable: wisdom tames shadow desires. Ketu — an intense resolution of karmic knots.",
     },
   },
   ketu: {
     years: 7,
     ru: {
-      title: "Махадаша Кету",
+      title: "Период Кету",
       essence: "Семь лет отречения, отстранённости и духовного поворота. Кету — хвост дракона, южный узел — планета прошлых жизней и мокши. Там, где Раху жаждет, Кету отвергает. Этот период часто приносит потери в мирском и прибыль в духовном.",
       themes: ["Отречение, утраты, отстранённость", "Прошлые жизни, скрытые таланты", "Мистика, оккультизм, самадхи", "Болезни неизвестной этиологии", "Здоровье: ноги, желудок, нервная система"],
       favorable: "Глубокий духовный прогресс, способность к концентрации и интроспекции. Дары из прошлых жизней всплывают естественно. Хорошо для йоги, медитации, исследований.",
       challenging: "Потеря интереса к жизни, депрессия, ощущение бесцельности. Разрывы в карьере и отношениях, которые когда-то казались важными. Загадочные болезни.",
       spiritual: "Кету-дашa — дар для духовного искателя. Сам факт разочарования в мирском — указание пути к освобождению. Практики: дхьяна, випассана, кету-пуджа, изучение Упанишад.",
-      antardasha_note: "Антардашa Венеры внутри Кету (около 1.2 года) — момент частичного возврата к удовольствиям; антардашa Луны — эмоциональная уязвимость и глубина.",
+      antardasha_note: "Подпериод Венеры внутри Кету (около 1.2 года) — момент частичного возврата к удовольствиям; подпериод Луны — эмоциональная уязвимость и глубина.",
     },
     en: {
-      title: "Ketu Mahadasha",
+      title: "Ketu Period",
       essence: "Seven years of renunciation, detachment, and spiritual turning. Ketu — the dragon's tail, the south node — is the planet of past lives and moksha. Where Rahu craves, Ketu rejects. This period often brings losses in the mundane and gains in the spiritual.",
       themes: ["Renunciation, losses, detachment", "Past lives, hidden talents", "Mysticism, occultism, samadhi", "Illnesses of unknown origin", "Health: legs, stomach, nervous system"],
       favorable: "Deep spiritual progress, ability to concentrate and introspect. Gifts from past lives surface naturally. Good for yoga, meditation, research.",
       challenging: "Loss of interest in life, depression, a sense of purposelessness. Breaks in career and relationships that once seemed important. Mysterious illnesses.",
-      spiritual: "The Ketu dasha is a gift for the spiritual seeker. Disillusionment with the mundane is itself a pointer toward liberation. Practices: dhyana, vipassana, Ketu puja, study of the Upanishads.",
-      antardasha_note: "The Venus antardasha within Ketu (~1.2 years) brings a partial return to pleasures; the Moon antardasha — emotional vulnerability and depth.",
+      spiritual: "The Ketu period is a gift for the spiritual seeker. Disillusionment with the mundane is itself a pointer toward liberation. Practices: dhyana, vipassana, Ketu puja, study of the Upanishads.",
+      antardasha_note: "The Venus sub-period within Ketu (~1.2 years) brings a partial return to pleasures; the Moon sub-period — emotional vulnerability and depth.",
     },
   },
 };
@@ -1983,7 +1983,7 @@ function renderDashas(chart) {
       title="${escapeHtml(meta.label)} · ${startAge}–${endAge} ${tr("lifePathAge")}"
       role="button"
       tabindex="0"
-      aria-label="Mahadasha ${escapeHtml(meta.label)}"
+      aria-label="Period ${escapeHtml(meta.label)}"
     >
       <div class="lp-segment-fill"></div>
       ${labelInsidePct ? `<div class="lp-segment-label${widthPct < 5 ? " lp-label-tiny" : ""}">
@@ -2554,7 +2554,7 @@ function openAntarModal({ maha, antar, start, end }) {
         <span class="pratya-chain-glyph pratya-chain-main" style="color:${antarM.color}">${antarM.glyph}</span>
         <div class="pratya-modal-titles">
           <div class="pratya-modal-title">${escapeHtml(mahaM.label)} / ${escapeHtml(antarM.label)}</div>
-          <div class="pratya-modal-sub">${isRu ? "Антардаша" : "Antardasha"}</div>
+          <div class="pratya-modal-sub">${isRu ? "Подпериод" : "Sub-period"}</div>
         </div>
         ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
       </div>
@@ -2668,7 +2668,7 @@ function openPratyaModal({ maha, antar, pratya, start, end }) {
         <span class="pratya-chain-glyph pratya-chain-main" style="color:${pratyaM.color}">${pratyaM.glyph}</span>
         <div class="pratya-modal-titles">
           <div class="pratya-modal-title">${escapeHtml(txt ? txt.title : `${mahaM.label} / ${antarM.label} / ${pratyaM.label}`)}</div>
-          <div class="pratya-modal-sub">${isRu ? "Пратьяантардаша" : "Pratyantardasha"}</div>
+          <div class="pratya-modal-sub">${isRu ? "Мини-период" : "Mini-period"}</div>
         </div>
         ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
       </div>
@@ -2913,7 +2913,7 @@ function renderSources(context) {
 function renderReport(run, markdown) {
   const btn = $("#exportDownloadBtn");
   if (!btn) return;
-  btn.href = `/api/export/${run.id}`;
+  btn.href = `/api/export/${run.id}?lang=${state.lang}`;
   const chart = state.chart;
   const name = (chart?.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
   btn.download = `${name}_jyotish.md`;

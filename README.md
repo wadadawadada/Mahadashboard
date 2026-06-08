@@ -136,9 +136,9 @@ Not familiar with Vedic astrology terms? Here's the short version:
 | **D9 / Navamsa** | A harmonic chart derived by dividing each sign into 9 equal parts. Shows the deeper quality of planets, especially relevant for relationships and life purpose |
 | **House** | One of 12 divisions of the chart, each representing a life area (1st = self, 2nd = money, 7th = relationships, 10th = career, etc.) |
 | **Nakshatra** | The Moon's position expressed as one of 27 lunar mansions (~13.3° each). Each nakshatra has a distinct mythology and set of qualities. Think of it as a finer zodiac for the Moon |
-| **Dasha / Mahadasha** | A major planetary period — a span of years (6 to 20) ruled by one planet, during which that planet's themes dominate your life. The 9 planets cycle through in a fixed order totalling 120 years |
-| **Antardasha** | A sub-period nested inside the mahadasha — a shorter cycle (months to a few years) co-ruled by a second planet |
-| **Vimshottari** | The most widely used dasha system (used here by default). It assigns fixed period lengths to each planet based on the Moon's nakshatra at birth |
+| **Period (Mahadasha)** | A major planetary period — a span of years (6 to 20) ruled by one planet, during which that planet's themes dominate your life. The 9 planets cycle through in a fixed order totalling 120 years |
+| **Sub-period (Antardasha)** | A sub-period nested inside the main period — a shorter cycle (months to a few years) co-ruled by a second planet |
+| **Vimshottari** | The most widely used planetary period system (used here by default). It assigns fixed period lengths to each planet based on the Moon's nakshatra at birth |
 | **Ayanamsa** | The correction angle (~23°) applied to convert Western (tropical) planetary positions to the Vedic (sidereal) system. Lahiri ayanamsa is the most common standard |
 | **Ashtakavarga (BAV)** | A classical point system (0–8 per planet per house) that measures how much support a planet gets when transiting a given house. 5+ = favourable, 3 or below = more challenging |
 | **Transit** | A planet's current position in the sky, interpreted in relation to your birth chart |
