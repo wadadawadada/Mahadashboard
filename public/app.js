@@ -139,8 +139,10 @@ const t = {
     forecastPrev: "← день",
     forecastNext: "день →",
     forecastScore: "Оценка дня",
+    forecastScoreGreat: "Отличный",
     forecastScoreGood: "Благоприятный",
     forecastScoreMid: "Нейтральный",
+    forecastScoreHard: "Тяжёлый",
     forecastScoreBad: "Сложный",
     forecastDasha: "Активный период",
     forecastDashaRemaining: "дней до смены подпериода",
@@ -151,6 +153,7 @@ const t = {
     forecastAvargaSAV: "SAV",
     forecastAvargaHint: "BAV — баллы планеты (0–8), SAV — сумма всех планет (0–56). Норма: BAV ≥ 4, SAV ≥ 28.",
     forecastDayRating: "Рейтинг дня",
+    forecastIndicators: "Активности дня",
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
@@ -303,8 +306,10 @@ const t = {
     forecastPrev: "← prev day",
     forecastNext: "next day →",
     forecastScore: "Day score",
+    forecastScoreGreat: "Excellent",
     forecastScoreGood: "Favorable",
     forecastScoreMid: "Neutral",
+    forecastScoreHard: "Difficult",
     forecastScoreBad: "Challenging",
     forecastDasha: "Active period",
     forecastDashaRemaining: "days until sub-period ends",
@@ -315,6 +320,7 @@ const t = {
     forecastAvargaSAV: "SAV",
     forecastAvargaHint: "BAV — planet score (0–8), SAV — all-planet sum (0–56). Norm: BAV ≥ 4, SAV ≥ 28.",
     forecastDayRating: "Day Rating",
+    forecastIndicators: "Activity indicators",
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
@@ -3333,6 +3339,9 @@ async function askQuestion(event) {
   const pending = addMessage("assistant", state.lang === "ru" ? "Думаю по рассчитанной карте..." : "Reading the calculated chart...");
   pending.classList.add("loading");
   try {
+    const forecastData = _fcState.pendingForecastForAI || null;
+    _fcState.pendingForecastForAI = null; // consume once
+
     const data = await api("/api/chat", {
       method: "POST",
       body: JSON.stringify({
@@ -3340,6 +3349,7 @@ async function askQuestion(event) {
         profile_id: state.currentProfileId,
         question,
         language: state.lang,
+        forecast_data: forecastData,
       }),
     });
     pending.classList.remove("loading");
@@ -3606,7 +3616,20 @@ function initLanguage() {
 const _fcState = {
   date: null,
   data: null,
+  scoreMethod: localStorage.getItem("fc_score_method") || "mix",
 };
+
+function _fcSetMethod(method) {
+  _fcState.scoreMethod = method;
+  localStorage.setItem("fc_score_method", method);
+  // Update toggle button states
+  ["mix","jyotish"].forEach(m => {
+    const btn = $(`#fcMethod_${m}`);
+    if (btn) btn.classList.toggle("active", m === method);
+  });
+  // Reload current day with new method
+  if (_fcState.date) loadForecast(_fcState.date);
+}
 
 function _fcTodayStr() {
   const d = new Date();
@@ -3620,8 +3643,10 @@ function _fcShiftDate(dateStr, days) {
 }
 
 function _fcScoreClass(score) {
-  if (score >= 60) return "good";
-  if (score >= 35) return "mid";
+  if (score >= 65) return "great";
+  if (score >= 55) return "good";
+  if (score >= 40) return "neutral";
+  if (score >= 28) return "hard";
   return "bad";
 }
 
@@ -3653,7 +3678,7 @@ async function loadForecast(dateStr) {
   }
   _fcSetVisible("loading");
   try {
-    const data = await api(`/api/forecast/${state.currentRunId}?date=${dateStr}&lang=${state.lang}`);
+    const data = await api(`/api/forecast/${state.currentRunId}?date=${dateStr}&lang=${state.lang}&method=${_fcState.scoreMethod}`);
     data._runId = state.currentRunId;
     _fcState.data = data;
     renderForecast(data);
@@ -3666,6 +3691,7 @@ async function loadForecast(dateStr) {
 function renderForecast(data) {
   _renderFcScore(data.score || 0);
   _renderFcMoon(data.lunar_phase, data.transit_planets || []);
+  _renderFcIndicators(data.indicators || []);
   _renderFcTips(data.tips || []);
   _renderFcDasha(data.active_dasha || {});
   _renderFcDayRating(data.transit_avarga || [], data.transit_planets || []);
@@ -3684,15 +3710,21 @@ function _renderFcScore(score) {
   if (numEl) numEl.textContent = Math.round(score);
   const lblEl = $("#fcScoreLabel");
   if (lblEl) {
-    lblEl.textContent = tr(cls === "good" ? "forecastScoreGood" : cls === "bad" ? "forecastScoreBad" : "forecastScoreMid");
+    const _lblKey = { great: "forecastScoreGreat", good: "forecastScoreGood", neutral: "forecastScoreMid", hard: "forecastScoreHard", bad: "forecastScoreBad" };
+    lblEl.textContent = tr(_lblKey[cls] || "forecastScoreMid");
     lblEl.className = `fc-score-label fc-score-label--${cls}`;
   }
   const meta = $("#fcScoreMeta");
   if (meta) {
     const scoreStr = `${Math.round(score)}/100`;
-    const isRu = state.lang === "ru";
-    meta.innerHTML = `<span class="fc-score-date">${_fcState.date || ""}</span>` +
-      `<span class="fc-score-badge fc-score-badge--${cls}">${escapeHtml(scoreStr)}</span>`;
+    // Preserve the method toggle DOM node, rebuild everything else around it
+    const toggleEl = meta.querySelector(".fc-method-toggle");
+    meta.innerHTML =
+      `<span class="fc-score-date">${escapeHtml(_fcState.date || "")}</span>` +
+      `<div class="fc-score-badge-row">` +
+        `<span class="fc-score-badge fc-score-badge--${cls}">${escapeHtml(scoreStr)}</span>` +
+      `</div>`;
+    if (toggleEl) meta.querySelector(".fc-score-badge-row").appendChild(toggleEl);
   }
 }
 
@@ -3736,22 +3768,107 @@ function _renderFcMoon(phase, transitPlanets) {
     `</div>`;
 }
 
+// Single shared tooltip element for indicators
+let _indTooltipEl = null;
+function _getIndTooltip() {
+  if (!_indTooltipEl) {
+    _indTooltipEl = document.createElement("div");
+    _indTooltipEl.className = "fc-ind-tooltip";
+    document.body.appendChild(_indTooltipEl);
+  }
+  return _indTooltipEl;
+}
+
+function _renderFcIndicators(indicators) {
+  const el = $("#fcIndicators");
+  if (!el) return;
+  if (!indicators.length) { el.innerHTML = ""; return; }
+
+  const isRu = state.lang === "ru";
+  const ratingIcon = { good: "✓", neutral: "–", bad: "✗" };
+
+  const _indSvgIcons = {
+    finance: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2M9 9.5C9 8.1 10.3 7 12 7s3 1.1 3 2.5c0 1.7-1.5 2.3-3 2.5-1.5.2-3 .8-3 2.5 0 1.4 1.3 2.5 3 2.5s3-1.1 3-2.5"/></svg>`,
+  };
+
+  const html = indicators.map(ind => {
+    const label  = isRu ? ind.label_ru  : ind.label_en;
+    const reason = isRu ? ind.reason_ru : ind.reason_en;
+    const r = ind.rating;
+    const iconHtml = _indSvgIcons[ind.id] || escapeHtml(ind.icon);
+    return `<div class="fc-indicator fc-indicator--${r}" data-tip="${escapeHtml(reason)}">
+      <span class="fc-ind-icon">${iconHtml}</span>
+      <span class="fc-ind-label">${escapeHtml(label)}</span>
+      <span class="fc-ind-status fc-ind-status--${r}">${ratingIcon[r]}</span>
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `<div class="fc-indicators-row">${html}</div>`;
+
+  el.querySelectorAll(".fc-indicator[data-tip]").forEach(card => {
+    card.addEventListener("mouseenter", () => {
+      const tip = _getIndTooltip();
+      tip.textContent = card.dataset.tip;
+      tip.classList.add("visible");
+      const rect = card.getBoundingClientRect();
+      tip.style.left = "";
+      tip.style.right = "";
+      tip.style.top = (rect.bottom + 8) + "px";
+      // position left-aligned but keep within viewport
+      const tipW = 260;
+      let left = rect.left;
+      if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+      tip.style.left = Math.max(8, left) + "px";
+    });
+    card.addEventListener("mouseleave", () => {
+      _getIndTooltip().classList.remove("visible");
+    });
+  });
+}
+
 function _renderFcTips(tips) {
   const el = $("#fcTips");
   if (!el) return;
   if (!tips.length) {
-    el.innerHTML = `<div class="fc-tip info"><span class="fc-tip-icon">ℹ</span><span class="fc-tip-text">—</span></div>`;
+    el.innerHTML = `<div class="fc-tip-card info"><span class="fc-tip-icon">ℹ</span><span class="fc-tip-text">—</span></div>`;
     return;
   }
-  el.innerHTML = tips.map(tip => {
+
+  // Group by priority: warning → caution → info → good
+  const order = ["warning", "caution", "info", "good"];
+  const grouped = {};
+  order.forEach(t => grouped[t] = []);
+  tips.forEach(tip => {
     const type = tip.type || "info";
-    const ico = tip.icon || "ℹ";
-    const text = state.lang === "ru" ? (tip.text_ru || tip.text || "") : (tip.text_en || tip.text || "");
-    return `<div class="fc-tip ${escapeHtml(type)}">` +
-      `<span class="fc-tip-icon">${escapeHtml(ico)}</span>` +
-      `<span class="fc-tip-text">${escapeHtml(text)}</span>` +
-      `</div>`;
-  }).join("");
+    (grouped[type] || (grouped["info"])).push(tip);
+  });
+
+  const isRu = state.lang === "ru";
+  const groupLabel = {
+    warning: isRu ? "Важно" : "Important",
+    caution: isRu ? "Обратите внимание" : "Note",
+    info:    isRu ? "Информация" : "Info",
+    good:    isRu ? "Благоприятно" : "Favorable",
+  };
+
+  let html = "";
+  order.forEach(type => {
+    const group = grouped[type];
+    if (!group.length) return;
+    html += `<div class="fc-tip-group fc-tip-group--${type}">`;
+    html += `<div class="fc-tip-group-label">${escapeHtml(groupLabel[type])}</div>`;
+    group.forEach(tip => {
+      const ico  = tip.icon || "ℹ";
+      const text = isRu ? (tip.text_ru || tip.text || "") : (tip.text_en || tip.text || "");
+      html += `<div class="fc-tip-card ${escapeHtml(type)}">` +
+        `<span class="fc-tip-icon">${escapeHtml(ico)}</span>` +
+        `<span class="fc-tip-text">${escapeHtml(text)}</span>` +
+        `</div>`;
+    });
+    html += `</div>`;
+  });
+
+  el.innerHTML = html;
 }
 
 function _renderFcDasha(dasha) {
@@ -4072,6 +4189,11 @@ function initForecast() {
   $("#fcNextDay")?.addEventListener("click", () =>
     loadForecast(_fcShiftDate(_fcState.date || _fcTodayStr(), 1)));
   $("#fcToday")?.addEventListener("click", () => loadForecast(_fcTodayStr()));
+
+  // Score method toggle — init active state from saved preference
+  _fcSetMethod(_fcState.scoreMethod);
+  $("#fcMethod_mix")?.addEventListener("click", () => _fcSetMethod("mix"));
+  $("#fcMethod_jyotish")?.addEventListener("click", () => _fcSetMethod("jyotish"));
   $("#fcDateInput")?.addEventListener("change", (e) => {
     if (e.target.value) loadForecast(e.target.value);
   });
@@ -4148,6 +4270,19 @@ function initForecast() {
 
     const chatInp = $("#chatQuestion");
     if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+
+    // Store forecast snapshot so askQuestion can attach it
+    _fcState.pendingForecastForAI = {
+      date: dateStr,
+      score: d.score,
+      lunar_phase: d.lunar_phase,
+      transit_planets: d.transit_planets,
+      transit_aspects: (d.transit_aspects || []).filter(a => a.aspect !== "jyotish_aspect" && (a.orb || 99) <= 6),
+      transit_avarga: d.transit_avarga,
+      active_dasha: d.active_dasha,
+      tips: d.tips,
+      indicators: d.indicators,
+    };
   });
 }
 
@@ -4261,17 +4396,17 @@ const _MONTHS_RU = ["Январь","Февраль","Март","Апрель","�
 const _MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 function _scoreClass(score) {
-  if (score >= 72) return "score-great";
-  if (score >= 58) return "score-good";
-  if (score >= 42) return "score-neutral";
+  if (score >= 65) return "score-great";
+  if (score >= 55) return "score-good";
+  if (score >= 40) return "score-neutral";
   if (score >= 28) return "score-hard";
   return "score-bad";
 }
 
 function _scoreDotColor(score) {
-  if (score >= 72) return "#4ade80";
-  if (score >= 58) return "#86efac";
-  if (score >= 42) return "#94a3b8";
+  if (score >= 65) return "#4ade80";
+  if (score >= 55) return "#86efac";
+  if (score >= 40) return "#94a3b8";
   if (score >= 28) return "#fca5a5";
   return "#f87171";
 }
@@ -4344,7 +4479,7 @@ async function _loadCalMonth(year, month) {
   _renderCalGrid();
 
   try {
-    const data = await api(`/api/forecast/${state.currentRunId}/month?year=${year}&month=${month}&lang=${state.lang}`);
+    const data = await api(`/api/forecast/${state.currentRunId}/month?year=${year}&month=${month}&lang=${state.lang}&method=${_fcState.scoreMethod}`);
     for (const { date, score } of (data.days || [])) {
       _calState.scores[date] = score;
     }

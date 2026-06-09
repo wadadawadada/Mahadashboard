@@ -13,7 +13,7 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=11" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   </head>
   <body>
@@ -386,6 +386,7 @@
                       <input class="fc-date-input" type="date" id="fcDateInput" style="display:none" />
                       <button class="fc-nav-btn" id="fcNextDay" type="button" data-i18n="forecastNext">день →</button>
                     </div>
+                    <div class="fc-header-indicators" id="fcIndicators"></div>
                     <button class="fc-ask-ai-btn" id="fcAskAI" type="button">
                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       <span data-i18n="forecastAskAI">Спросить ИИ про этот день</span>
@@ -421,7 +422,31 @@
                               <span class="fc-score-label" id="fcScoreLabel">–</span>
                             </div>
                           </div>
-                          <div class="fc-score-meta" id="fcScoreMeta"></div>
+                          <div class="fc-score-meta" id="fcScoreMeta">
+                            <div class="fc-method-toggle">
+                              <button class="fc-method-btn active" id="fcMethod_mix" type="button" title="Mix — смешанный метод">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+                                  <line x1="12" y1="3" x2="12" y2="21"/>
+                                  <path d="M5 21h14"/>
+                                  <path d="M5 7l-3 5h6L5 7z"/>
+                                  <path d="M19 7l-3 5h6l-3-5z"/>
+                                </svg>
+                              </button>
+                              <button class="fc-method-btn" id="fcMethod_jyotish" type="button" title="Jyotish — классический метод">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+                                  <circle cx="12" cy="12" r="4"/>
+                                  <line x1="12" y1="2" x2="12" y2="5"/>
+                                  <line x1="12" y1="19" x2="12" y2="22"/>
+                                  <line x1="2" y1="12" x2="5" y2="12"/>
+                                  <line x1="19" y1="12" x2="22" y2="12"/>
+                                  <line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/>
+                                  <line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/>
+                                  <line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/>
+                                  <line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         <div class="fc-moon-block" id="fcMoon"></div>
@@ -442,17 +467,19 @@
 
                       <!-- RIGHT column: tips + transits -->
                       <div class="fc-col-right">
+                        <div class="fc-col-right-scroll">
 
-                        <div class="fc-section">
-                          <div class="fc-section-head"><span data-i18n="forecastTips">Картина дня</span></div>
-                          <div class="fc-tips" id="fcTips"></div>
+                          <div class="fc-section">
+                            <div class="fc-section-head"><span data-i18n="forecastTips">Картина дня</span></div>
+                            <div class="fc-tips" id="fcTips"></div>
+                          </div>
+
+                          <div class="fc-section">
+                            <div class="fc-section-head"><span data-i18n="forecastTransits">Планеты сегодня</span></div>
+                            <div class="fc-transits-wrap" id="fcTransits"></div>
+                          </div>
+
                         </div>
-
-                        <div class="fc-section">
-                          <div class="fc-section-head"><span data-i18n="forecastTransits">Планеты сегодня</span></div>
-                          <div class="fc-transits-wrap" id="fcTransits"></div>
-                        </div>
-
                       </div><!-- /fc-col-right -->
 
                     </div><!-- /fc-grid -->
@@ -566,6 +593,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=11"></script>
   </body>
 </html>

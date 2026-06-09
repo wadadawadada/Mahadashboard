@@ -512,7 +512,7 @@ function compactChartFacts(chart) {
   };
 }
 
-async function askOpenRouter({ question, chart, context, language }) {
+async function askOpenRouter({ question, chart, context, language, forecast_data }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new ApiError(400, "OPENROUTER_API_KEY is missing in .env.");
@@ -528,16 +528,34 @@ async function askOpenRouter({ question, chart, context, language }) {
   }));
   const missing = (context.missing || []).slice(0, 120);
 
-  const system = [
+  const systemParts = [
     "You are a Jyotish chart assistant for a deterministic astrology service.",
     "Never calculate astrology facts yourself.",
     "Never invent signs, houses, nakshatras, dashas, degrees, aspects, yogas, dignities, or source ids.",
-    "Use only the provided chart facts and curated interpretation snippets.",
+    "Use only the provided chart facts, curated interpretation snippets, and transit data.",
     "Every interpretive claim must cite source ids from the provided curated context.",
     "If a needed interpretation source is missing, say: No curated interpretation source found for this key.",
     "Always preserve and mention calculation settings when they matter.",
     `Answer in ${language === "en" ? "English" : "Russian"}.`,
-  ].join(" ");
+  ];
+  if (forecast_data) {
+    systemParts.push(
+      "The user is asking about a specific forecast day. You have access to pre-calculated transit data for that day — use it directly without inventing or recalculating anything.",
+      "The transit_data field contains: date, score (0-100), lunar phase, all 9 transit planet positions with their natal house placements, tight transit-to-natal aspects (orb ≤6°), ashtakavarga BAV scores, active dasha period, and pre-built advisory tips.",
+      "Refer to the natal chart facts for context about what each natal house means for this person."
+    );
+  }
+  const system = systemParts.join(" ");
+
+  const userPayload = {
+    question,
+    natal_chart: facts,
+    curated_context: sourceItems,
+    missing_sources: missing,
+  };
+  if (forecast_data) {
+    userPayload.transit_data = forecast_data;
+  }
 
   const response = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
@@ -551,19 +569,7 @@ async function askOpenRouter({ question, chart, context, language }) {
       model,
       messages: [
         { role: "system", content: system },
-        {
-          role: "user",
-          content: JSON.stringify(
-            {
-              question,
-              calculation_facts: facts,
-              curated_context: sourceItems,
-              missing_sources: missing,
-            },
-            null,
-            2
-          ),
-        },
+        { role: "user", content: JSON.stringify(userPayload, null, 2) },
       ],
       temperature: 0.2,
     }),
@@ -720,8 +726,11 @@ async function route(req, res) {
 
     const language = (await readJson(path.join(runDir, "chart.json"))).meta?.language || "ru";
     const langParam = (new URL(req.url, "http://x").searchParams.get("lang") || language);
+    const methodParam = ["mix","jyotish"].includes(new URL(req.url, "http://x").searchParams.get("method"))
+      ? new URL(req.url, "http://x").searchParams.get("method")
+      : "mix";
 
-    const forecastPath = path.join(runDir, `forecast_${dateParam}_${langParam}.json`);
+    const forecastPath = path.join(runDir, `forecast_${dateParam}_${langParam}_${methodParam}.json`);
 
     // Serve cached result if available
     try {
@@ -741,6 +750,7 @@ async function route(req, res) {
       "--out-forecast", forecastPath,
       "--forecast-date", dateParam,
       "--language", langParam,
+      "--score-method", methodParam,
     ]);
 
     const forecastData = await readJson(forecastPath);
@@ -757,6 +767,7 @@ async function route(req, res) {
     const year  = parseInt(params.get("year")  || new Date().getFullYear(), 10);
     const month = parseInt(params.get("month") || new Date().getMonth() + 1, 10);
     const lang  = params.get("lang") || "ru";
+    const method = ["mix","jyotish"].includes(params.get("method")) ? params.get("method") : "mix";
 
     if (isNaN(year) || isNaN(month) || month < 1 || month > 12) throw new ApiError(400, "Invalid year/month.");
 
@@ -776,7 +787,7 @@ async function route(req, res) {
     for (let i = 0; i < dates.length; i += CONCURRENCY) {
       const chunk = dates.slice(i, i + CONCURRENCY);
       const chunkResults = await Promise.all(chunk.map(async (dateStr) => {
-        const forecastPath = path.join(runDir, `forecast_${dateStr}_${lang}.json`);
+        const forecastPath = path.join(runDir, `forecast_${dateStr}_${lang}_${method}.json`);
         try {
           const cached = await fsp.readFile(forecastPath, "utf8");
           const data = JSON.parse(cached);
@@ -790,6 +801,7 @@ async function route(req, res) {
           "--out-forecast", forecastPath,
           "--forecast-date", dateStr,
           "--language", lang,
+          "--score-method", method,
         ]);
         const data = await readJson(forecastPath);
         return { date: dateStr, score: data.score ?? 50 };
@@ -821,6 +833,7 @@ async function route(req, res) {
       chart: loaded.chart,
       context: loaded.context,
       language: body.language || loaded.chart.meta?.language || "ru",
+      forecast_data: body.forecast_data || null,
     });
     const profileId = await resolveChatProfileId(body, loaded);
     const now = new Date().toISOString();

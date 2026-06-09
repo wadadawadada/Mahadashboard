@@ -143,6 +143,7 @@ def forecast(
     out_forecast: Path = typer.Option(..., help="Выходной JSON прогноза"),
     forecast_date: str = typer.Option(None, help="Дата прогноза YYYY-MM-DD (по умолчанию сегодня)"),
     language: str = typer.Option("ru", help="Язык: ru или en"),
+    score_method: str = typer.Option("mix", help="Метод скоринга: mix или jyotish"),
 ):
     """Рассчитать транзитный прогноз на заданную дату."""
     from datetime import date as date_type
@@ -175,7 +176,7 @@ def forecast(
         raise typer.Exit(1)
 
     try:
-        forecast_data = calculate_forecast(natal_chart, target_date, language=language)
+        forecast_data = calculate_forecast(natal_chart, target_date, language=language, score_method=score_method)
     except Exception as e:
         console.print(f"[red]Ошибка расчёта прогноза:[/red] {e}")
         raise typer.Exit(1)
