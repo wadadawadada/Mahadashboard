@@ -154,6 +154,7 @@ const t = {
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
+    dashaAskAI: "Спросить ИИ",
     calLegendGood: "Благоприятный",
     calLegendNeutral: "Нейтральный",
     calLegendHard: "Тяжёлый",
@@ -317,6 +318,7 @@ const t = {
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
+    dashaAskAI: "Ask AI",
     calLegendGood: "Favorable",
     calLegendNeutral: "Neutral",
     calLegendHard: "Challenging",
@@ -1444,6 +1446,57 @@ function _getPlanetModalEls() {
   };
 }
 
+function _buildPlanetAIPrompt({ planetKey, division, d1Planet, d9Planet, sources }) {
+  const isRu = state.lang === "ru";
+  const meta = PLANET_META[planetKey] || { label: planetKey };
+  const divLabel = division === "D9" ? (isRu ? "D9 Навамша" : "D9 Navamsa") : (isRu ? "D1 Раши" : "D1 Rashi");
+
+  const lines = [];
+  if (d1Planet) {
+    const sign = d1Planet.sign ? localizeSign(d1Planet.sign) : "";
+    const dig = d1Planet.dignity ? localizeDignity(d1Planet.dignity) : "";
+    const retro = d1Planet.retrograde ? (isRu ? ", ретроградная" : ", retrograde") : "";
+    const nak = d1Planet.nakshatra ? (isRu ? `, накшатра ${d1Planet.nakshatra}${d1Planet.pada ? ` пада ${d1Planet.pada}` : ""}`
+                                           : `, nakshatra ${d1Planet.nakshatra}${d1Planet.pada ? ` pada ${d1Planet.pada}` : ""}`) : "";
+    const deg = d1Planet.degree_formatted ? (isRu ? `, ${d1Planet.degree_formatted}` : `, ${d1Planet.degree_formatted}`) : "";
+    const rulerOf = d1Planet.ruler_of_houses || [];
+    const ruler = rulerOf.length
+      ? (isRu ? `, управляет ${rulerOf.map(h => `${h}-м домом`).join(" и ")}`
+              : `, rules house${rulerOf.length > 1 ? "s" : ""} ${rulerOf.join(" and ")}`)
+      : "";
+    lines.push(isRu
+      ? `• D1 Раши: ${sign}, дом ${d1Planet.house}${deg}${nak}, ${dig}${retro}${ruler}`
+      : `• D1 Rashi: ${sign}, house ${d1Planet.house}${deg}${nak}, ${dig}${retro}${ruler}`);
+  }
+  if (d9Planet) {
+    const d9sign = d9Planet.sign ? localizeSign(d9Planet.sign) : "";
+    lines.push(isRu
+      ? `• D9 Навамша: ${d9sign}${d9Planet.house ? `, дом ${d9Planet.house}` : ""}`
+      : `• D9 Navamsa: ${d9sign}${d9Planet.house ? `, house ${d9Planet.house}` : ""}`);
+  }
+
+  const interpsSnippet = (sources || []).slice(0, 6).map(it => `— ${itemText(it)}`).join("\n");
+
+  if (isRu) {
+    return `Расскажи подробно про ${meta.label} в моей карте (фокус: ${divLabel}).\n`
+      + (lines.length ? `Положение:\n${lines.join("\n")}\n` : "")
+      + (interpsSnippet ? `\nКонтекст из трактовок:\n${interpsSnippet}\n` : "")
+      + `\nДай персонализированный разбор: характер планеты в моей карте, ключевые темы, благоприятные и сложные аспекты, практические рекомендации.`;
+  }
+  return `Tell me in detail about ${meta.label} in my chart (focus: ${divLabel}).\n`
+    + (lines.length ? `Position:\n${lines.join("\n")}\n` : "")
+    + (interpsSnippet ? `\nInterpretation context:\n${interpsSnippet}\n` : "")
+    + `\nGive a personalized analysis: the planet's character in my chart, key themes, favorable and challenging aspects, practical recommendations.`;
+}
+
+function _askPlanetAI(ctx) {
+  const prompt = _buildPlanetAIPrompt(ctx);
+  closePlanetInterpretationModal();
+  setActiveTab("ai");
+  const chatInp = $("#chatQuestion");
+  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+}
+
 function openPlanetInterpretationModal(payload) {
   if (!payload?.planet_key || !state.chart || !state.context) return;
   const planetKey = payload.planet_key;
@@ -1535,6 +1588,23 @@ function openPlanetInterpretationModal(payload) {
     : "";
 
   bodyEl.innerHTML = badgesHtml + sourceHtml;
+
+  // Inject "Ask AI" button next to the close button (idempotent)
+  const closeBtn = modalEl.querySelector("#planetModalClose, #chartInnerModalClose");
+  if (closeBtn) {
+    const existing = modalEl.querySelector("[data-pm-ask-ai]");
+    if (existing) existing.remove();
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "fc-ask-ai-btn dm-ask-ai-btn pm-ask-ai-btn";
+    btn.setAttribute("data-pm-ask-ai", "1");
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${escapeHtml(tr("dashaAskAI"))}</span>`;
+    btn.addEventListener("click", () => _askPlanetAI({
+      planetKey, division: payload.division, d1Planet, d9Planet, sources: dedupedSources,
+    }));
+    closeBtn.parentNode.insertBefore(btn, closeBtn);
+  }
+
   modalEl.classList.remove("hidden");
 }
 
@@ -2306,6 +2376,83 @@ function _buildDashaPersonalized(planetKey, isRu) {
   return paras;
 }
 
+function _buildDashaAIPrompt({ kind, maha, antar, pratya, start, end }) {
+  const isRu = state.lang === "ru";
+  const mahaKey = (maha || "").toLowerCase();
+  const antarKey = (antar || "").toLowerCase();
+  const pratyaKey = (pratya || "").toLowerCase();
+  const focusKey = pratyaKey || antarKey || mahaKey;
+
+  const mahaM = PLANET_META[mahaKey];
+  const antarM = antarKey ? PLANET_META[antarKey] : null;
+  const pratyaM = pratyaKey ? PLANET_META[pratyaKey] : null;
+
+  const chain = [mahaM?.label || maha, antarM?.label, pratyaM?.label].filter(Boolean).join(" / ");
+  const kindLabel = isRu
+    ? (kind === "pratya" ? "мини-период" : kind === "antar" ? "подпериод" : "период")
+    : (kind === "pratya" ? "mini-period" : kind === "antar" ? "sub-period" : "period");
+
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев",
+    Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
+    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const DIGNITY_RU = { exalted:"в экзальтации", own_sign:"в своём знаке",
+    debilitated:"в падении", neutral:"в нейтральном положении" };
+  const DIGNITY_EN = { exalted:"exalted", own_sign:"in own sign",
+    debilitated:"debilitated", neutral:"in neutral position" };
+
+  const planetLine = (key) => {
+    const p = state.chart?.planets?.[key];
+    if (!p) return "";
+    const m = PLANET_META[key] || { label: key };
+    const signLabel = isRu ? (SIGN_RU[p.sign] || p.sign) : p.sign;
+    const digLabel = isRu ? (DIGNITY_RU[p.dignity] || p.dignity) : (DIGNITY_EN[p.dignity] || p.dignity);
+    const retro = p.retrograde ? (isRu ? ", ретроградная" : ", retrograde") : "";
+    const nak = p.nakshatra ? (isRu ? `, накшатра ${p.nakshatra}${p.pada ? ` пада ${p.pada}` : ""}`
+                                    : `, nakshatra ${p.nakshatra}${p.pada ? ` pada ${p.pada}` : ""}`) : "";
+    const rulerOf = p.ruler_of_houses || [];
+    const ruler = rulerOf.length
+      ? (isRu ? `, управляет ${rulerOf.map(h => `${h}-м домом`).join(" и ")}`
+              : `, rules house${rulerOf.length > 1 ? "s" : ""} ${rulerOf.join(" and ")}`)
+      : "";
+    return isRu
+      ? `• ${m.label}: ${signLabel}, дом ${p.house}, ${digLabel}${retro}${nak}${ruler}`
+      : `• ${m.label}: ${signLabel}, house ${p.house}, ${digLabel}${retro}${nak}${ruler}`;
+  };
+
+  const positions = [mahaKey, antarKey, pratyaKey].filter(Boolean)
+    .filter((k, i, a) => a.indexOf(k) === i)
+    .map(planetLine).filter(Boolean);
+
+  const dates = `${formatDate(start)} — ${formatDate(end)}`;
+
+  if (isRu) {
+    return `Расскажи подробно про ${kindLabel} ${chain} (${dates}).\n`
+      + `Положения планет в моей карте:\n`
+      + (positions.length ? positions.join("\n") + "\n" : "")
+      + `\nКакие темы будут особенно активны, на что обратить внимание, какие возможности и риски учесть с точки зрения джйотиша?`;
+  }
+  return `Tell me in detail about the ${kindLabel} ${chain} (${dates}).\n`
+    + `Natal positions of the relevant planets:\n`
+    + (positions.length ? positions.join("\n") + "\n" : "")
+    + `\nWhich themes will be especially active, what should I pay attention to, and what opportunities or risks should I keep in mind from a Jyotish perspective?`;
+}
+
+function _askDashaAI(ctx) {
+  const prompt = _buildDashaAIPrompt(ctx);
+  closePratyaModal();
+  closeDashaModal();
+  setActiveTab("ai");
+  const chatInp = $("#chatQuestion");
+  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+}
+
+function _dashaAIButtonHtml() {
+  return `<button class="fc-ask-ai-btn dm-ask-ai-btn" type="button" data-dm-ask-ai>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>${escapeHtml(tr("dashaAskAI"))}</span>
+    </button>`;
+}
+
 function openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, idx) {
   const m = mahadashas[idx];
   if (!m) return;
@@ -2434,6 +2581,7 @@ function openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, idx) {
         </div>
       </div>
       <div class="dm-head-actions">
+        ${_dashaAIButtonHtml()}
         <button class="dm-nav-btn" id="dmPrev" type="button" aria-label="Previous" ${prevIdx === null ? "disabled" : ""}>&#8592;</button>
         <button class="dm-nav-btn" id="dmNext" type="button" aria-label="Next" ${nextIdx === null ? "disabled" : ""}>&#8594;</button>
         <button class="dm-close-btn" id="dmClose" type="button" aria-label="Close">&#215;</button>
@@ -2442,6 +2590,8 @@ function openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, idx) {
     <div class="dasha-modal-body">${interpHtml}</div>
   `;
 
+  inner.querySelector("[data-dm-ask-ai]")?.addEventListener("click", () =>
+    _askDashaAI({ kind: "maha", maha: m.planet, start: m.start, end: m.end }));
   inner.querySelector("#dmPrev")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, prevIdx));
   inner.querySelector("#dmNext")?.addEventListener("click", () => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, nextIdx));
   inner.querySelector("#dmClose")?.addEventListener("click", closeDashaModal);
@@ -2558,7 +2708,10 @@ function openAntarModal({ maha, antar, start, end }) {
         </div>
         ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
       </div>
-      <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+      <div class="pratya-modal-actions">
+        ${_dashaAIButtonHtml()}
+        <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+      </div>
     </div>
     <div class="pratya-modal-dates">${formatDate(start)} — ${formatDate(end)}</div>
     <div class="pratya-modal-body">
@@ -2567,6 +2720,8 @@ function openAntarModal({ maha, antar, start, end }) {
     </div>
   `;
 
+  inner.querySelector("[data-dm-ask-ai]")?.addEventListener("click", () =>
+    _askDashaAI({ kind: "antar", maha, antar, start, end }));
   inner.querySelector("#pratyaClose")?.addEventListener("click", closePratyaModal);
   modal.onclick = (e) => { if (e.target === modal) closePratyaModal(); };
   modal.classList.remove("hidden");
@@ -2672,7 +2827,10 @@ function openPratyaModal({ maha, antar, pratya, start, end }) {
         </div>
         ${isNow ? `<span class="dm-active-badge">${escapeHtml(tr("lifePathNow"))}</span>` : ""}
       </div>
-      <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+      <div class="pratya-modal-actions">
+        ${_dashaAIButtonHtml()}
+        <button class="dm-close-btn" id="pratyaClose" type="button">&#215;</button>
+      </div>
     </div>
     <div class="pratya-modal-dates">${formatDate(start)} — ${formatDate(end)}</div>
     <div class="pratya-modal-body">
@@ -2682,6 +2840,8 @@ function openPratyaModal({ maha, antar, pratya, start, end }) {
     </div>
   `;
 
+  inner.querySelector("[data-dm-ask-ai]")?.addEventListener("click", () =>
+    _askDashaAI({ kind: "pratya", maha, antar, pratya, start, end }));
   inner.querySelector("#pratyaClose")?.addEventListener("click", closePratyaModal);
   modal.onclick = (e) => { if (e.target === modal) closePratyaModal(); };
   modal.classList.remove("hidden");
@@ -3604,20 +3764,69 @@ function _renderFcDasha(dasha) {
   const mahaColor = PLANET_META[maha.toLowerCase()]?.color || "var(--gold)";
   const antarColor = PLANET_META[antar.toLowerCase()]?.color || "var(--violet)";
   const pratyaColor = pratya ? (PLANET_META[pratya.toLowerCase()]?.color || "var(--text-dim)") : null;
-  let html = `<div class="fc-dasha-pill main" style="--pill-color:${mahaColor}">` +
-    `${escapeHtml(maha)}</div>` +
+
+  const hasDashaTree = !!state.chart?.dashas?.mahadashas?.length;
+  const clickableCls = hasDashaTree ? " fc-dasha-pill-clickable" : "";
+
+  let html = `<button type="button" class="fc-dasha-pill main${clickableCls}" data-fc-level="maha" data-fc-maha="${escapeHtml(maha)}" style="--pill-color:${mahaColor}"${hasDashaTree ? "" : " disabled"}>` +
+    `${escapeHtml(maha)}</button>` +
     `<span class="fc-dasha-sep">/</span>` +
-    `<div class="fc-dasha-pill" style="--pill-color:${antarColor}">` +
-    `${escapeHtml(antar)}</div>`;
+    `<button type="button" class="fc-dasha-pill${clickableCls}" data-fc-level="antar" data-fc-maha="${escapeHtml(maha)}" data-fc-antar="${escapeHtml(antar)}" style="--pill-color:${antarColor}"${hasDashaTree ? "" : " disabled"}>` +
+    `${escapeHtml(antar)}</button>`;
   if (pratya) {
     html += `<span class="fc-dasha-sep">/</span>` +
-      `<div class="fc-dasha-pill" style="--pill-color:${pratyaColor}">` +
-      `${escapeHtml(pratya)}</div>`;
+      `<button type="button" class="fc-dasha-pill${clickableCls}" data-fc-level="pratya" data-fc-maha="${escapeHtml(maha)}" data-fc-antar="${escapeHtml(antar)}" data-fc-pratya="${escapeHtml(pratya)}" style="--pill-color:${pratyaColor}"${hasDashaTree ? "" : " disabled"}>` +
+      `${escapeHtml(pratya)}</button>`;
   }
   if (days != null) {
     html += `<span class="fc-dasha-remaining">${days}d</span>`;
   }
   el.innerHTML = html;
+
+  if (!hasDashaTree) return;
+  el.querySelectorAll(".fc-dasha-pill-clickable").forEach((btn) => {
+    btn.addEventListener("click", () => _openFcDashaFromPill(btn.dataset));
+  });
+}
+
+function _openFcDashaFromPill({ fcLevel, fcMaha, fcAntar, fcPratya }) {
+  const dashas = state.chart?.dashas;
+  if (!dashas) return;
+  const mahadashas = dashas.mahadashas || [];
+
+  setActiveTab("dashas");
+
+  if (fcLevel === "maha") {
+    const idx = mahadashas.findIndex((m) => m.planet === fcMaha);
+    if (idx < 0) return;
+    const antardasha_map = {};
+    (dashas.antardashas || []).forEach((a) => {
+      if (!antardasha_map[a.mahadasha]) antardasha_map[a.mahadasha] = [];
+      antardasha_map[a.mahadasha].push(a);
+    });
+    const pratyantardasha_map = {};
+    (dashas.pratyantardashas || []).forEach((p) => {
+      if (!pratyantardasha_map[p.mahadasha]) pratyantardasha_map[p.mahadasha] = {};
+      if (!pratyantardasha_map[p.mahadasha][p.antardasha]) pratyantardasha_map[p.mahadasha][p.antardasha] = [];
+      pratyantardasha_map[p.mahadasha][p.antardasha].push(p);
+    });
+    setTimeout(() => openDashaModal(mahadashas, antardasha_map, pratyantardasha_map, idx), 60);
+    return;
+  }
+
+  if (fcLevel === "antar") {
+    const a = (dashas.antardashas || []).find((x) => x.mahadasha === fcMaha && x.antardasha === fcAntar);
+    if (!a) return;
+    setTimeout(() => openAntarModal({ maha: fcMaha, antar: fcAntar, start: a.start, end: a.end }), 60);
+    return;
+  }
+
+  if (fcLevel === "pratya") {
+    const p = (dashas.pratyantardashas || []).find((x) =>
+      x.mahadasha === fcMaha && x.antardasha === fcAntar && x.pratyantardasha === fcPratya);
+    if (!p) return;
+    setTimeout(() => openPratyaModal({ maha: fcMaha, antar: fcAntar, pratya: fcPratya, start: p.start, end: p.end }), 60);
+  }
 }
 
 function _renderFcDayRating(transitAvarga, transitPlanets) {

@@ -4426,6 +4426,28 @@ td {
   margin-bottom: 4px;
 }
 
+.pratya-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dm-ask-ai-btn { padding: 6px 10px; font-size: 11px; }
+
+/* AI button inside the global planet modal — anchor near top-right close button */
+.planet-modal .pm-ask-ai-btn {
+  position: absolute;
+  top: 11px;
+  right: 48px;
+  z-index: 2;
+}
+
+/* AI button inside the inner chart modal — flex layout, just sits next to close */
+.chart-inner-modal .pm-ask-ai-btn {
+  align-self: center;
+}
+
 .pratya-modal-chain {
   display: flex;
   align-items: center;
@@ -6440,6 +6462,8 @@ td {
   border: 1px solid rgba(183,150,255,0.3);
   color: var(--violet);
   background: rgba(183,150,255,0.1);
+  font-family: inherit;
+  line-height: 1.3;
 }
 .fc-dasha-pill.main {
   font-size: 13px;
@@ -6448,6 +6472,21 @@ td {
   color: var(--gold-bright);
   background: rgba(216,183,100,0.1);
 }
+button.fc-dasha-pill {
+  cursor: default;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+button.fc-dasha-pill[disabled] { opacity: 0.7; }
+button.fc-dasha-pill-clickable { cursor: pointer; }
+button.fc-dasha-pill-clickable:hover {
+  background: rgba(183,150,255,0.22);
+  border-color: rgba(183,150,255,0.55);
+}
+button.fc-dasha-pill-clickable.main:hover {
+  background: rgba(216,183,100,0.22);
+  border-color: rgba(216,183,100,0.65);
+}
+button.fc-dasha-pill-clickable:active { transform: scale(0.97); }
 
 .fc-dasha-sep { color: var(--muted); font-size: 12px; }
 .fc-dasha-remaining { font-size: 11px; color: var(--muted); }
