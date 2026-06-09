@@ -157,6 +157,8 @@ const t = {
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
+    fcMethodMix: "Mix — смешанный метод",
+    fcMethodJyotish: "Jyotish — классический метод",
     dashaAskAI: "Спросить ИИ",
     calLegendGood: "Благоприятный",
     calLegendNeutral: "Нейтральный",
@@ -324,6 +326,8 @@ const t = {
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
+    fcMethodMix: "Mix — blended method",
+    fcMethodJyotish: "Jyotish — classical method",
     dashaAskAI: "Ask AI",
     calLegendGood: "Favorable",
     calLegendNeutral: "Neutral",
@@ -972,9 +976,127 @@ function _clearD1Container(container) {
   });
 }
 
+function _initStarfield(container) {
+  const existing = container.querySelector(".ni-starfield");
+  if (existing) existing.remove();
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "ni-starfield";
+  container.appendChild(canvas);
+
+  const STAR_COUNT = 220;
+  const stars = [];
+  // Nebula blobs — soft coloured clouds
+  const NEBULAE = [
+    { ox: 0.12, oy: 0.3,  rx: 0.09, ry: 0.12, hue: 220, a: 0.06 },
+    { ox: 0.88, oy: 0.65, rx: 0.08, ry: 0.10, hue: 260, a: 0.05 },
+    { ox: 0.1,  oy: 0.8,  rx: 0.07, ry: 0.08, hue: 200, a: 0.04 },
+    { ox: 0.9,  oy: 0.15, rx: 0.06, ry: 0.09, hue: 45,  a: 0.04 },
+  ];
+
+  function resize() {
+    canvas.width  = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+  }
+  resize();
+
+  function makeStars() {
+    stars.length = 0;
+    const w = canvas.width, h = canvas.height;
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const big = Math.random() < 0.04; // rare bright stars
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: big ? Math.random() * 1.4 + 1.0 : Math.random() * 0.8 + 0.15,
+        alpha: big ? Math.random() * 0.45 + 0.25 : Math.random() * 0.28 + 0.06,
+        speed: Math.random() * 0.004 + 0.001,  // very slow twinkle
+        phase: Math.random() * Math.PI * 2,
+        hue: Math.random() < 0.12 ? 45 : Math.random() < 0.08 ? 210 : 0,
+        sat: Math.random() < 0.2 ? 50 : 0,
+        big,
+      });
+    }
+  }
+  makeStars();
+
+  let raf;
+  let t = 0;
+
+  function draw() {
+    const w = canvas.width, h = canvas.height;
+    const ctx = canvas.getContext("2d");
+
+    // Deep space background
+    ctx.fillStyle = "#03020d";
+    ctx.fillRect(0, 0, w, h);
+
+    // Square chart bounds — skip drawing inside
+    const chartSize = Math.min(w, h);
+    const cx = (w - chartSize) / 2;
+    const cy = (h - chartSize) / 2;
+
+    // Nebula blobs (only in side strips)
+    for (const n of NEBULAE) {
+      const nx = n.ox * w, ny = n.oy * h;
+      if (nx >= cx && nx <= cx + chartSize && ny >= cy && ny <= cy + chartSize) continue;
+      const grad = ctx.createRadialGradient(nx, ny, 0, nx, ny, n.rx * w);
+      grad.addColorStop(0, `hsla(${n.hue},60%,40%,${n.a})`);
+      grad.addColorStop(1, `hsla(${n.hue},40%,20%,0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    t += 0.008;
+    for (const s of stars) {
+      if (s.x >= cx && s.x <= cx + chartSize && s.y >= cy && s.y <= cy + chartSize) continue;
+
+      const twinkle = s.big
+        ? 0.6 + 0.4 * Math.sin(t * s.speed * 60 + s.phase)
+        : 0.5 + 0.5 * Math.sin(t * s.speed * 60 + s.phase);
+      const alpha = s.alpha * twinkle;
+
+      if (s.big) {
+        // Soft glow for bright stars
+        const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 3);
+        const col = s.sat > 0 ? `hsla(${s.hue},${s.sat}%,90%,` : `rgba(200,210,255,`;
+        grd.addColorStop(0,   col + `${alpha})`);
+        grd.addColorStop(0.4, col + `${alpha * 0.3})`);
+        grd.addColorStop(1,   col + `0)`);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.sat > 0
+        ? `hsla(${s.hue},${s.sat}%,88%,${alpha})`
+        : `rgba(190,200,255,${alpha})`;
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Re-scatter stars when container resizes
+  const ro = new ResizeObserver(() => { resize(); makeStars(); });
+  ro.observe(container);
+
+  // Cleanup on re-render
+  canvas._stopStarfield = () => { cancelAnimationFrame(raf); ro.disconnect(); };
+}
+
 function renderD1_2d(chart) {
   const container = $("#d1Chart");
+
+  // Stop previous starfield if any
+  const prev = container.querySelector(".ni-starfield");
+  if (prev?._stopStarfield) prev._stopStarfield();
+
   _clearD1Container(container);
+  _initStarfield(container);
 
   const houses = chart.houses || {};
   const planets = chart.planets || {};
@@ -1045,6 +1167,15 @@ function _renderNorthIndianChart(container, chart, lagnaSign, lagnaIdx, houseSig
     <filter id="ni-soft" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="ni-planet-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
     <radialGradient id="ni-bg-grad" cx="50%" cy="50%" r="65%">
       <stop offset="0%" stop-color="#100a2a" stop-opacity="1"/>
@@ -1175,7 +1306,7 @@ function _renderNorthIndianChart(container, chart, lagnaSign, lagnaIdx, houseSig
       const colXs = cols === 1
         ? [x + C / 2]
         : [x + C * 0.3, x + C * 0.7];
-      const pAreaTop = signCY + 30;
+      const pAreaTop = signCY + 40;
       const pAreaBottom = y + C - 10;
       const rowStep = perCol > 1
         ? Math.min(18, (pAreaBottom - pAreaTop) / (perCol - 1))
@@ -1196,33 +1327,26 @@ function _renderNorthIndianChart(container, chart, lagnaSign, lagnaIdx, houseSig
           openPlanetInterpretationModal({planet_key: pkey, division: "D1", source: "d1"});
         });
 
-        const chipW = cols === 2 ? C * 0.36 : C * 0.62;
-        const chipH = 15;
-        // Background chip
-        g.appendChild(mk("rect", {
-          x: px - chipW/2, y: py - chipH/2,
-          width: chipW, height: chipH, rx: 3, ry: 3,
-          fill: "rgba(7,5,20,0.9)",
-          stroke: meta.color, "stroke-opacity": "0.4", "stroke-width": "0.8",
-        }));
 
-        // Planet label
+        const lbl = meta.label.slice(0,3);
+        const deg = (typeof pdata.sign_degree === "number")
+          ? `${Math.floor(pdata.sign_degree)}°`
+          : (typeof pdata.degree === "number" ? `${Math.floor(pdata.degree)}°` : "");
+        const retro = pdata.retrograde ? " ℞" : "";
+        const chipText = cols === 2
+          ? `${meta.glyph}${lbl}${retro}`
+          : `${meta.glyph} ${lbl}${retro}${deg ? " " + deg : ""}`;
+
         const txt = mk("text", {
           x: px, y: py + 1,
           class: "ni-planet-chip",
           "text-anchor": "middle",
           "dominant-baseline": "middle",
           fill: meta.color,
+          filter: "url(#ni-planet-glow)",
           "data-planet": pkey,
         });
-        const lbl = meta.label.slice(0,3);
-        const deg = (typeof pdata.sign_degree === "number")
-          ? `${Math.floor(pdata.sign_degree)}°`
-          : (typeof pdata.degree === "number" ? `${Math.floor(pdata.degree)}°` : "");
-        const retro = pdata.retrograde ? " ℞" : "";
-        txt.textContent = cols === 2
-          ? `${meta.glyph}${lbl}${retro}`
-          : `${meta.glyph} ${lbl}${retro}${deg ? " " + deg : ""}`;
+        txt.textContent = chipText;
         g.appendChild(txt);
 
         svg.appendChild(g);
@@ -3622,12 +3746,12 @@ const _fcState = {
 function _fcSetMethod(method) {
   _fcState.scoreMethod = method;
   localStorage.setItem("fc_score_method", method);
-  // Update toggle button states
   ["mix","jyotish"].forEach(m => {
     const btn = $(`#fcMethod_${m}`);
-    if (btn) btn.classList.toggle("active", m === method);
+    if (!btn) return;
+    btn.classList.toggle("active", m === method);
+    btn.title = tr(m === "mix" ? "fcMethodMix" : "fcMethodJyotish");
   });
-  // Reload current day with new method
   if (_fcState.date) loadForecast(_fcState.date);
 }
 
