@@ -13,7 +13,7 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=18" />
+    <link rel="stylesheet" href="/styles.css?v=19" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   </head>
   <body>
@@ -94,9 +94,15 @@
             </div>
             <label class="place-search">
               <span data-i18n="place">Место</span>
-              <input id="placeQuery" autocomplete="off" data-i18n-placeholder="placePlaceholder" placeholder="Город, страна" />
+              <div class="place-search-row">
+                <input id="placeQuery" autocomplete="off" data-i18n-placeholder="placePlaceholder" placeholder="Город, страна" />
+                <button type="button" id="openMapPickerBtn" class="map-picker-btn">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                </button>
+              </div>
               <div class="suggestions" id="placeSuggestions"></div>
             </label>
+
             <div class="two-col" style="display:none">
               <label>
                 <span data-i18n="city">Город</span>
@@ -109,7 +115,7 @@
             </div>
 
             <details class="settings-box">
-              <summary data-i18n="precisePlace">Точные координаты</summary>
+              <summary><span class="summary-arrow"></span><span data-i18n="precisePlace">Точные координаты</span></summary>
               <div class="two-col">
                 <label>
                   <span>Latitude</span>
@@ -127,7 +133,7 @@
             </details>
 
             <details class="settings-box">
-              <summary data-i18n="settings">Настройки расчета</summary>
+              <summary><span class="summary-arrow"></span><span data-i18n="settings">Настройки расчета</span></summary>
               <div class="two-col">
                 <label>
                   <span>Ayanamsa</span>
@@ -596,7 +602,24 @@
       <button class="fc-cal-ask-ai-btn" id="fcCalAskAI" type="button"></button>
     </div>
 
+    <!-- Map Picker Modal -->
+    <div id="mapPickerModal" class="map-picker-modal" style="display:none" aria-modal="true" role="dialog">
+      <div class="map-picker-backdrop" id="mapPickerBackdrop"></div>
+      <div class="map-picker-card">
+        <div class="map-picker-header">
+          <button type="button" id="mapPickerClose" class="map-picker-close" style="margin-left:auto">✕</button>
+        </div>
+        <div class="map-picker-search-row">
+          <input id="mapPickerSearch" type="text" data-i18n-placeholder="mapPickerSearch" placeholder="Поиск города..." autocomplete="off" />
+          <div id="mapPickerResults" class="map-picker-results hidden"></div>
+        </div>
+        <div id="mapPickerMap" class="map-picker-mapbox"></div>
+        <div id="mapPickerInfo" class="map-picker-info"></div>
+        <button type="button" id="mapPickerConfirm" class="map-picker-confirm" disabled>Подтвердить</button>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="/app.js?v=21"></script>
+    <script src="/app.js?v=22"></script>
   </body>
 </html>

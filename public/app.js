@@ -163,6 +163,8 @@ const t = {
     calLegendGood: "Благоприятный",
     calLegendNeutral: "Нейтральный",
     calLegendHard: "Тяжёлый",
+    mapPickerSearch: "Поиск города...",
+    mapPickerConfirm: "Подтвердить",
     forecastLoading: "Расчёт прогноза...",
     forecastError: "Ошибка расчёта прогноза",
     forecastNoRun: "Сначала создайте отчёт",
@@ -332,6 +334,8 @@ const t = {
     calLegendGood: "Favorable",
     calLegendNeutral: "Neutral",
     calLegendHard: "Challenging",
+    mapPickerSearch: "Search city...",
+    mapPickerConfirm: "Confirm",
     forecastLoading: "Calculating forecast...",
     forecastError: "Forecast calculation error",
     forecastNoRun: "Generate a report first",
@@ -4484,6 +4488,7 @@ function boot() {
   initGeoSearch();
   initGeoAI();
   initGeoHoverRating();
+  initMapPicker();
   $("#birthForm").addEventListener("submit", generateReport);
   $("#refreshProfiles").addEventListener("click", loadProfiles);
   $("#newProfileBtn").addEventListener("click", newProfile);
@@ -5974,6 +5979,207 @@ function saveLanguage(lang) {
     localStorage.setItem(ACTIVE_LANGUAGE_STORAGE_KEY, lang);
   } catch {
     // Ignore storage failures and keep app functional.
+  }
+}
+
+// ── Birth Place Map Picker ────────────────────────────────────────────────────
+
+const _mapPicker = {
+  map: null,
+  marker: null,
+  selected: null, // { lat, lng, displayName, city, country, timezone }
+};
+
+function initMapPicker() {
+  const openBtn  = $("#openMapPickerBtn");
+  const modal    = $("#mapPickerModal");
+  const backdrop = $("#mapPickerBackdrop");
+  const closeBtn = $("#mapPickerClose");
+  const confirmBtn = $("#mapPickerConfirm");
+  const searchInput = $("#mapPickerSearch");
+  const resultsBox  = $("#mapPickerResults");
+  const infoBox     = $("#mapPickerInfo");
+
+  if (!openBtn || !modal) return;
+
+  openBtn.addEventListener("click", () => {
+    modal.style.display = "grid";
+    const lang = state.lang || "ru";
+    searchInput.placeholder = (t[lang] || t.ru).mapPickerSearch;
+    confirmBtn.textContent = (t[lang] || t.ru).mapPickerConfirm;
+    _initPickerMap(infoBox, confirmBtn);
+  });
+
+  backdrop.addEventListener("click", () => _closeMapPicker());
+  closeBtn.addEventListener("click", () => _closeMapPicker());
+
+  confirmBtn.addEventListener("click", () => {
+    if (!_mapPicker.selected) return;
+    const { lat, lng, displayName, city, country, timezone } = _mapPicker.selected;
+    const form = $("#birthForm");
+    form.city.value = city;
+    form.country.value = country;
+    form.latitude.value = lat.toFixed(6);
+    form.longitude.value = lng.toFixed(6);
+    form.timezone.value = timezone;
+    $("#placeQuery").value = displayName;
+    _closeMapPicker();
+  });
+
+  _mapPicker.positionResults = () => {
+    const r = searchInput.getBoundingClientRect();
+    resultsBox.style.top    = (r.bottom + 4) + "px";
+    resultsBox.style.left   = r.left + "px";
+    resultsBox.style.width  = r.width + "px";
+  };
+
+  let _searchTimer = null;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(_searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) { resultsBox.classList.add("hidden"); return; }
+    _mapPicker.positionResults();
+    _searchTimer = setTimeout(() => _pickerSearch(q, resultsBox, infoBox, confirmBtn), 350);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#mapPickerSearch") && !e.target.closest("#mapPickerResults")) {
+      resultsBox.classList.add("hidden");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.style.display !== "none") _closeMapPicker();
+  });
+}
+
+function _closeMapPicker() {
+  const modal = $("#mapPickerModal");
+  if (modal) modal.style.display = "none";
+}
+
+function _initPickerMap(infoBox, confirmBtn) {
+  if (_mapPicker.map) {
+    setTimeout(() => _mapPicker.map.invalidateSize(), 50);
+    return;
+  }
+
+  const container = document.getElementById("mapPickerMap");
+  if (!container || typeof L === "undefined") return;
+
+  const map = L.map("mapPickerMap", {
+    center: [20, 0],
+    zoom: 2,
+    minZoom: 1,
+    maxZoom: 18,
+    worldCopyJump: true,
+    zoomControl: true,
+    attributionControl: false,
+  });
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    subdomains: "abcd",
+    maxZoom: 19,
+  }).addTo(map);
+
+  map.on("click", (e) => {
+    const { lat, lng } = e.latlng;
+    _pickerSetMarker(lat, lng, map, infoBox, confirmBtn);
+    _pickerReverseGeocode(lat, lng, infoBox, confirmBtn);
+  });
+
+  _mapPicker.map = map;
+  setTimeout(() => map.invalidateSize(), 80);
+}
+
+function _pickerSetMarker(lat, lng, map, infoBox, confirmBtn) {
+  if (_mapPicker.marker) {
+    _mapPicker.marker.setLatLng([lat, lng]);
+  } else {
+    _mapPicker.marker = L.circleMarker([lat, lng], {
+      radius: 7,
+      color: "#d8b764",
+      fillColor: "#d8b764",
+      fillOpacity: 0.9,
+      weight: 2,
+    }).addTo(map || _mapPicker.map);
+  }
+  infoBox.textContent = "Загрузка...";
+  infoBox.className = "map-picker-info";
+  confirmBtn.disabled = true;
+  _mapPicker.selected = null;
+}
+
+async function _pickerReverseGeocode(lat, lng, infoBox, confirmBtn) {
+  const lang = state.lang === "ru" ? "ru" : "en";
+  try {
+    const geo = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&format=json&accept-language=${lang}&zoom=10`
+    ).then(r => r.json());
+
+    const parts = geo.display_name ? geo.display_name.split(",").map(s => s.trim()) : [];
+    const city    = geo.address?.city || geo.address?.town || geo.address?.village || geo.address?.county || parts[0] || "";
+    const country = geo.address?.country || parts[parts.length - 1] || "";
+    const displayName = [city, country].filter(Boolean).join(", ") || geo.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+    const tz = await _pickerGetTimezone(lat, lng);
+
+    _mapPicker.selected = { lat, lng, displayName, city, country, timezone: tz };
+
+    infoBox.textContent = `${displayName} · ${lat.toFixed(4)}, ${lng.toFixed(4)} · ${tz}`;
+    infoBox.className = "map-picker-info has-data";
+    confirmBtn.disabled = false;
+  } catch {
+    infoBox.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} — не удалось определить место`;
+    infoBox.className = "map-picker-info";
+    _mapPicker.selected = { lat, lng, displayName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, city: "", country: "", timezone: "UTC" };
+    confirmBtn.disabled = false;
+  }
+}
+
+async function _pickerGetTimezone(lat, lng) {
+  try {
+    const data = await fetch(
+      `https://timeapi.io/api/timezone/coordinate?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}`
+    ).then(r => r.json());
+    if (data?.timeZone) return data.timeZone;
+  } catch {}
+  // Fallback: rough UTC offset from longitude
+  const offset = Math.round(lng / 15);
+  return offset === 0 ? "UTC" : `Etc/GMT${offset > 0 ? "-" : "+"}${Math.abs(offset)}`;
+}
+
+async function _pickerSearch(q, resultsBox, infoBox, confirmBtn) {
+  const lang = state.lang === "ru" ? "ru" : "en";
+  try {
+    const data = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&accept-language=${lang}`
+    ).then(r => r.json());
+
+    if (!data.length) { resultsBox.classList.add("hidden"); return; }
+
+    resultsBox.innerHTML = data.map((item) =>
+      `<div class="map-picker-result-item" data-lat="${item.lat}" data-lon="${item.lon}" data-name="${escapeHtml(item.display_name)}">
+        ${escapeHtml(item.display_name.split(",").slice(0, 3).join(", "))}
+      </div>`
+    ).join("");
+    if (_mapPicker.positionResults) _mapPicker.positionResults();
+    resultsBox.classList.remove("hidden");
+
+    resultsBox.querySelectorAll(".map-picker-result-item").forEach(el => {
+      el.addEventListener("click", () => {
+        const lat = parseFloat(el.dataset.lat);
+        const lng = parseFloat(el.dataset.lon);
+        const map = _mapPicker.map;
+        if (map) map.flyTo([lat, lng], 9, { duration: 1 });
+        _pickerSetMarker(lat, lng, map, infoBox, confirmBtn);
+        _pickerReverseGeocode(lat, lng, infoBox, confirmBtn);
+        resultsBox.classList.add("hidden");
+        document.getElementById("mapPickerSearch").value = el.textContent.trim();
+      });
+    });
+  } catch {
+    resultsBox.classList.add("hidden");
   }
 }
 
