@@ -557,6 +557,16 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
     userPayload.transit_data = forecast_data;
   }
 
+  const bodyStr = JSON.stringify({
+    model,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: JSON.stringify(userPayload, null, 2) },
+    ],
+    temperature: 0.2,
+  });
+  console.log(`[OpenRouter] model=${model} payload_bytes=${bodyStr.length}`);
+
   const response = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
@@ -565,14 +575,7 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
       "HTTP-Referer": process.env.OPENROUTER_SITE_URL || `http://localhost:${PORT}`,
       "X-Title": process.env.OPENROUTER_APP_NAME || "Jyotish Service",
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: JSON.stringify(userPayload, null, 2) },
-      ],
-      temperature: 0.2,
-    }),
+    body: bodyStr,
   });
 
   if (!response.ok) {
@@ -580,7 +583,12 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
     throw new ApiError(response.status, "OpenRouter request failed.", detail);
   }
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    console.error("[OpenRouter] Empty content. finish_reason:", data.choices?.[0]?.finish_reason, "| usage:", JSON.stringify(data.usage));
+    console.error("[OpenRouter] Full response:", JSON.stringify(data).slice(0, 800));
+  }
+  return content || "";
 }
 
 async function route(req, res) {
