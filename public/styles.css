@@ -2999,6 +2999,50 @@ td {
   line-height: 1.5;
 }
 
+.msg-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.message:hover .msg-actions {
+  opacity: 1;
+}
+
+.msg-copy-btn,
+.msg-followup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: var(--muted, #888);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.msg-copy-btn .icon,
+.msg-followup-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.msg-copy-btn:hover,
+.msg-followup-btn:hover {
+  color: var(--gold, #d8b764);
+  border-color: rgba(216,183,100,0.4);
+}
+
+.msg-copy-btn.copied {
+  color: #6dbf8b;
+  border-color: rgba(109,191,139,0.4);
+}
+
 .message.loading p::after {
   content: "";
   display: inline-block;
@@ -3064,6 +3108,42 @@ td {
   box-shadow:
     0 0 0 1px rgba(255, 224, 150, 0.55) inset,
     0 0 24px rgba(216, 183, 100, 0.5);
+}
+
+.followup-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  margin-bottom: 6px;
+  background: rgba(216, 183, 100, 0.1);
+  border: 1px solid rgba(216, 183, 100, 0.35);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--gold, #d8b764);
+}
+
+.followup-badge .followup-badge-cancel {
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 13px;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0 2px;
+}
+
+.followup-badge .followup-badge-cancel:hover {
+  opacity: 1;
+}
+
+.msg-followup-btn.active {
+  color: var(--gold, #d8b764);
+  border-color: rgba(216, 183, 100, 0.5);
+  background: rgba(216, 183, 100, 0.1);
+  opacity: 1;
 }
 
 .suggestions {

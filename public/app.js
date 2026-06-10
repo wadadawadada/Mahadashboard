@@ -3206,7 +3206,7 @@ function renderReport(run, markdown) {
   btn.href = `/api/export/${run.id}?lang=${state.lang}`;
   const chart = state.chart;
   const name = (chart?.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
-  btn.download = `${name}_jyotish.md`;
+  btn.download = `${name}_astro_report.md`;
   const meta = $("#exportMeta");
   if (meta && chart) {
     const b = chart.birth || {};
@@ -3464,7 +3464,9 @@ async function askQuestion(event) {
   pending.classList.add("loading");
   try {
     const forecastData = _fcState.pendingForecastForAI || null;
-    _fcState.pendingForecastForAI = null; // consume once
+    _fcState.pendingForecastForAI = null;
+    const followupContext = state.pendingFollowupContext || null;
+    clearFollowupMode();
 
     const data = await api("/api/chat", {
       method: "POST",
@@ -3474,6 +3476,7 @@ async function askQuestion(event) {
         question,
         language: state.lang,
         forecast_data: forecastData,
+        followup_context: followupContext,
       }),
     });
     pending.classList.remove("loading");
@@ -3488,6 +3491,13 @@ async function askQuestion(event) {
     const content = pending.querySelector(".message-content");
     if (content) content.innerHTML = `<p>${escapeHtml(error.message.includes("OPENROUTER_API_KEY") ? tr("missingApiKey") : error.message)}</p>`;
   }
+}
+
+function clearFollowupMode() {
+  state.pendingFollowupContext = null;
+  $$(".msg-followup-btn.active").forEach((b) => b.classList.remove("active"));
+  const badge = $("#followupBadge");
+  if (badge) badge.classList.add("hidden");
 }
 
 function renderChatHistory(messages) {
@@ -3558,8 +3568,48 @@ function addMessage(role, text, options = {}) {
     <div class="message-body">
       <span>${role === "user" ? "You" : "AI"}</span>
       <div class="message-content${role === "assistant" ? " markdown-body" : ""}">${body}</div>
+      ${role === "assistant" ? `<div class="msg-actions"><button class="msg-copy-btn" title="${state.lang === "en" ? "Copy" : "Копировать"}">${icon("copy")}</button><button class="msg-followup-btn" title="${state.lang === "en" ? "Ask about this answer" : "Задать вопрос по этому ответу"}">${icon("chat")}</button></div>` : ""}
     </div>
   `;
+  if (role === "assistant") {
+    node.querySelector(".msg-copy-btn").addEventListener("click", function () {
+      const content = node.querySelector(".message-content");
+      navigator.clipboard.writeText(content.innerText).then(() => {
+        this.innerHTML = icon("check");
+        this.classList.add("copied");
+        setTimeout(() => {
+          this.innerHTML = icon("copy");
+          this.classList.remove("copied");
+        }, 1500);
+      });
+    });
+    node.querySelector(".msg-followup-btn").addEventListener("click", function () {
+      // toggle off if already active
+      if (this.classList.contains("active")) {
+        clearFollowupMode();
+        return;
+      }
+      // deactivate any previously active button
+      $$(".msg-followup-btn.active").forEach((b) => b.classList.remove("active"));
+      this.classList.add("active");
+
+      const content = node.querySelector(".message-content");
+      state.pendingFollowupContext = content.innerText.trim();
+
+      const badge = $("#followupBadge");
+      if (badge) {
+        const label = state.lang === "en" ? "Follow-up on this answer" : "Вопрос по этому ответу";
+        badge.innerHTML = `<span>${label}</span><button class="followup-badge-cancel" title="×">✕</button>`;
+        badge.classList.remove("hidden");
+        badge.querySelector(".followup-badge-cancel").addEventListener("click", clearFollowupMode);
+      }
+
+      const input = $("#chatQuestion");
+      if (!input) return;
+      input.focus();
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
   log.appendChild(node);
   log.scrollTop = log.scrollHeight;
   return node;

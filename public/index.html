@@ -32,6 +32,8 @@
       <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 0 1 .16-1.53L2.6 9.28l1.5-2.6 2.2.64a7.56 7.56 0 0 1 1.32-1.32l-.64-2.2 2.6-1.5 1.19 2.06A7.5 7.5 0 0 1 12 4.5c.52 0 1.03.053 1.53.16l1.19-2.06 2.6 1.5-.64 2.2c.49.38.94.83 1.32 1.32l2.2-.64 1.5 2.6-2.06 1.19c.107.5.16 1.01.16 1.53s-.053 1.03-.16 1.53l2.06 1.19-1.5 2.6-2.2-.64a7.56 7.56 0 0 1-1.32 1.32l.64 2.2-2.6 1.5-1.19-2.06A7.5 7.5 0 0 1 12 19.5a7.5 7.5 0 0 1-1.53-.16l-1.19 2.06-2.6-1.5.64-2.2a7.56 7.56 0 0 1-1.32-1.32l-2.2.64-1.5-2.6 2.06-1.19A7.5 7.5 0 0 1 4.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
       <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14"/><path d="m21 3-7 18-4-7-7-4z"/></symbol>
       <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
     </svg>
 
     <div class="app-shell">
@@ -511,6 +513,7 @@
                     <button type="button" class="prompt-chip" data-prompt-key="promptMoney" data-i18n="promptMoney">Деньги</button>
                   </div>
                   <div class="chat-log" id="chatLog"></div>
+                  <div id="followupBadge" class="followup-badge hidden"></div>
                   <form id="chatForm" class="chat-form">
                     <input id="chatQuestion" data-i18n-placeholder="askPlaceholder" placeholder="Спроси о карте, периоде, домах или источниках" />
                     <button class="send-button" type="submit" title="Send"><svg class="icon"><use href="#i-send"></use></svg></button>
@@ -593,6 +596,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="/app.js?v=19"></script>
+    <script src="/app.js?v=21"></script>
   </body>
 </html>

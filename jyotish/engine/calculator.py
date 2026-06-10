@@ -6,6 +6,7 @@ from pathlib import Path
 from jyotish.engine import aspects as asp_mod
 from jyotish.engine import dashas as dasha_mod
 from jyotish.engine import divisional, ephemeris, houses as house_mod
+from jyotish.engine.ashtakavarga import calculate_ashtakavarga
 from jyotish.engine.dignity import get_dignity
 from jyotish.engine.location import resolve_location
 from jyotish.engine.nakshatra import get_nakshatra, get_pada
@@ -22,6 +23,7 @@ from jyotish.reports.keys import (
 )
 from jyotish.schemas import (
     AspectData,
+    AshtakavargaData,
     BirthData,
     BirthInput,
     ChartMeta,
@@ -121,10 +123,26 @@ def calculate_chart(
     if birth.settings.include_navamsa:
         for key, planet in planet_objects.items():
             d9_sign = divisional.get_navamsa_sign(planet.longitude_sidereal)
+            d9_nakshatra = get_nakshatra(planet.longitude_sidereal)
+            d9_pada = get_pada(planet.longitude_sidereal)
+            d9_dignity = get_dignity(key, d9_sign)
+            d9_house = house_mod.get_planet_house(d9_sign, lagna_sign)
             d9_planets[key] = {
+                "name": PLANET_DISPLAY[key],
                 "sign": d9_sign,
+                "nakshatra": d9_nakshatra,
+                "pada": d9_pada,
+                "dignity": d9_dignity,
+                "house": d9_house,
                 "clickable_key": f"d9:{key}:sign:{normalize_key(d9_sign)}",
             }
+
+    avarga_raw = calculate_ashtakavarga(planet_objects, lagna_sign)
+    ashtakavarga = AshtakavargaData(
+        bav=avarga_raw["bav"],
+        sav=avarga_raw["sav"],
+        planet_totals=avarga_raw["planet_totals"],
+    )
 
     interp_keys = all_interpretation_keys(
         lagna, planet_objects, houses_map, dashas, aspects
@@ -161,6 +179,7 @@ def calculate_chart(
         aspects=aspects,
         dashas=dashas,
         divisional_charts={"D1": {}, "D9": {"planets": d9_planets}},
+        ashtakavarga=ashtakavarga,
         interpretation_keys=interp_keys,
         warnings=warnings,
     )

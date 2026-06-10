@@ -492,27 +492,84 @@ function compactChartFacts(chart) {
     dignity: planet.dignity,
     ruler_of_houses: planet.ruler_of_houses,
   }));
+
+  const dashas = chart.dashas || {};
+  const current = dashas.current || {};
+  const currentMaha = current.mahadasha;
+  const currentAntar = current.antardasha;
+
+  // D9 — only essential fields to save tokens
+  const d9Raw = chart.divisional_charts?.D9?.planets || {};
+  const d9 = Object.fromEntries(
+    Object.entries(d9Raw).map(([k, v]) => [k, {
+      name: v.name || k,
+      sign: v.sign,
+      house: v.house,
+      dignity: v.dignity,
+      nakshatra: v.nakshatra,
+      pada: v.pada,
+    }])
+  );
+
+  // Dignity summary
+  const dignityGroups = { exalted: [], own_sign: [], debilitated: [], neutral: [] };
+  for (const p of planets) {
+    (dignityGroups[p.dignity] || dignityGroups.neutral).push(p.name);
+  }
+
+  // Retrograde list
+  const retrograde = planets.filter((p) => p.retrograde).map((p) => p.name);
+
+  // Ashtakavarga — bav + sav + totals
+  const av = chart.ashtakavarga;
+  const ashtakavarga = av ? {
+    bav: av.bav,
+    sav: av.sav,
+    planet_totals: av.planet_totals,
+    strong_houses: (av.sav || []).map((v, i) => v >= 28 ? i + 1 : null).filter(Boolean),
+    weak_houses: (av.sav || []).map((v, i) => v < 25 ? i + 1 : null).filter(Boolean),
+  } : undefined;
+
   return {
     meta: chart.meta,
     birth: chart.birth,
-    lagna: chart.lagna,
+    lagna: {
+      sign: chart.lagna?.sign,
+      degree: chart.lagna?.degree_formatted,
+      nakshatra: chart.lagna?.nakshatra,
+      pada: chart.lagna?.pada,
+    },
     planets,
-    houses: chart.houses,
-    current_dasha: chart.dashas?.current,
-    mahadashas: chart.dashas?.mahadashas,
-    antardashas: chart.dashas?.antardashas || [],
-    pratyantardashas: chart.dashas?.pratyantardashas || [],
-    active_antardashas: (chart.dashas?.antardashas || []).filter((item) => {
-      const current = chart.dashas?.current || {};
-      return item.mahadasha === current.mahadasha;
-    }),
+    dignity_summary: dignityGroups,
+    retrograde_planets: retrograde,
+    houses: Object.fromEntries(
+      Object.entries(chart.houses || {}).map(([k, h]) => [k, {
+        number: h.number,
+        sign: h.sign,
+        lord: h.lord,
+        planets: h.planets,
+      }])
+    ),
     aspects: chart.aspects,
-    d9: chart.divisional_charts?.D9,
+    d9_navamsha: d9,
+    ashtakavarga,
+    dasha: {
+      system: dashas.system,
+      birth_moon_nakshatra: dashas.birth_moon_nakshatra,
+      birth_mahadasha: dashas.birth_mahadasha,
+      balance_days: dashas.balance_days,
+      current: current,
+      mahadashas: dashas.mahadashas,
+      active_antardashas: (dashas.antardashas || []).filter((a) => a.mahadasha === currentMaha),
+      current_pratyantardashas: (dashas.pratyantardashas || []).filter(
+        (p) => p.mahadasha === currentMaha && p.antardasha === currentAntar
+      ),
+    },
     warnings: chart.warnings,
   };
 }
 
-async function askOpenRouter({ question, chart, context, language, forecast_data }) {
+async function askOpenRouter({ question, chart, context, language, forecast_data, followup_context }) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new ApiError(400, "OPENROUTER_API_KEY is missing in .env.");
@@ -530,9 +587,11 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
 
   const systemParts = [
     "You are a Jyotish chart assistant for a deterministic astrology service.",
-    "Never calculate astrology facts yourself.",
-    "Never invent signs, houses, nakshatras, dashas, degrees, aspects, yogas, dignities, or source ids.",
+    "Never calculate astrology facts yourself — all positions, dignities, aspects, dashas, ashtakavarga scores, and D9 placements are pre-calculated and provided in natal_chart.",
+    "Never invent signs, houses, nakshatras, dashas, degrees, aspects, dignities, or source ids.",
     "Use only the provided chart facts, curated interpretation snippets, and transit data.",
+    "The natal_chart contains: birth data, lagna, all 9 planets with sign/house/nakshatra/pada/dignity/retrograde/ruler_of_houses, dignity summary (exalted/own_sign/debilitated), retrograde planet list, 12 houses with lord and occupants, graha drishti aspects, D9 Navamsha placements with dignity, Ashtakavarga (BAV per planet per house, SAV totals, planet strength totals, strong/weak houses), and full Vimshottari dasha tree (current period, all mahadashas, active antardashas, current pratyantardashas).",
+    "When answering, cross-reference multiple layers: dignity + house placement + dasha lord + ashtakavarga strength.",
     "Every interpretive claim must cite source ids from the provided curated context.",
     "If a needed interpretation source is missing, say: No curated interpretation source found for this key.",
     "Always preserve and mention calculation settings when they matter.",
@@ -543,6 +602,11 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
       "The user is asking about a specific forecast day. You have access to pre-calculated transit data for that day — use it directly without inventing or recalculating anything.",
       "The transit_data field contains: date, score (0-100), lunar phase, all 9 transit planet positions with their natal house placements, tight transit-to-natal aspects (orb ≤6°), ashtakavarga BAV scores, active dasha period, and pre-built advisory tips.",
       "Refer to the natal chart facts for context about what each natal house means for this person."
+    );
+  }
+  if (followup_context) {
+    systemParts.push(
+      `The user is asking a follow-up question about a specific previous answer. That answer is provided below — use it as the direct context for the question:\n\n---\n${followup_context}\n---`
     );
   }
   const system = systemParts.join(" ");
@@ -681,7 +745,7 @@ async function route(req, res) {
     const md = buildExportMarkdown(chart, context, lang);
     res.writeHead(200, {
       "content-type": "text/markdown; charset=utf-8",
-      "content-disposition": `attachment; filename="${name}_jyotish.md"`,
+      "content-disposition": `attachment; filename="${name}_astro_report.md"`,
       "cache-control": "no-store",
     });
     res.end(md);
@@ -842,6 +906,7 @@ async function route(req, res) {
       context: loaded.context,
       language: body.language || loaded.chart.meta?.language || "ru",
       forecast_data: body.forecast_data || null,
+      followup_context: body.followup_context || null,
     });
     const profileId = await resolveChatProfileId(body, loaded);
     const now = new Date().toISOString();
@@ -947,7 +1012,7 @@ function buildExportMarkdown(chart, context, lang = "ru") {
   const blank = () => lines.push("");
   const para = (text) => { if (text) { lines.push(text); blank(); } };
 
-  h(1, isEn ? `Jyotish chart: ${b.name || "—"}` : `Джйотиш-карта: ${b.name || "—"}`);
+  h(1, isEn ? `Astro report: ${b.name || "—"}` : `Астро-отчёт: ${b.name || "—"}`);
   blank();
 
   // Birth data
@@ -980,16 +1045,35 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     "Nakshatra",
     isEn ? "Pada" : "Пада",
     "R",
-    isEn ? "Dignity" : "Достоинство"
+    isEn ? "Dignity" : "Достоинство",
+    isEn ? "Rules houses" : "Управляет домами"
   );
-  sep(8);
+  sep(9);
   const PLANET_ORDER = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+  const DIGNITY_LABEL = {
+    exalted: isEn ? "Exalted" : "Экзальтация",
+    debilitated: isEn ? "Debilitated" : "Падение",
+    own_sign: isEn ? "Own sign" : "Своё знак",
+    neutral: isEn ? "Neutral" : "Нейтральный",
+  };
   for (const key of PLANET_ORDER) {
     const p = chart.planets?.[key];
     if (!p) continue;
-    row(p.name, p.sign, p.degree_formatted, p.house, p.nakshatra, p.pada, p.retrograde ? "R" : "", p.dignity || "");
+    const dignityLabel = DIGNITY_LABEL[p.dignity] || p.dignity || "";
+    const rulerOf = (p.ruler_of_houses || []).length ? p.ruler_of_houses.join(", ") : "—";
+    row(p.name, p.sign, p.degree_formatted, p.house, p.nakshatra, p.pada, p.retrograde ? "R" : "", dignityLabel, rulerOf);
   }
   blank();
+
+  // Retrograde planets summary
+  const retrogradePlanets = PLANET_ORDER.map((k) => chart.planets?.[k]).filter((p) => p?.retrograde);
+  if (retrogradePlanets.length) {
+    h(3, isEn ? "Retrograde planets" : "Ретроградные планеты");
+    retrogradePlanets.forEach((p) => {
+      lines.push(`- **${p.name}** — ${p.sign}, ${isEn ? "house" : "дом"} ${p.house}, ${p.nakshatra}`);
+    });
+    blank();
+  }
 
   // Planet interpretations
   h(2, isEn ? "Planet interpretations" : "Интерпретации планет");
@@ -1001,6 +1085,25 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     if (!texts.length) continue;
     h(3, p.name);
     texts.forEach((t) => para(t));
+  }
+
+  // Dignity analysis
+  const exalted = PLANET_ORDER.map((k) => chart.planets?.[k]).filter((p) => p?.dignity === "exalted");
+  const debilitated = PLANET_ORDER.map((k) => chart.planets?.[k]).filter((p) => p?.dignity === "debilitated");
+  const ownSign = PLANET_ORDER.map((k) => chart.planets?.[k]).filter((p) => p?.dignity === "own_sign");
+  if (exalted.length || debilitated.length || ownSign.length) {
+    h(2, isEn ? "Dignity analysis" : "Анализ достоинств");
+    blank();
+    if (exalted.length) {
+      lines.push(`**${isEn ? "Exalted" : "Экзальтированные"}:** ${exalted.map((p) => `${p.name} (${p.sign}, ${isEn ? "house" : "дом"} ${p.house})`).join(", ")}`);
+    }
+    if (ownSign.length) {
+      lines.push(`**${isEn ? "Own sign" : "В своём знаке"}:** ${ownSign.map((p) => `${p.name} (${p.sign}, ${isEn ? "house" : "дом"} ${p.house})`).join(", ")}`);
+    }
+    if (debilitated.length) {
+      lines.push(`**${isEn ? "Debilitated" : "В падении"}:** ${debilitated.map((p) => `${p.name} (${p.sign}, ${isEn ? "house" : "дом"} ${p.house})`).join(", ")}`);
+    }
+    blank();
   }
 
   // Houses
@@ -1047,48 +1150,135 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     blank();
   }
 
-  // D9
+  // D9 Navamsha — extended
   const d9 = chart.divisional_charts?.D9;
   if (d9?.planets) {
     h(2, isEn ? "D9 Navamsha" : "D9 Навамша");
     blank();
-    row(isEn ? "Planet" : "Планета", isEn ? "Sign in D9" : "Знак в D9");
-    sep(2);
+    row(
+      isEn ? "Planet" : "Планета",
+      isEn ? "Sign" : "Знак",
+      isEn ? "House" : "Дом",
+      "Nakshatra",
+      isEn ? "Pada" : "Пада",
+      isEn ? "Dignity" : "Достоинство"
+    );
+    sep(6);
     for (const key of PLANET_ORDER) {
       const p = d9.planets[key];
-      if (p) row(p.name || key, p.sign);
+      if (!p) continue;
+      const dLabel = DIGNITY_LABEL[p.dignity] || p.dignity || "";
+      row(p.name || key, p.sign, p.house ?? "—", p.nakshatra ?? "—", p.pada ?? "—", dLabel);
     }
+    blank();
+  }
+
+  // Ashtakavarga
+  const av = chart.ashtakavarga;
+  if (av) {
+    h(2, isEn ? "Ashtakavarga" : "Аштакаварга");
+    blank();
+    const HOUSES_12 = [1,2,3,4,5,6,7,8,9,10,11,12];
+    const CLASSICAL = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+    const PLANET_NAMES = { sun: isEn ? "Sun" : "Солнце", moon: isEn ? "Moon" : "Луна", mars: isEn ? "Mars" : "Марс", mercury: isEn ? "Mercury" : "Меркурий", jupiter: isEn ? "Jupiter" : "Юпитер", venus: isEn ? "Venus" : "Венера", saturn: isEn ? "Saturn" : "Сатурн" };
+
+    // BAV table
+    h(3, isEn ? "Benefic points by planet (BAV)" : "Бенефические баллы по планетам (BAV)");
+    blank();
+    row(isEn ? "Planet" : "Планета", ...HOUSES_12.map(String), isEn ? "Total" : "Итого");
+    sep(14);
+    for (const pk of CLASSICAL) {
+      const scores = av.bav?.[pk] || [];
+      const total = av.planet_totals?.[pk] ?? scores.reduce((s, v) => s + v, 0);
+      row(PLANET_NAMES[pk], ...scores.map(String), String(total));
+    }
+    // SAV row
+    row(`**${isEn ? "SAV (total)" : "SAV (итого)"}**`, ...(av.sav || []).map(String), String((av.sav || []).reduce((s, v) => s + v, 0)));
+    blank();
+
+    // Strength summary
+    h(3, isEn ? "Planet strength (total BAV points)" : "Сила планет (сумма BAV)");
+    blank();
+    const sorted = CLASSICAL.slice().sort((a, b) => (av.planet_totals?.[b] ?? 0) - (av.planet_totals?.[a] ?? 0));
+    sorted.forEach((pk) => {
+      const total = av.planet_totals?.[pk] ?? 0;
+      const bar = "█".repeat(Math.round(total / 56 * 10));
+      lines.push(`- **${PLANET_NAMES[pk]}**: ${total}/56 ${bar}`);
+    });
+    blank();
+
+    // Strong/weak houses by SAV
+    const sav = av.sav || [];
+    const strongHouses = HOUSES_12.filter((h) => sav[h - 1] >= 28);
+    const weakHouses = HOUSES_12.filter((h) => sav[h - 1] < 25);
+    if (strongHouses.length) lines.push(`${isEn ? "Strong houses (SAV ≥ 28)" : "Сильные дома (SAV ≥ 28):"} ${strongHouses.join(", ")}`);
+    if (weakHouses.length) lines.push(`${isEn ? "Weak houses (SAV < 25)" : "Слабые дома (SAV < 25):"} ${weakHouses.join(", ")}`);
     blank();
   }
 
   // Periods
   const dashas = chart.dashas || {};
-  h(2, isEn ? "Planetary periods" : "Планетарные периоды");
+  h(2, isEn ? "Planetary periods (Vimshottari)" : "Планетарные периоды (Вимшоттари)");
   blank();
+
+  if (dashas.birth_moon_nakshatra) {
+    lines.push(`- **${isEn ? "Moon nakshatra at birth" : "Накшатра Луны при рождении"}:** ${dashas.birth_moon_nakshatra}`);
+    lines.push(`- **${isEn ? "Birth mahadasha" : "Маха-даша рождения"}:** ${dashas.birth_mahadasha}`);
+    if (dashas.balance_days != null) {
+      const balYears = (dashas.balance_days / 365.25).toFixed(2);
+      lines.push(`- **${isEn ? "Balance at birth" : "Остаток при рождении"}:** ${balYears} ${isEn ? "years" : "лет"}`);
+    }
+    blank();
+  }
+
   if (dashas.current) {
     const cur = dashas.current;
     lines.push(`**${isEn ? "Current period" : "Текущий период"}:** ${[cur.mahadasha, cur.antardasha, cur.pratyantardasha].filter(Boolean).join(" / ")}`);
     blank();
   }
+
   if ((dashas.mahadashas || []).length) {
-    h(3, isEn ? "Period chronology" : "Хронология периодов");
+    h(3, isEn ? "Mahadasha chronology" : "Хронология Маха-даш");
     blank();
     row(isEn ? "Planet" : "Планета", isEn ? "Start" : "Начало", isEn ? "End" : "Конец", isEn ? "Years" : "Лет");
     sep(4);
     for (const m of dashas.mahadashas) {
-      row(m.planet, m.start?.slice(0, 10), m.end?.slice(0, 10), m.duration_years?.toFixed(1) || "");
+      const isCurrent = m.planet === dashas.current?.mahadasha;
+      const marker = isCurrent ? " ◄" : "";
+      row(`${m.planet}${marker}`, m.start?.slice(0, 10), m.end?.slice(0, 10), m.duration_years || "");
     }
     blank();
   }
+
   const currentMahadasha = dashas.current?.mahadasha;
+  const currentAntardasha = dashas.current?.antardasha;
   const currentAntars = (dashas.antardashas || []).filter((a) => a.mahadasha === currentMahadasha);
   if (currentAntars.length) {
-    h(3, isEn ? `Sub-periods of current period (${currentMahadasha})` : `Подпериоды текущего периода (${currentMahadasha})`);
+    h(3, isEn ? `Antardasha of ${currentMahadasha} mahadasha` : `Антардаши в маха-даше ${currentMahadasha}`);
     blank();
-    row(isEn ? "Sub-period" : "Подпериод", isEn ? "Start" : "Начало", isEn ? "End" : "Конец");
+    row(isEn ? "Antardasha" : "Антардаша", isEn ? "Start" : "Начало", isEn ? "End" : "Конец");
     sep(3);
     for (const a of currentAntars) {
-      row(a.antardasha, a.start?.slice(0, 10), a.end?.slice(0, 10));
+      const isCurrent = a.antardasha === currentAntardasha;
+      const marker = isCurrent ? " ◄" : "";
+      row(`${a.antardasha}${marker}`, a.start?.slice(0, 10), a.end?.slice(0, 10));
+    }
+    blank();
+  }
+
+  // Pratyantardashas of current antardasha
+  const currentPratyas = (dashas.pratyantardashas || []).filter(
+    (p) => p.mahadasha === currentMahadasha && p.antardasha === currentAntardasha
+  );
+  if (currentPratyas.length) {
+    h(3, isEn ? `Pratyantardasha of ${currentMahadasha} / ${currentAntardasha}` : `Пратьянтардаши ${currentMahadasha} / ${currentAntardasha}`);
+    blank();
+    row(isEn ? "Pratyantardasha" : "Пратьянтардаша", isEn ? "Start" : "Начало", isEn ? "End" : "Конец");
+    sep(3);
+    for (const p of currentPratyas) {
+      const isCurrent = p.pratyantardasha === dashas.current?.pratyantardasha;
+      const marker = isCurrent ? " ◄" : "";
+      row(`${p.pratyantardasha}${marker}`, p.start?.slice(0, 10), p.end?.slice(0, 10));
     }
     blank();
   }

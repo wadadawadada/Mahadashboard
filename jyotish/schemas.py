@@ -124,6 +124,12 @@ class NavamsaPlanet(BaseModel):
     clickable_key: str
 
 
+class AshtakavargaData(BaseModel):
+    bav: dict[str, list[int]]   # planet → 12 house scores
+    sav: list[int]              # Sarvashtakavarga (12 house totals)
+    planet_totals: dict[str, int]  # planet → total strength
+
+
 class ChartMeta(BaseModel):
     engine: str = "swiss_ephemeris"
     zodiac: str
@@ -156,5 +162,6 @@ class ChartOutput(BaseModel):
     aspects: list[AspectData]
     dashas: DashaData
     divisional_charts: dict[str, dict]
+    ashtakavarga: Optional[AshtakavargaData] = None
     interpretation_keys: list[str]
     warnings: list[str]
