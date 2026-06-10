@@ -3673,6 +3673,13 @@ function setActiveTab(tab) {
   const view = $(`#tab-${tab}`);
   if (view) view.classList.add("active");
 
+  if (tab === "ai") {
+    setTimeout(() => {
+      const log = $("#chatLog");
+      if (log) log.scrollTop = log.scrollHeight;
+    }, 50);
+  }
+
   if (tab === "geo") {
     // Small delay so the tab panel is visible before Leaflet initializes
     setTimeout(() => {
