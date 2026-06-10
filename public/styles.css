@@ -6224,6 +6224,26 @@ td {
   font-size: 0.68rem;
   color: var(--text-muted);
 }
+.fc-cal-ask-ai-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(216, 183, 100, 0.08);
+  border: 1px solid rgba(216, 183, 100, 0.25);
+  border-radius: 6px;
+  color: var(--gold, #d8b764);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.fc-cal-ask-ai-btn:hover {
+  background: rgba(216, 183, 100, 0.15);
+  border-color: rgba(216, 183, 100, 0.45);
+}
+
 .fc-cal-dot {
   width: 7px;
   height: 7px;

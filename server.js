@@ -480,6 +480,21 @@ async function loadRun(runId) {
   return { manifest, chart, context, markdown };
 }
 
+function compactDayForecast(dateStr, data) {
+  const keyAspects = (data.transit_aspects || [])
+    .filter((a) => a.aspect !== "jyotish_aspect" && (a.orb || 99) <= 4)
+    .map((a) => `${a.transit_planet}→${a.natal_planet} ${a.aspect}`);
+  const planets = (data.transit_planets || []).map((p) => `${p.name}:${p.sign}H${p.natal_house}`);
+  return {
+    date: dateStr,
+    score: data.score ?? 50,
+    lunar_phase: data.lunar_phase,
+    active_dasha: data.active_dasha,
+    transit_planets: planets,
+    key_aspects: keyAspects,
+  };
+}
+
 function compactChartFacts(chart) {
   const planets = Object.values(chart.planets || {}).map((planet) => ({
     name: planet.name,
@@ -597,7 +612,15 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
     "Always preserve and mention calculation settings when they matter.",
     `Answer in ${language === "en" ? "English" : "Russian"}.`,
   ];
-  if (forecast_data) {
+  if (forecast_data?.month_overview) {
+    systemParts.push(
+      `The user is asking for a monthly overview of ${forecast_data.month_name} ${forecast_data.year}.`,
+      "You have pre-calculated forecast data for every day of the month in transit_data.days.",
+      "Each day contains: date, score (0-100), lunar_phase, active_dasha, transit_planets (planet:sign:natal_house), key_aspects (tight orb ≤4° transits).",
+      "Use this data directly — identify the best days (score ≥70), challenging days (score ≤35), key transit events, dasha changes, and give a practical monthly summary.",
+      "Never invent or estimate — base everything on the provided day-by-day data."
+    );
+  } else if (forecast_data) {
     systemParts.push(
       "The user is asking about a specific forecast day. You have access to pre-calculated transit data for that day — use it directly without inventing or recalculating anything.",
       "The transit_data field contains: date, score (0-100), lunar phase, all 9 transit planet positions with their natal house placements, tight transit-to-natal aspects (orb ≤6°), ashtakavarga BAV scores, active dasha period, and pre-built advisory tips.",
@@ -863,7 +886,7 @@ async function route(req, res) {
         try {
           const cached = await fsp.readFile(forecastPath, "utf8");
           const data = JSON.parse(cached);
-          return { date: dateStr, score: data.score ?? 50 };
+          return compactDayForecast(dateStr, data);
         } catch (e) {
           if (e.code !== "ENOENT") throw e;
         }
@@ -876,7 +899,7 @@ async function route(req, res) {
           "--score-method", method,
         ]);
         const data = await readJson(forecastPath);
-        return { date: dateStr, score: data.score ?? 50 };
+        return compactDayForecast(dateStr, data);
       }));
       results.push(...chunkResults);
     }

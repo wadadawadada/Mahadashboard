@@ -4643,6 +4643,12 @@ function _renderCalGrid() {
       loadForecast(d);
     });
   });
+
+  const askBtn = $("#fcCalAskAI");
+  if (askBtn) {
+    const mn = (isRu ? _MONTHS_RU : _MONTHS_EN)[month - 1];
+    askBtn.textContent = isRu ? `Спросить ИИ о ${mn}` : `Ask AI about ${mn}`;
+  }
 }
 
 async function _loadCalMonth(year, month) {
@@ -4813,6 +4819,51 @@ function initFcCalendar() {
     const isYear = /^\d{4}$/.test(text);
     if (_calState._pickerMode) { _hidePicker(); return; }
     _showPicker(isYear ? "year" : "month");
+  });
+
+  $("#fcCalAskAI")?.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (!state.currentRunId) return;
+    const { year, month } = _calState;
+    const isRu = state.lang === "ru";
+    const btn = $("#fcCalAskAI");
+    btn.textContent = isRu ? "Загружаю данные..." : "Loading...";
+    btn.disabled = true;
+    try {
+      const data = await api(`/api/forecast/${state.currentRunId}/month?year=${year}&month=${month}&lang=${state.lang}&method=${_fcState.scoreMethod}`);
+      const days = data.days || [];
+      const monthName = (isRu ? _MONTHS_RU : _MONTHS_EN)[month - 1];
+
+      // Build compact summary for AI
+      const dayLines = days.map((d) => {
+        const parts = [`${d.date} score:${d.score}`];
+        if (d.lunar_phase) parts.push(d.lunar_phase);
+        if (d.active_dasha) parts.push(d.active_dasha);
+        if ((d.key_aspects || []).length) parts.push(d.key_aspects.join(", "));
+        return parts.join(" | ");
+      });
+
+      _fcState.pendingForecastForAI = {
+        month_overview: true,
+        year, month,
+        month_name: monthName,
+        days: days,
+      };
+
+      const question = isRu
+        ? `Проанализируй ${monthName} ${year}: оцени общую энергетику месяца, выдели лучшие и сложные дни на основе транзитов и даш.`
+        : `Analyze ${monthName} ${year}: summarize the month's energy, highlight the best and most challenging days based on transits and dashas.`;
+
+      _closeCalendar();
+      setActiveTab("ai");
+      const input = $("#chatQuestion");
+      if (input) { input.value = question; input.focus(); }
+    } catch (err) {
+      btn.textContent = isRu ? "Ошибка" : "Error";
+    } finally {
+      btn.disabled = false;
+      _renderCalGrid();
+    }
   });
 
   document.addEventListener("click", (e) => {
