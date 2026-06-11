@@ -157,6 +157,7 @@ const t = {
     forecastTips: "Советы и предупреждения",
     forecastAspects: "Аспекты транзитов",
     forecastAskAI: "Спросить ИИ про этот день",
+    reportAskAI: "Сформировать ИИ отчёт",
     fcMethodMix: "Mix — смешанный метод",
     fcMethodJyotish: "Jyotish — классический метод",
     dashaAskAI: "Спросить ИИ",
@@ -328,6 +329,7 @@ const t = {
     forecastTips: "Tips & alerts",
     forecastAspects: "Transit aspects",
     forecastAskAI: "Ask AI about this day",
+    reportAskAI: "Generate AI report",
     fcMethodMix: "Mix — blended method",
     fcMethodJyotish: "Jyotish — classical method",
     dashaAskAI: "Ask AI",
@@ -3795,6 +3797,241 @@ function initReportNav() {
     { root: body, threshold: 0.3 }
   );
   sections.forEach((s) => observer.observe(s));
+
+  const reportAiBtn = $("#reportAskAI");
+  if (reportAiBtn) {
+    reportAiBtn.addEventListener("click", () => {
+      if (!state.chart) return;
+      const prompt = _buildReportPrompt(state.chart, state.context);
+      if (!prompt) return;
+      setActiveTab("ai");
+      const chatInp = $("#chatQuestion");
+      if (chatInp) {
+        chatInp.value = prompt;
+        chatInp.focus();
+        // Auto-submit
+        setTimeout(() => {
+          const form = $("#chatForm");
+          if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        }, 80);
+      }
+    });
+  }
+}
+
+function _buildReportPrompt(chart, context) {
+  const isRu = state.lang === "ru";
+  const birth = chart.birth || {};
+  const lagna = chart.lagna || {};
+  const planets = chart.planets || {};
+  const dashas = chart.dashas || {};
+  const current = dashas.current || {};
+  const houses = chart.houses || {};
+  const aspects = chart.aspects || [];
+  const items = (context?.items) || [];
+
+  const PLANET_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
+    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев",
+    Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
+    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const DIG_RU = { exalted:"экзальтация", debilitated:"падение", own_sign:"свой знак" };
+  const DIG_EN = { exalted:"exalted", debilitated:"debilitated", own_sign:"own sign" };
+
+  const pname = (k) => isRu ? (PLANET_RU[k] || k) : (k ? k.charAt(0).toUpperCase() + k.slice(1) : k);
+  const sname = (s) => isRu ? (SIGN_RU[s] || s) : (s || "");
+  const dig = (d) => d && d !== "neutral" ? (isRu ? DIG_RU[d] : DIG_EN[d]) || d : "";
+
+  const MAIN = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
+
+  // ── Birth ──────────────────────────────────────────────
+  const birthLine = `${birth.local_date || ""} ${birth.local_time || ""}, ${birth.city || ""}, ${birth.country || ""}`.trim();
+
+  // ── Lagna ──────────────────────────────────────────────
+  const lagnaLine = lagna.sign
+    ? `${sname(lagna.sign)}${lagna.nakshatra ? `, ${lagna.nakshatra}` : ""}${lagna.pada ? (isRu ? ` пада ${lagna.pada}` : ` pada ${lagna.pada}`) : ""}`
+    : "?";
+
+  // ── Dasha ──────────────────────────────────────────────
+  const dashaLine = [current.mahadasha, current.antardasha, current.pratyantardasha]
+    .filter(Boolean).map(pname).join(" / ") || "?";
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const curMaha = (dashas.mahadashas || []).find(d => d.planet === current.mahadasha && d.end > today);
+  const dashaBalanceLine = curMaha
+    ? (isRu
+        ? `Текущая маха-даша (${pname(curMaha.planet)}): ${curMaha.start?.slice(0,4)}–${curMaha.end?.slice(0,4)}, осталось ~${Math.max(0, Math.round((new Date(curMaha.end) - new Date()) / 31536000000))} лет`
+        : `Current mahadasha (${pname(curMaha.planet)}): ${curMaha.start?.slice(0,4)}–${curMaha.end?.slice(0,4)}, ~${Math.max(0, Math.round((new Date(curMaha.end) - new Date()) / 31536000000))} years remaining`)
+    : "";
+
+  const upcomingMaha = (dashas.mahadashas || [])
+    .filter(d => d.start > today)
+    .slice(0, 4)
+    .map(d => `${pname(d.planet)} (${d.start?.slice(0,4)}–${d.end?.slice(0,4)})`);
+
+  // ── Planets ────────────────────────────────────────────
+  const planetLines = MAIN.filter(k => planets[k]).map(k => {
+    const p = planets[k];
+    const retro = p.retrograde ? (isRu ? " ℞" : " Rx") : "";
+    const dignity = dig(p.dignity);
+    const nk = p.nakshatra
+      ? `, ${p.nakshatra}${p.pada ? (isRu ? ` пада ${p.pada}` : ` pada ${p.pada}`) : ""}`
+      : "";
+    return isRu
+      ? `${pname(k)}${retro}: ${sname(p.sign)}, дом ${p.house}${nk}${dignity ? ` (${dignity})` : ""}`
+      : `${pname(k)}${retro}: ${sname(p.sign)}, house ${p.house}${nk}${dignity ? ` (${dignity})` : ""}`;
+  });
+
+  // ── All 12 houses ──────────────────────────────────────
+  const houseLines = Array.from({length: 12}, (_, i) => i + 1).map(n => {
+    const h = houses[n] || {};
+    const lord = h.lord ? pname(h.lord) : "?";
+    const planetsInH = (h.planets || []).map(pname).join(", ");
+    return isRu
+      ? `Дом ${n}: ${sname(h.sign)}, упр. ${lord}${planetsInH ? `, планеты: ${planetsInH}` : ""}`
+      : `House ${n}: ${sname(h.sign)}, lord ${lord}${planetsInH ? `, planets: ${planetsInH}` : ""}`;
+  });
+
+  // ── Aspects ────────────────────────────────────────────
+  const aspectLines = aspects.slice(0, 20).map(a => {
+    const from = pname(a.from_planet);
+    return isRu
+      ? `${from} (дом ${a.from_house}) → дом ${a.to_house} (${sname(a.to_sign)}, аспект ${a.aspect})`
+      : `${from} (house ${a.from_house}) → house ${a.to_house} (${sname(a.to_sign)}, ${a.aspect} aspect)`;
+  });
+
+  // ── Element balance ────────────────────────────────────
+  const ELEM_SIGNS = {
+    Fire:  ["Aries","Leo","Sagittarius"],
+    Earth: ["Taurus","Virgo","Capricorn"],
+    Air:   ["Gemini","Libra","Aquarius"],
+    Water: ["Cancer","Scorpio","Pisces"],
+  };
+  const elemCount = { Fire:0, Earth:0, Air:0, Water:0 };
+  MAIN.filter(k => planets[k]).forEach(k => {
+    for (const [el, signs] of Object.entries(ELEM_SIGNS)) {
+      if (signs.includes(planets[k].sign)) { elemCount[el]++; break; }
+    }
+  });
+  if (lagna.sign) {
+    for (const [el, signs] of Object.entries(ELEM_SIGNS)) {
+      if (signs.includes(lagna.sign)) { elemCount[el]++; break; }
+    }
+  }
+  const elemLine = isRu
+    ? `Огонь ${elemCount.Fire}, Земля ${elemCount.Earth}, Воздух ${elemCount.Air}, Вода ${elemCount.Water}`
+    : `Fire ${elemCount.Fire}, Earth ${elemCount.Earth}, Air ${elemCount.Air}, Water ${elemCount.Water}`;
+
+  // ── D9 Navamsha ────────────────────────────────────────
+  const d9 = chart.divisional_charts?.D9?.planets || {};
+  const d9Lines = MAIN.filter(k => d9[k]).map(k => {
+    const p = d9[k];
+    const dignity = dig(p.dignity);
+    return isRu
+      ? `${pname(k)}: ${sname(p.sign)}${dignity ? ` (${dignity})` : ""}`
+      : `${pname(k)}: ${sname(p.sign)}${dignity ? ` (${dignity})` : ""}`;
+  });
+
+  // ── All interpretations from context ──────────────────
+  const itemTxt = (item) => item ? (isRu ? item.text_ru : item.text_en) || "" : "";
+  const interpBlock = items
+    .map(item => { const txt = itemTxt(item); return txt ? `[${item.key}] ${txt}` : null; })
+    .filter(Boolean)
+    .join("\n");
+
+  // ── Geo: best & worst ACG lines ────────────────────────
+  const ruNames = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
+    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const angleRu = { AC:"АС", IC:"IC", DC:"ДС", MC:"MC" };
+
+  const geoLines = (_geoState.lineObjects || []).map(o => o.line).filter(l => l.score != null);
+  const geoBest  = [...geoLines].sort((a, b) => b.score - a.score).slice(0, 5);
+  const geoWorst = [...geoLines].sort((a, b) => a.score - b.score).slice(0, 5);
+
+  const fmtGeo = (l) => {
+    const planet = isRu ? (ruNames[l.planet] || l.planet) : pname(l.planet);
+    const angle  = isRu ? (angleRu[l.angle] || l.angle) : l.angle;
+    const score  = `${l.score > 0 ? "+" : ""}${l.score}`;
+    return `${planet} ${angle} (${l.label || ""}, ${score})`;
+  };
+
+  const geoBlock = geoLines.length
+    ? (isRu
+        ? `Лучшие направления по ACG:\n  ${geoBest.map(fmtGeo).join("\n  ")}\nТрудные направления по ACG:\n  ${geoWorst.map(fmtGeo).join("\n  ")}`
+        : `Best locations (ACG):\n  ${geoBest.map(fmtGeo).join("\n  ")}\nChallenging locations (ACG):\n  ${geoWorst.map(fmtGeo).join("\n  ")}`)
+    : "";
+
+  // ── Assemble ───────────────────────────────────────────
+  if (isRu) {
+    return `Данные рождения: ${birthLine}
+Лагна: ${lagnaLine}
+Элементный баланс: ${elemLine}
+${dashaBalanceLine}
+Текущая даша: ${dashaLine}
+${upcomingMaha.length ? `Следующие периоды: ${upcomingMaha.join(", ")}` : ""}
+
+Планеты (D1):
+  ${planetLines.join("\n  ")}
+
+Все 12 домов:
+  ${houseLines.join("\n  ")}
+
+Аспекты планет:
+  ${aspectLines.length ? aspectLines.join("\n  ") : "нет данных"}
+
+${d9Lines.length ? `Навамша (D9):\n  ${d9Lines.join("\n  ")}\n` : ""}${geoBlock ? `\n${geoBlock}\n` : ""}
+Интерпретации из базы:
+${interpBlock}
+
+---
+Составь подробный, понятный и честный отчёт по этой карте джйотиша. Пиши живым языком без сложных терминов — так, чтобы человек узнал себя в тексте. Структурируй отчёт по разделам:
+
+1. **Кто ты** — характер, сильные стороны, как тебя воспринимают окружающие
+2. **Прошлое и карма** — что несёшь из прошлого, кармические задачи и уроки этой жизни
+3. **Здоровье** — слабые зоны тела, на что обратить внимание (пиши прямо)
+4. **Сейчас** — что происходит в жизни в этот период дашы, главные темы и испытания
+5. **Что впереди** — ближайшие периоды, чего ожидать, к чему готовиться
+6. **Практики** — рекомендуемые камни, цвета одежды, общие ритуальные рекомендации по карте
+7. **Отношения** — любовь, партнёрство, семья — что карта говорит об этой сфере
+8. **Лучшие места для жизни** — топ направлений по астрокартографии и почему${geoBlock ? "" : " (данные геокарты не загружены — пропусти этот раздел)"}
+
+Не выдумывай и не домысливай — основывайся только на предоставленных данных карты.`;
+  } else {
+    return `Birth data: ${birthLine}
+Lagna: ${lagnaLine}
+Element balance: ${elemLine}
+${dashaBalanceLine}
+Current dasha: ${dashaLine}
+${upcomingMaha.length ? `Upcoming periods: ${upcomingMaha.join(", ")}` : ""}
+
+Planets (D1):
+  ${planetLines.join("\n  ")}
+
+All 12 houses:
+  ${houseLines.join("\n  ")}
+
+Planetary aspects:
+  ${aspectLines.length ? aspectLines.join("\n  ") : "no data"}
+
+${d9Lines.length ? `Navamsha (D9):\n  ${d9Lines.join("\n  ")}\n` : ""}${geoBlock ? `\n${geoBlock}\n` : ""}
+Interpretations from knowledge base:
+${interpBlock}
+
+---
+Write a detailed, friendly and honest Jyotish report based on this chart. Use plain language without jargon — write so the person recognises themselves in the text. Structure the report with these sections:
+
+1. **Who you are** — character, strengths, how others perceive you
+2. **Past & karma** — what you carry from the past, karmic lessons of this life
+3. **Health** — vulnerable areas of the body, what to watch out for (be direct)
+4. **Right now** — what is happening in this dasha period, main themes and challenges
+5. **What lies ahead** — upcoming periods, what to expect and prepare for
+6. **Practices** — recommended gemstones, clothing colours, general ritual recommendations
+7. **Relationships** — love, partnership, family — what the chart says about this area
+8. **Best places to live** — top locations from astrocartography and why${geoBlock ? "" : " (geo data not loaded — skip this section)"}
+
+Do not invent or speculate — base everything only on the provided chart data.`;
+  }
 }
 
 function initLanguage() {
@@ -4457,12 +4694,14 @@ function initForecast() {
       const name = isRu ? (ruNames[t.planet] || t.planet) : t.planet.charAt(0).toUpperCase() + t.planet.slice(1);
       const retro = t.retrograde ? (isRu ? " ℞" : " Rx") : "";
       const dig = t.dignity !== "neutral" ? ` (${t.dignity})` : "";
+      const nk = t.nakshatra ? `, ${t.nakshatra}${t.pada ? ` пада ${t.pada}` : ""}` : "";
+      const nkEn = t.nakshatra ? `, ${t.nakshatra}${t.pada ? ` pada ${t.pada}` : ""}` : "";
       return isRu
-        ? `${name}${retro}: ${t.sign}, дом ${t.house}${dig}`
-        : `${name}${retro}: ${t.sign}, house ${t.house}${dig}`;
+        ? `${name}${retro}: ${t.sign}, дом ${t.house}${nk}${dig}`
+        : `${name}${retro}: ${t.sign}, house ${t.house}${nkEn}${dig}`;
     });
 
-    // BAV highlights
+    // BAV + SAV highlights
     const bavLines = (d.transit_avarga || [])
       .filter(av => av.bav != null && (av.bav >= 6 || av.bav <= 2))
       .map(av => {
@@ -4471,6 +4710,22 @@ function initForecast() {
           ? `${name}: BAV ${av.bav}/8 ${av.bav >= 6 ? "(сильный транзит)" : "(слабый транзит)"}`
           : `${name}: BAV ${av.bav}/8 ${av.bav >= 6 ? "(strong transit)" : "(weak transit)"}`;
       });
+    const savEntry = (d.transit_avarga || []).find(av => av.sav != null);
+    const savLine = savEntry
+      ? (isRu ? `SAV (общий): ${savEntry.sav}/56` : `SAV (total): ${savEntry.sav}/56`)
+      : "";
+
+    // Indicators with reasons
+    const indLines = (d.indicators || []).map(ind => {
+      const label  = isRu ? ind.label_ru  : ind.label_en;
+      const reason = isRu ? ind.reason_ru : ind.reason_en;
+      const rating = ind.rating === "good" ? (isRu ? "✓ благоприятно" : "✓ favorable")
+                   : ind.rating === "bad"  ? (isRu ? "✗ неблагоприятно" : "✗ unfavorable")
+                   : (isRu ? "– нейтрально" : "– neutral");
+      return reason
+        ? `${label}: ${rating} — ${reason}`
+        : `${label}: ${rating}`;
+    });
 
     // Tips texts
     const tipTexts = (d.tips || []).map(t =>
@@ -4484,7 +4739,8 @@ function initForecast() {
         + `• Даша: ${dashaStr}\n`
         + (moonLine ? `• ${moonLine}\n` : "")
         + (transitLines.length ? `• Транзиты:\n  ${transitLines.join("\n  ")}\n` : "")
-        + (bavLines.length ? `• Аштакаварга: ${bavLines.join(", ")}\n` : "")
+        + (bavLines.length ? `• Аштакаварга: ${bavLines.join(", ")}${savLine ? `; ${savLine}` : ""}\n` : (savLine ? `• ${savLine}\n` : ""))
+        + (indLines.length ? `• Активности дня:\n  ${indLines.join("\n  ")}\n` : "")
         + (tipTexts.length ? `• Акценты дня: ${tipTexts.join("; ")}\n` : "")
         + `\nПроанализируй этот день с точки зрения джйотиша. Что стоит учесть, на что обратить внимание?`;
     } else {
@@ -4493,7 +4749,8 @@ function initForecast() {
         + `• Dasha: ${dashaStr}\n`
         + (moonLine ? `• ${moonLine}\n` : "")
         + (transitLines.length ? `• Transits:\n  ${transitLines.join("\n  ")}\n` : "")
-        + (bavLines.length ? `• Ashtakavarga: ${bavLines.join(", ")}\n` : "")
+        + (bavLines.length ? `• Ashtakavarga: ${bavLines.join(", ")}${savLine ? `; ${savLine}` : ""}\n` : (savLine ? `• ${savLine}\n` : ""))
+        + (indLines.length ? `• Day activities:\n  ${indLines.join("\n  ")}\n` : "")
         + (tipTexts.length ? `• Day highlights: ${tipTexts.join("; ")}\n` : "")
         + `\nAnalyze this day from a Jyotish perspective. What should I keep in mind?`;
     }

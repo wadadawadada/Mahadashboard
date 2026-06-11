@@ -4843,6 +4843,7 @@ td {
   align-items: center;
   gap: 4px;
   padding: 8px 12px;
+  justify-content: flex-start;
   background: rgba(255,255,255,0.03);
   border-bottom: 1px solid var(--border);
   border-radius: 10px 10px 0 0;
@@ -6395,6 +6396,13 @@ td {
 }
 .fc-ask-ai-btn:hover { background: rgba(183, 150, 255, 0.2); }
 .fc-ask-ai-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.report-ask-ai-btn {
+  margin-left: auto;
+  font-size: 13px;
+  padding: 5px 14px;
+  flex-shrink: 0;
+}
 
 /* Score method toggle */
 .fc-method-toggle {
