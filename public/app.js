@@ -3800,21 +3800,31 @@ function initReportNav() {
 
   const reportAiBtn = $("#reportAskAI");
   if (reportAiBtn) {
-    reportAiBtn.addEventListener("click", () => {
+    reportAiBtn.addEventListener("click", async () => {
       if (!state.chart) return;
-      const prompt = _buildReportPrompt(state.chart, state.context);
-      if (!prompt) return;
-      setActiveTab("ai");
-      const chatInp = $("#chatQuestion");
-      if (chatInp) {
-        chatInp.value = prompt;
-        chatInp.focus();
-        // Auto-submit
-        setTimeout(() => {
-          const form = $("#chatForm");
-          if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-        }, 80);
+      const submitReport = () => {
+        const prompt = _buildReportPrompt(state.chart, state.context);
+        if (!prompt) return;
+        setActiveTab("ai");
+        const chatInp = $("#chatQuestion");
+        if (chatInp) {
+          chatInp.value = prompt;
+          chatInp.focus();
+          setTimeout(() => {
+            const form = $("#chatForm");
+            if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          }, 80);
+        }
+      };
+      // Load geo data first if not yet loaded
+      if (!_geoState.rawLines.length && state.currentRunId) {
+        try {
+          const data = await api(`/api/geo/${state.currentRunId}`);
+          _drawGeoLines(data);
+          _geoState.loadedRunId = state.currentRunId;
+        } catch { /* geo optional — proceed without */ }
       }
+      submitReport();
     });
   }
 }
