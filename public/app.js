@@ -3940,27 +3940,28 @@ function _buildReportPrompt(chart, context) {
     .filter(Boolean)
     .join("\n");
 
-  // ── Geo: best & worst ACG lines ────────────────────────
-  const ruNames = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
-    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
-  const angleRu = { AC:"АС", IC:"IC", DC:"ДС", MC:"MC" };
+  // ── Geo: best & worst cities ──────────────────────────
+  const rawLines = _geoState.rawLines || [];
+  let geoBlock = "";
+  if (rawLines.length && typeof _scoreCityFromLines === "function") {
+    const scored = GEO_CITIES.map(city => {
+      const { total, influences } = _scoreCityFromLines(city.lat, city.lon, rawLines);
+      return { name: city.name, total, influences };
+    }).filter(c => c.total !== 0);
+    scored.sort((a, b) => b.total - a.total);
 
-  const geoLines = (_geoState.lineObjects || []).map(o => o.line).filter(l => l.score != null);
-  const geoBest  = [...geoLines].sort((a, b) => b.score - a.score).slice(0, 5);
-  const geoWorst = [...geoLines].sort((a, b) => a.score - b.score).slice(0, 5);
+    const best  = scored.slice(0, 7);
+    const worst = scored.slice(-7).reverse();
 
-  const fmtGeo = (l) => {
-    const planet = isRu ? (ruNames[l.planet] || l.planet) : pname(l.planet);
-    const angle  = isRu ? (angleRu[l.angle] || l.angle) : l.angle;
-    const score  = `${l.score > 0 ? "+" : ""}${l.score}`;
-    return `${planet} ${angle} (${l.label || ""}, ${score})`;
-  };
+    const fmtCity = (c) => {
+      const sign = c.total > 0 ? "+" : "";
+      return `${c.name} (${sign}${c.total})`;
+    };
 
-  const geoBlock = geoLines.length
-    ? (isRu
-        ? `Лучшие направления по ACG:\n  ${geoBest.map(fmtGeo).join("\n  ")}\nТрудные направления по ACG:\n  ${geoWorst.map(fmtGeo).join("\n  ")}`
-        : `Best locations (ACG):\n  ${geoBest.map(fmtGeo).join("\n  ")}\nChallenging locations (ACG):\n  ${geoWorst.map(fmtGeo).join("\n  ")}`)
-    : "";
+    geoBlock = isRu
+      ? `Лучшие города для жизни:\n  ${best.map(fmtCity).join(", ")}\nСложные города для жизни:\n  ${worst.map(fmtCity).join(", ")}`
+      : `Best cities to live in:\n  ${best.map(fmtCity).join(", ")}\nChallenging cities:\n  ${worst.map(fmtCity).join(", ")}`;
+  }
 
   // ── Assemble ───────────────────────────────────────────
   if (isRu) {
