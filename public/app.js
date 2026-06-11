@@ -3996,7 +3996,11 @@ ${d9Lines.length ? `Навамша (D9):\n  ${d9Lines.join("\n  ")}\n` : ""}${ge
 ${interpBlock}
 
 ---
-Составь подробный, понятный и честный отчёт по этой карте джйотиша. Пиши живым языком без сложных терминов — так, чтобы человек узнал себя в тексте. Структурируй отчёт по разделам:
+Составь подробный, понятный и честный отчёт по этой карте джйотиша. Пиши живым языком — так, чтобы человек узнал себя в тексте.
+
+Важно: не используй астрологические термины без объяснения. Вместо "махадаша" пиши "главный жизненный период", вместо "антардаша" — "подпериод", вместо "накшатра" — "звёздное созвездие", вместо "лагна" — "знак восхода", вместо "экзальтация" — "сильная позиция", вместо "дебилитация/падение" — "слабая позиция", вместо "D9/навамша" — "карта души". Если термин неизбежен — один раз объясни его в скобках простыми словами.
+
+Структурируй отчёт по разделам:
 
 1. **Кто ты** — характер, сильные стороны, как тебя воспринимают окружающие
 2. **Прошлое и карма** — что несёшь из прошлого, кармические задачи и уроки этой жизни
@@ -4030,7 +4034,11 @@ Interpretations from knowledge base:
 ${interpBlock}
 
 ---
-Write a detailed, friendly and honest Jyotish report based on this chart. Use plain language without jargon — write so the person recognises themselves in the text. Structure the report with these sections:
+Write a detailed, friendly and honest Jyotish report based on this chart. Write so the person recognises themselves in the text.
+
+Important: avoid astrology jargon. Instead of "mahadasha" write "main life period", instead of "antardasha" write "sub-period", instead of "nakshatra" write "lunar mansion", instead of "lagna" write "rising sign", instead of "exalted" write "strong placement", instead of "debilitated" write "weak placement", instead of "D9/navamsha" write "soul chart". If a term is unavoidable, explain it once in plain words in parentheses.
+
+Structure the report with these sections:
 
 1. **Who you are** — character, strengths, how others perceive you
 2. **Past & karma** — what you carry from the past, karmic lessons of this life
