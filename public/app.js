@@ -3464,8 +3464,22 @@ async function askQuestion(event) {
   if (!question || !state.currentRunId) return;
   addMessage("user", question);
   input.value = "";
-  const pending = addMessage("assistant", state.lang === "ru" ? "Думаю по рассчитанной карте..." : "Reading the calculated chart...");
+  const pending = addMessage("assistant", state.lang === "ru" ? "Думаю по рассчитанной карте..." : "Reading the calculated chart...", { cancellable: true });
   pending.classList.add("loading");
+
+  const abortController = new AbortController();
+  const cancelBtn = pending.querySelector(".msg-cancel-btn");
+  if (cancelBtn) cancelBtn.addEventListener("click", () => abortController.abort());
+
+  const timerEl = document.createElement("span");
+  timerEl.className = "msg-timer";
+  pending.querySelector(".message-content")?.after(timerEl);
+  const timerStart = Date.now();
+  const timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - timerStart) / 1000);
+    timerEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }, 1000);
+
   try {
     const forecastData = _fcState.pendingForecastForAI || null;
     _fcState.pendingForecastForAI = null;
@@ -3474,6 +3488,7 @@ async function askQuestion(event) {
 
     const data = await api("/api/chat", {
       method: "POST",
+      signal: abortController.signal,
       body: JSON.stringify({
         run_id: state.currentRunId,
         profile_id: state.currentProfileId,
@@ -3486,14 +3501,26 @@ async function askQuestion(event) {
     pending.classList.remove("loading");
     const content = pending.querySelector(".message-content");
     if (content) content.innerHTML = markdownToHtml(data.answer || "");
+    pending.querySelector(".msg-copy-btn")?.classList.remove("hidden");
+    pending.querySelector(".msg-followup-btn")?.classList.remove("hidden");
     if (Array.isArray(data.chat_history)) {
       updateCurrentProfileChat(data.chat_history);
     }
     renderFollowUps();
   } catch (error) {
+    if (error.name === "AbortError") {
+      pending.remove();
+      return;
+    }
     pending.classList.remove("loading");
     const content = pending.querySelector(".message-content");
     if (content) content.innerHTML = `<p>${escapeHtml(error.message.includes("OPENROUTER_API_KEY") ? tr("missingApiKey") : error.message)}</p>`;
+    pending.querySelector(".msg-copy-btn")?.classList.remove("hidden");
+    pending.querySelector(".msg-followup-btn")?.classList.remove("hidden");
+  } finally {
+    clearInterval(timerInterval);
+    timerEl.remove();
+    if (cancelBtn) cancelBtn.remove();
   }
 }
 
@@ -3572,9 +3599,17 @@ function addMessage(role, text, options = {}) {
     <div class="message-body">
       <span>${role === "user" ? "You" : "AI"}</span>
       <div class="message-content${role === "assistant" ? " markdown-body" : ""}">${body}</div>
-      ${role === "assistant" ? `<div class="msg-actions"><button class="msg-copy-btn" title="${state.lang === "en" ? "Copy" : "Копировать"}">${icon("copy")}</button><button class="msg-followup-btn" title="${state.lang === "en" ? "Ask about this answer" : "Задать вопрос по этому ответу"}">${icon("chat")}</button></div>` : ""}
+      ${role === "assistant" ? `<div class="msg-actions"><button class="msg-copy-btn${options.cancellable ? " hidden" : ""}" title="${state.lang === "en" ? "Copy" : "Копировать"}">${icon("copy")}</button><button class="msg-followup-btn${options.cancellable ? " hidden" : ""}" title="${state.lang === "en" ? "Ask about this answer" : "Задать вопрос по этому ответу"}">${icon("chat")}</button></div>` : ""}
     </div>
   `;
+  if (role === "assistant" && options.cancellable) {
+    const cancelBtnEl = document.createElement("button");
+    cancelBtnEl.className = "msg-cancel-btn";
+    cancelBtnEl.title = state.lang === "en" ? "Cancel" : "Отменить";
+    cancelBtnEl.innerHTML = icon("x");
+    const firstP = node.querySelector(".message-content p");
+    if (firstP) firstP.after(cancelBtnEl);
+  }
   if (role === "assistant") {
     node.querySelector(".msg-copy-btn").addEventListener("click", function () {
       const content = node.querySelector(".message-content");
@@ -3981,7 +4016,7 @@ function _renderFcIndicators(indicators) {
     const reason = isRu ? ind.reason_ru : ind.reason_en;
     const r = ind.rating;
     const iconHtml = _indSvgIcons[ind.id] || escapeHtml(ind.icon);
-    return `<div class="fc-indicator fc-indicator--${r}" data-tip="${escapeHtml(reason)}">
+    return `<div class="fc-indicator fc-indicator--${r}" data-tip="${escapeHtml(reason)}" data-ind-id="${ind.id}">
       <span class="fc-ind-icon">${iconHtml}</span>
       <span class="fc-ind-label">${escapeHtml(label)}</span>
       <span class="fc-ind-status fc-ind-status--${r}">${ratingIcon[r]}</span>
@@ -3989,6 +4024,16 @@ function _renderFcIndicators(indicators) {
   }).join("");
 
   el.innerHTML = `<div class="fc-indicators-row">${html}</div>`;
+
+  el.querySelectorAll(".fc-indicator").forEach(card => {
+    card.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const popup = $("#fcIndCalPopup");
+      const alreadyOpen = !popup?.classList.contains("hidden") && _indCalState.indicatorId === card.dataset.indId;
+      _closeIndCalendar();
+      if (!alreadyOpen) _openIndCalendar(card.dataset.indId, card);
+    });
+  });
 
   el.querySelectorAll(".fc-indicator[data-tip]").forEach(card => {
     card.addEventListener("mouseenter", () => {
@@ -4485,6 +4530,7 @@ function boot() {
   initChartViewToggle();
   initForecast();
   initFcCalendar();
+  initIndCalendar();
   initGeoSearch();
   initGeoAI();
   initGeoHoverRating();
@@ -4882,6 +4928,139 @@ function initFcCalendar() {
     if (!e.target.closest("#fcCalPopup") && !e.target.closest("#fcDateBtn")) {
       _hidePicker();
       _closeCalendar();
+    }
+  });
+}
+
+// ── Indicator calendar ────────────────────────────────────────────────────────
+
+const _indCalState = { year: 0, month: 0, indicatorId: null, ratings: {}, loading: false };
+
+const _IND_RATING_COLOR = { good: "#4ade80", neutral: "#94a3b8", bad: "#f87171" };
+
+function _indRatingDotColor(rating) {
+  return _IND_RATING_COLOR[rating] || "rgba(255,255,255,0.1)";
+}
+
+function _renderIndCalGrid() {
+  const isRu = state.lang === "ru";
+  const { year, month, ratings } = _indCalState;
+  const todayStr = _fcTodayStr();
+  const selectedStr = _fcState.date || todayStr;
+
+  const monthName = (isRu ? _MONTHS_RU : _MONTHS_EN)[month - 1];
+  const titleEl = $("#fcIndCalTitle");
+  if (titleEl) {
+    titleEl.innerHTML = _indCalState.loading
+      ? `${monthName} ${year} <span class="fc-cal-spinner"></span>`
+      : `${monthName} ${year}`;
+  }
+
+  const navBtns = document.querySelectorAll("#fcIndCalPrev, #fcIndCalNext");
+  navBtns.forEach(b => { b.disabled = _indCalState.loading; });
+
+  const popup = $("#fcIndCalPopup");
+  const dowEl = popup?.querySelector(".fc-cal-dow");
+  if (dowEl) {
+    const days = isRu ? _DOW_RU : _DOW_EN;
+    dowEl.innerHTML = days.map(d => `<div class="fc-cal-dow-cell">${d}</div>`).join("");
+  }
+
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const offset = (firstDay + 6) % 7;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const grid = $("#fcIndCalGrid");
+  if (!grid) return;
+
+  let html = "";
+  for (let i = 0; i < offset; i++) html += `<div class="fc-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const rating = ratings[dateStr];
+    const dotColor = rating ? _indRatingDotColor(rating) : "rgba(255,255,255,0.1)";
+    const cls = [
+      "fc-cal-day",
+      rating ? `ind-${rating}` : "loading",
+      dateStr === todayStr ? "today" : "",
+      dateStr === selectedStr ? "selected" : "",
+    ].filter(Boolean).join(" ");
+    html += `<div class="${cls}" data-date="${dateStr}">
+      <span class="fc-cal-day-num">${d}</span>
+      <span class="fc-cal-day-dot" style="background:${dotColor}"></span>
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll(".fc-cal-day[data-date]").forEach(el => {
+    el.addEventListener("click", () => {
+      _closeIndCalendar();
+      loadForecast(el.dataset.date);
+    });
+  });
+}
+
+async function _loadIndCalMonth(year, month) {
+  if (!state.currentRunId) return;
+  _indCalState.year = year;
+  _indCalState.month = month;
+  _indCalState.loading = true;
+  _renderIndCalGrid();
+
+  try {
+    const data = await api(`/api/forecast/${state.currentRunId}/month?year=${year}&month=${month}&lang=${state.lang}&method=${_fcState.scoreMethod}`);
+    const id = _indCalState.indicatorId;
+    _indCalState.ratings = {};
+    for (const day of (data.days || [])) {
+      const ind = (day.indicators || []).find(i => i.id === id);
+      if (ind) _indCalState.ratings[day.date] = ind.rating;
+    }
+  } catch (e) {
+    // silently ignore
+  } finally {
+    _indCalState.loading = false;
+    _renderIndCalGrid();
+  }
+}
+
+function _openIndCalendar(indicatorId, anchorEl) {
+  const popup = $("#fcIndCalPopup");
+  if (!popup || !anchorEl) return;
+
+  _indCalState.indicatorId = indicatorId;
+  _indCalState.ratings = {};
+
+  const rect = anchorEl.getBoundingClientRect();
+  popup.classList.remove("hidden");
+  popup.style.top = `${rect.bottom + 6}px`;
+  const left = Math.max(4, rect.left - 60);
+  popup.style.left = `${Math.min(left, window.innerWidth - 260)}px`;
+
+  const now = _fcState.date ? new Date(_fcState.date + "T12:00:00") : new Date();
+  _loadIndCalMonth(now.getFullYear(), now.getMonth() + 1);
+}
+
+function _closeIndCalendar() {
+  $("#fcIndCalPopup")?.classList.add("hidden");
+}
+
+function initIndCalendar() {
+  $("#fcIndCalPrev")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    let { year, month } = _indCalState;
+    month--; if (month < 1) { month = 12; year--; }
+    _loadIndCalMonth(year, month);
+  });
+
+  $("#fcIndCalNext")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    let { year, month } = _indCalState;
+    month++; if (month > 12) { month = 1; year++; }
+    _loadIndCalMonth(year, month);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#fcIndCalPopup") && !e.target.closest(".fc-indicator")) {
+      _closeIndCalendar();
     }
   });
 }

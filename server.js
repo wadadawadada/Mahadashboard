@@ -485,6 +485,7 @@ function compactDayForecast(dateStr, data) {
     .filter((a) => a.aspect !== "jyotish_aspect" && (a.orb || 99) <= 4)
     .map((a) => `${a.transit_planet}→${a.natal_planet} ${a.aspect}`);
   const planets = (data.transit_planets || []).map((p) => `${p.name}:${p.sign}H${p.natal_house}`);
+  const indicators = (data.indicators || []).map((ind) => ({ id: ind.id, rating: ind.rating }));
   return {
     date: dateStr,
     score: data.score ?? 50,
@@ -492,6 +493,7 @@ function compactDayForecast(dateStr, data) {
     active_dasha: data.active_dasha,
     transit_planets: planets,
     key_aspects: keyAspects,
+    indicators,
   };
 }
 

@@ -34,6 +34,7 @@
       <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></symbol>
       <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
     </svg>
 
     <div class="app-shell">
@@ -582,6 +583,22 @@
           </div>
         </form>
       </article>
+    </div>
+
+    <!-- Indicator calendar popup -->
+    <div class="fc-ind-cal-popup hidden" id="fcIndCalPopup">
+      <div class="fc-cal-header">
+        <button class="fc-cal-nav" id="fcIndCalPrev" type="button">&#8249;</button>
+        <span class="fc-cal-title" id="fcIndCalTitle"></span>
+        <button class="fc-cal-nav" id="fcIndCalNext" type="button">&#8250;</button>
+      </div>
+      <div class="fc-cal-dow"></div>
+      <div class="fc-cal-grid" id="fcIndCalGrid"></div>
+      <div class="fc-cal-legend">
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#4ade80"></span><span data-i18n="calLegendGood">Благоприятный</span></span>
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#94a3b8"></span><span data-i18n="calLegendNeutral">Нейтральный</span></span>
+        <span class="fc-cal-legend-item"><span class="fc-cal-dot" style="background:#f87171"></span><span data-i18n="calLegendHard">Тяжёлый</span></span>
+      </div>
     </div>
 
     <!-- Custom calendar popup -->
