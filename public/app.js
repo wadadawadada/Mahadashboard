@@ -82,16 +82,28 @@ const t = {
     promptStrengths: "Сильные стороны",
     promptRisks: "Риски",
     promptMoney: "Деньги",
+    promptHealth: "Здоровье",
+    promptSpiritual: "Духовный путь",
+    promptFamily: "Семья и дом",
+    promptTalents: "Таланты и призвание",
+    promptTransits: "Текущие транзиты",
+    promptOverview: "Общий обзор карты",
     promptCareerText: "Что в моей карте связано с карьерой и профессиональной реализацией?",
     promptDashaText: "Объясни текущий планетарный период и какие темы сейчас активны.",
     promptRelationshipsText: "Что рассчитанная карта показывает по теме отношений?",
     promptStrengthsText: "Какие самые сильные стороны видны в рассчитанной карте?",
     promptRisksText: "Какие риски или напряженные темы стоит учитывать по карте?",
     promptMoneyText: "Что рассчитанная карта показывает по теме денег и дохода?",
+    promptHealthText: "Что рассчитанная карта показывает по теме здоровья и жизненной энергии?",
+    promptSpiritualText: "Какие духовные задачи и путь развития заложены в карте?",
+    promptFamilyText: "Что карта показывает по теме семьи, дома и корней?",
+    promptTalentsText: "Какие таланты, призвание и природные способности видны в карте?",
+    promptTransitsText: "Какие планетарные транзиты сейчас наиболее активны и на что влияют?",
+    promptOverviewText: "Дай общий обзор рассчитанной карты: ключевые темы, планеты и акценты.",
     followUpTitle: "Можно уточнить:",
-    followUpTiming: "Когда это проявляется сильнее?",
-    followUpHouses: "Какие дома здесь главные?",
-    followUpSources: "Какие source ids это подтверждают?",
+    followUpSummary: "Краткое резюме",
+    followUpPersonal: "Как это влияет на меня лично?",
+    followUpSimpler: "Объясни проще",
     clearChat: "Очистить",
     clearChatConfirm: "Очистить историю чата для этого профиля?",
     aiSettings: "Настройки AI",
@@ -254,16 +266,28 @@ const t = {
     promptStrengths: "Strengths",
     promptRisks: "Risks",
     promptMoney: "Money",
+    promptHealth: "Health",
+    promptSpiritual: "Spiritual path",
+    promptFamily: "Family & home",
+    promptTalents: "Talents & calling",
+    promptTransits: "Current transits",
+    promptOverview: "Full chart overview",
     promptCareerText: "What in my chart is connected with career and professional direction?",
     promptDashaText: "Explain the current planetary period and which themes are active now.",
     promptRelationshipsText: "What does the calculated chart show about relationships?",
     promptStrengthsText: "What are the strongest qualities visible in the calculated chart?",
     promptRisksText: "Which risks or tense themes should be considered from the chart?",
     promptMoneyText: "What does the calculated chart show about money and income?",
+    promptHealthText: "What does the calculated chart show about health and vital energy?",
+    promptSpiritualText: "What spiritual tasks and path of development are embedded in the chart?",
+    promptFamilyText: "What does the chart show about family, home, and roots?",
+    promptTalentsText: "What talents, calling, and natural abilities are visible in the chart?",
+    promptTransitsText: "Which planetary transits are most active right now and what do they affect?",
+    promptOverviewText: "Give a general overview of the calculated chart: key themes, planets, and focal points.",
     followUpTitle: "Follow up:",
-    followUpTiming: "When is this more active?",
-    followUpHouses: "Which houses matter most?",
-    followUpSources: "Which source ids support this?",
+    followUpSummary: "Brief summary",
+    followUpPersonal: "How does this affect me personally?",
+    followUpSimpler: "Explain simpler",
     clearChat: "Clear",
     clearChatConfirm: "Clear chat history for this profile?",
     aiSettings: "AI settings",
@@ -1630,7 +1654,10 @@ function _askPlanetAI(ctx) {
   closePlanetInterpretationModal();
   setActiveTab("ai");
   const chatInp = $("#chatQuestion");
-  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+  if (chatInp) {
+    chatInp.value = prompt; chatInp.focus();
+    setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+  }
 }
 
 function openPlanetInterpretationModal(payload) {
@@ -2579,7 +2606,10 @@ function _askDashaAI(ctx) {
   closeDashaModal();
   setActiveTab("ai");
   const chatInp = $("#chatQuestion");
-  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+  if (chatInp) {
+    chatInp.value = prompt; chatInp.focus();
+    setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+  }
 }
 
 function _dashaAIButtonHtml() {
@@ -3561,29 +3591,149 @@ async function clearChat() {
   }
 }
 
+const PROMPT_MENU_KEYS = [
+  "promptCareer",
+  "promptDasha",
+  "promptRelationships",
+  "promptStrengths",
+  "promptRisks",
+  "promptMoney",
+  "promptHealth",
+  "promptSpiritual",
+  "promptFamily",
+  "promptTalents",
+  "promptTransits",
+  "promptOverview",
+];
+
+function buildPromptDropdown(filter) {
+  const dropdown = $("#promptDropdown");
+  const items = PROMPT_MENU_KEYS.filter((key) => {
+    if (!filter) return true;
+    const label = tr(key).toLowerCase();
+    return label.includes(filter.toLowerCase());
+  });
+  if (items.length === 0) {
+    dropdown.innerHTML = `<div class="prompt-dropdown-empty">${state.lang === "en" ? "No results" : "Ничего не найдено"}</div>`;
+    return;
+  }
+  dropdown.innerHTML = items
+    .map((key) => `<div class="prompt-dropdown-item" data-prompt-key="${key}"><span class="pdi-label">${escapeHtml(tr(key))}</span></div>`)
+    .join("");
+  dropdown.querySelectorAll(".prompt-dropdown-item").forEach((item) => {
+    item.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      selectPrompt(item.dataset.promptKey);
+    });
+  });
+}
+
+function selectPrompt(key) {
+  const input = $("#chatQuestion");
+  input.value = tr(`${key}Text`);
+  closePromptDropdown();
+  input.focus();
+}
+
+function openPromptDropdown(filter) {
+  buildPromptDropdown(filter || "");
+  $("#promptDropdown").classList.add("open");
+  $("#slashBtn").classList.add("active");
+}
+
+function closePromptDropdown() {
+  $("#promptDropdown").classList.remove("open");
+  $("#slashBtn").classList.remove("active");
+}
+
+function initPromptDropdown() {
+  const slashBtn = $("#slashBtn");
+  const input = $("#chatQuestion");
+
+  slashBtn.addEventListener("click", () => {
+    if ($("#promptDropdown").classList.contains("open")) {
+      closePromptDropdown();
+    } else {
+      openPromptDropdown("");
+      input.focus();
+    }
+  });
+
+  input.addEventListener("input", () => {
+    const val = input.value;
+    if (val.startsWith("/")) {
+      openPromptDropdown(val.slice(1));
+    } else {
+      closePromptDropdown();
+    }
+  });
+
+  input.addEventListener("keydown", (e) => {
+    const dropdown = $("#promptDropdown");
+    if (!dropdown.classList.contains("open")) return;
+    const items = [...dropdown.querySelectorAll(".prompt-dropdown-item")];
+    if (!items.length) return;
+    const current = dropdown.querySelector(".highlighted");
+    let idx = items.indexOf(current);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      current?.classList.remove("highlighted");
+      items[(idx + 1) % items.length].classList.add("highlighted");
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      current?.classList.remove("highlighted");
+      items[(idx - 1 + items.length) % items.length].classList.add("highlighted");
+    } else if (e.key === "Enter" && current) {
+      e.preventDefault();
+      selectPrompt(current.dataset.promptKey);
+    } else if (e.key === "Escape") {
+      closePromptDropdown();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".chat-form-wrap")) {
+      closePromptDropdown();
+    }
+  });
+}
+
 function renderFollowUps() {
   const log = $("#chatLog");
   log.querySelector(".followups")?.remove();
   const node = document.createElement("div");
   node.className = "followups";
   const items = [
-    ["followUpTiming", "promptDashaText"],
-    ["followUpHouses", "promptStrengthsText"],
-    ["followUpSources", "followUpSources"],
+    ["followUpSummary", "followUpSummaryPrompt"],
+    ["followUpPersonal", "followUpPersonalPrompt"],
+    ["followUpSimpler", "followUpSimplerPrompt"],
   ];
   node.innerHTML = `
-    <span>${escapeHtml(tr("followUpTitle"))}</span>
     <div>
       ${items
-        .map(([labelKey, promptKey]) => `<button type="button" class="followup-chip" data-followup="${escapeHtml(promptKey)}">${escapeHtml(tr(labelKey))}</button>`)
+        .map(([labelKey]) => `<button type="button" class="followup-chip" data-followup="${labelKey}">${escapeHtml(tr(labelKey))}</button>`)
         .join("")}
     </div>
   `;
   log.appendChild(node);
   node.querySelectorAll("[data-followup]").forEach((button) => {
     button.addEventListener("click", () => {
-      $("#chatQuestion").value = button.dataset.followup === "followUpSources" ? tr("followUpSources") : tr(button.dataset.followup);
-      $("#chatQuestion").focus();
+      const promptMap = {
+        followUpSummary: state.lang === "en" ? "Give a brief summary of your answer above." : "Дай краткое резюме из своего ответа выше.",
+        followUpPersonal: state.lang === "en" ? "How does this specifically affect me personally?" : "Как это конкретно влияет на меня лично?",
+        followUpSimpler: state.lang === "en" ? "Explain this in simpler terms, without jargon." : "Объясни это проще, без терминов.",
+      };
+      // activate context of the last assistant message
+      const lastMsg = [...$$(".message.assistant")].pop();
+      if (lastMsg) {
+        $$(".msg-followup-btn.active").forEach((b) => b.classList.remove("active"));
+        lastMsg.querySelector(".msg-followup-btn")?.classList.add("active");
+        state.pendingFollowupContext = lastMsg.querySelector(".message-content")?.innerText.trim() || null;
+      }
+      const input = $("#chatQuestion");
+      input.value = promptMap[button.dataset.followup] || "";
+      input.focus();
+      setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
     });
   });
   log.scrollTop = log.scrollHeight;
@@ -4775,7 +4925,10 @@ function initForecast() {
     }
 
     const chatInp = $("#chatQuestion");
-    if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+    if (chatInp) {
+      chatInp.value = prompt; chatInp.focus();
+      setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+    }
 
     // Store forecast snapshot so askQuestion can attach it
     _fcState.pendingForecastForAI = {
@@ -4817,12 +4970,7 @@ function boot() {
   $("#placeQuery").addEventListener("input", debounce(searchPlaces, 180));
   $("#chatForm").addEventListener("submit", askQuestion);
   $("#clearChatBtn").addEventListener("click", clearChat);
-  $$(".prompt-chip").forEach((button) => {
-    button.addEventListener("click", () => {
-      $("#chatQuestion").value = tr(`${button.dataset.promptKey}Text`);
-      $("#chatQuestion").focus();
-    });
-  });
+  initPromptDropdown();
   loadProfiles().then(() => updateProfileModeBadge()).catch((error) => setStatus(error.message, "error"));
   checkFirstRun();
 }
@@ -5191,7 +5339,10 @@ function initFcCalendar() {
       _closeCalendar();
       setActiveTab("ai");
       const input = $("#chatQuestion");
-      if (input) { input.value = question; input.focus(); }
+      if (input) {
+        input.value = question; input.focus();
+        setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+      }
     } catch (err) {
       btn.textContent = isRu ? "Ошибка" : "Error";
     } finally {
@@ -5649,7 +5800,10 @@ function _buildGeoAIPrompt(lat, lng, locName, isRu) {
 
   setActiveTab("ai");
   const chatInp = $("#chatQuestion");
-  if (chatInp) { chatInp.value = prompt; chatInp.focus(); }
+  if (chatInp) {
+    chatInp.value = prompt; chatInp.focus();
+    setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+  }
 }
 
 async function renderGeo(runId) {
