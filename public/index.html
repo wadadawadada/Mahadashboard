@@ -67,6 +67,7 @@
             <h2 data-i18n="profiles">Профили</h2>
             <div style="display:flex;gap:4px;align-items:center">
               <button class="icon-button" id="newProfileBtn" type="button" data-i18n-title="newProfile" title="Новый профиль" style="font-size:18px;line-height:1;padding:2px 7px;">+</button>
+              <button class="icon-button" id="openCelebPickerBtn" type="button" data-i18n-title="celebPickerTitle" title="Знаменитости" style="font-size:15px;line-height:1;padding:2px 7px;">★</button>
               <button class="icon-button" id="refreshProfiles" type="button" title="Refresh"><svg class="icon"><use href="#i-refresh"></use></svg></button>
             </div>
           </div>
@@ -716,7 +717,21 @@
       </div>
     </div>
 
+    <!-- Celebrity Picker Modal -->
+    <div id="celebModal" class="celeb-modal-overlay" style="display:none">
+      <div class="celeb-modal">
+        <div class="celeb-modal-head">
+          <span data-i18n="celebPickerTitle">Знаменитости</span>
+          <button type="button" id="celebModalClose" class="celeb-modal-close">&times;</button>
+        </div>
+        <div class="celeb-modal-search-row">
+          <input id="celebSearch" type="text" data-i18n-placeholder="celebPickerSearch" placeholder="Поиск по имени..." autocomplete="off" />
+        </div>
+        <div id="celebList" class="celeb-list"></div>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="/app.js?v=25"></script>
+    <script src="/app.js?v=26"></script>
   </body>
 </html>

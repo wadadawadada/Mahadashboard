@@ -249,6 +249,12 @@ const t = {
     synastryAIPlaceholder: "Уточни вопрос о совместимости...",
     synastryChooseFirst: "Выбери два профиля и нажми «Сравнить»",
     synastryLoading: "Анализ совместимости...",
+    celebPickerTitle: "Знаменитости",
+    celebPickerSearch: "Поиск по имени...",
+    celebPickerEmpty: "Ничего не найдено",
+    celebPickerLoading: "Загрузка...",
+    celebPickerError: "Ошибка загрузки",
+    celebPickerBuilding: "Строю карту...",
   },
   en: {
     subtitle: "precise calculation, live report",
@@ -487,6 +493,12 @@ const t = {
     synastryAIPlaceholder: "Ask a question about compatibility...",
     synastryChooseFirst: "Select two profiles and click Compare",
     synastryLoading: "Analysing compatibility...",
+    celebPickerTitle: "Celebrities",
+    celebPickerSearch: "Search by name...",
+    celebPickerEmpty: "Nothing found",
+    celebPickerLoading: "Loading...",
+    celebPickerError: "Failed to load",
+    celebPickerBuilding: "Building chart...",
   },
 };
 
@@ -8219,5 +8231,135 @@ function initSynastry() {
 }
 
 boot();
+
+// ── Celebrity Picker ─────────────────────────────────────────────────────────
+(function initCelebPicker() {
+  const overlay = $("#celebModal");
+  const searchInput = $("#celebSearch");
+  const listEl = $("#celebList");
+  const openBtn = $("#openCelebPickerBtn");
+  const closeBtn = $("#celebModalClose");
+  if (!overlay || !openBtn) return;
+
+  let debounceTimer = null;
+  let busy = false;
+
+  function open() {
+    overlay.style.display = "flex";
+    searchInput.value = "";
+    listEl.innerHTML = "";
+    searchInput.focus();
+    fetchCelebs("");
+  }
+
+  function close() {
+    if (busy) return;
+    overlay.style.display = "none";
+  }
+
+  async function fetchCelebs(q) {
+    listEl.innerHTML = `<div class="celeb-empty">${tr("celebPickerLoading")}</div>`;
+    try {
+      const res = await fetch(`/api/celebrities?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      renderList(data.celebrities || [], q);
+    } catch {
+      listEl.innerHTML = `<div class="celeb-empty">${tr("celebPickerError")}</div>`;
+    }
+  }
+
+  function renderList(items, q) {
+    if (!items.length) {
+      listEl.innerHTML = `<div class="celeb-empty">${q ? tr("celebPickerEmpty") : tr("celebPickerSearch")}</div>`;
+      return;
+    }
+    listEl.innerHTML = items.map((c, i) => {
+      const aa = c.rodden === "AA" ? '<span class="celeb-rodden-aa">AA</span>' : "";
+      const place = c.birth_place ? ` · ${c.birth_place}` : "";
+      return `<div class="celeb-item" data-idx="${i}">
+        <div class="celeb-item-name">${c.name}${aa}</div>
+        <div class="celeb-item-meta">${c.birth_date} ${c.birth_time}${place}</div>
+      </div>`;
+    }).join("");
+    listEl.querySelectorAll(".celeb-item").forEach((el, i) => {
+      el.addEventListener("click", () => applyCeleb(items[i]));
+    });
+  }
+
+  async function applyCeleb(c) {
+    busy = true;
+    listEl.innerHTML = `<div class="celeb-empty">${tr("celebPickerBuilding")}</div>`;
+    searchInput.disabled = true;
+
+    const parts = c.birth_place.split(",").map(s => s.trim());
+    const city = parts[0] || "";
+    const country = parts.slice(1).join(", ") || "";
+
+    const form = document.getElementById("birthForm");
+    const settings = form ? {
+      ayanamsa: form.ayanamsa.value,
+      zodiac: form.zodiac.value,
+      house_system: form.house_system.value,
+      dasha_system: form.dasha_system.value,
+      include_navamsa: form.include_navamsa.checked,
+      include_aspects: form.include_aspects.checked,
+      include_interpretation: form.include_interpretation.checked,
+      include_clickable_keys: true,
+      enable_node_aspects: form.enable_node_aspects.checked,
+    } : {
+      ayanamsa: "lahiri", zodiac: "sidereal", house_system: "whole_sign",
+      dasha_system: "vimshottari_from_moon", include_navamsa: true,
+      include_aspects: true, include_interpretation: true,
+      include_clickable_keys: true, enable_node_aspects: false,
+    };
+
+    const payload = {
+      birth: {
+        name: c.name,
+        birth_date: c.birth_date,
+        birth_time: c.birth_time,
+        city,
+        country,
+        language: state.lang,
+        settings,
+      },
+      place: c.latitude != null ? {
+        display_name: c.birth_place,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        timezone: c.tz_offset || "",
+      } : null,
+    };
+
+    setStatus(tr("running"));
+    const btn = document.getElementById("generateBtn");
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api("/api/reports", { method: "POST", body: JSON.stringify(payload) });
+      state.currentProfileId = data.profile.id;
+      overlay.style.display = "none";
+      applyReport(data.run, data.chart, data.context, data.markdown);
+      await loadProfiles();
+      updateProfileModeBadge();
+      setStatus(tr("generated"));
+    } catch (err) {
+      setStatus(tr("failed"), "error");
+      listEl.innerHTML = `<div class="celeb-empty">${err.message}</div>`;
+    } finally {
+      busy = false;
+      searchInput.disabled = false;
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  openBtn.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fetchCelebs(searchInput.value.trim()), 300);
+  });
+
+})();
 
 

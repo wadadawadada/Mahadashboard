@@ -3028,5 +3028,41 @@
     "lat": 47.3667,
     "lon": 8.55,
     "timezone": "Europe/Zurich"
+  },
+  "tupelo,ms, united states": {
+    "name": "Tupelo, MS, United States",
+    "lat": 34.257,
+    "lon": -88.703,
+    "timezone": "-06:00"
+  },
+  "lawrence,ma, united states": {
+    "name": "Lawrence, MA, United States",
+    "lat": 42.708,
+    "lon": -71.162,
+    "timezone": "-04:00"
+  },
+  "martigues,france": {
+    "name": "Martigues, France",
+    "lat": 43.407,
+    "lon": 5.055,
+    "timezone": "Europe/Paris"
+  },
+  "ulm,germany": {
+    "name": "Ulm, Germany",
+    "lat": 48.4,
+    "lon": 9.997,
+    "timezone": "Europe/Berlin"
+  },
+  "cardross,dumbarton, united kingdom": {
+    "name": "Cardross, Dumbarton, United Kingdom",
+    "lat": 55.963,
+    "lon": -4.653,
+    "timezone": "Europe/London"
+  },
+  "braunau am inn,österreich": {
+    "name": "Braunau am Inn, Österreich",
+    "lat": 48.259,
+    "lon": 13.035,
+    "timezone": "Europe/Vienna"
   }
 }

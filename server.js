@@ -16,6 +16,7 @@ const COMPAT_DIR = path.join(SERVICE_DIR, "compatibility");
 const PROFILES_PATH = path.join(SERVICE_DIR, "profiles.json");
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ENV_PATH = path.join(ROOT, ".env");
+const CELEBRITIES_CSV = path.join(DATA_DIR, "celebrities", "PersonList-15k.csv");
 
 loadEnv(ENV_PATH);
 
@@ -236,12 +237,34 @@ function validateBirthInput(input) {
   return clean;
 }
 
+function resolveIanaTimezone(lat, lon) {
+  return new Promise((resolve) => {
+    const py = spawn(PYTHON_BIN, ["-c",
+      `from timezonefinder import TimezoneFinder; tf = TimezoneFinder(); print(tf.timezone_at(lat=${lat}, lng=${lon}) or "")`
+    ]);
+    let out = "";
+    py.stdout.on("data", d => { out += d; });
+    py.on("close", () => resolve(out.trim() || null));
+    py.on("error", () => resolve(null));
+  });
+}
+
+function isUtcOffset(tz) {
+  return /^[+-]\d{2}:\d{2}$/.test(String(tz || "").trim());
+}
+
 async function maybeUpsertPlace(birth, place) {
   if (!place) return null;
   const lat = Number(place.latitude);
   const lon = Number(place.longitude);
-  const timezone = String(place.timezone || "").trim();
-  if (!Number.isFinite(lat) || !Number.isFinite(lon) || !timezone) return null;
+  let timezone = String(place.timezone || "").trim();
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+
+  // CSV data gives UTC offset (+00:53) — resolve to IANA name via coordinates
+  if (!timezone || isUtcOffset(timezone)) {
+    timezone = (await resolveIanaTimezone(lat, lon)) || timezone;
+  }
+  if (!timezone) return null;
 
   const places = await readJson(PLACES_PATH, {});
   const key = normalizeKey(birth.city, birth.country);
@@ -271,6 +294,89 @@ async function listPlaces(query = "") {
     }))
     .filter((place) => !q || place.key.includes(q) || String(place.name).toLowerCase().includes(q))
     .slice(0, 50);
+}
+
+function parseCelebritiesCSV(text) {
+  const entries = [];
+  let i = 0;
+  const n = text.length;
+
+  function parseField() {
+    if (i < n && text[i] === '"') {
+      i++;
+      let val = "";
+      while (i < n) {
+        if (text[i] === '"') {
+          if (text[i + 1] === '"') { val += '"'; i += 2; }
+          else { i++; break; }
+        } else {
+          val += text[i++];
+        }
+      }
+      return val;
+    }
+    let val = "";
+    while (i < n && text[i] !== "," && text[i] !== "\n" && text[i] !== "\r") val += text[i++];
+    return val;
+  }
+
+  function parseRecord() {
+    const fields = [];
+    while (true) {
+      fields.push(parseField());
+      if (i >= n || text[i] === "\n" || text[i] === "\r") {
+        if (i < n && text[i] === "\r") i++;
+        if (i < n && text[i] === "\n") i++;
+        break;
+      }
+      i++;
+    }
+    return fields;
+  }
+
+  const header = parseRecord();
+  const nameIdx = header.indexOf("Name");
+  const genderIdx = header.indexOf("Gender");
+  const birthTimeIdx = header.indexOf("BirthTime");
+  const notesIdx = header.indexOf("Notes");
+
+  while (i < n) {
+    if (text[i] === "\r" || text[i] === "\n") { i++; continue; }
+    const cols = parseRecord();
+    try {
+      const bt = JSON.parse(cols[birthTimeIdx] || "{}");
+      const stdTime = bt.StdTime || "";
+      const m = stdTime.match(/^(\d{2}:\d{2})\s+(\d{2})\/(\d{2})\/(\d{4})\s+([+-]\d{2}:\d{2})/);
+      if (!m) continue;
+      const [, time, day, month, year, tzOffset] = m;
+      const notesRaw = (cols[notesIdx] || "").replace(/'/g, '"');
+      let rodden = "";
+      try { rodden = JSON.parse(notesRaw).rodden || ""; } catch {}
+      entries.push({
+        name: cols[nameIdx] || "",
+        gender: cols[genderIdx] || "",
+        birth_date: `${year}-${month}-${day}`,
+        birth_time: time,
+        latitude: bt.Location?.Latitude ?? null,
+        longitude: bt.Location?.Longitude ?? null,
+        birth_place: bt.Location?.Name || "",
+        tz_offset: tzOffset || null,
+        rodden,
+      });
+    } catch {}
+  }
+  return entries;
+}
+
+let _celebCache = null;
+async function searchCelebrities(query = "") {
+  if (!_celebCache) {
+    const text = await fsp.readFile(CELEBRITIES_CSV, "utf8");
+    _celebCache = parseCelebritiesCSV(text);
+  }
+  const q = query.trim().toLowerCase();
+  if (!q) return _celebCache.slice(0, 20);
+  return _celebCache.filter(e => e.name.toLowerCase().includes(q)).slice(0, 50);
 }
 
 async function loadProfiles() {
@@ -740,6 +846,12 @@ async function route(req, res) {
 
   if (req.method === "GET" && pathname === "/api/places") {
     sendJson(res, 200, { places: await listPlaces(url.searchParams.get("q") || "") });
+    return;
+  }
+
+  if (req.method === "GET" && pathname === "/api/celebrities") {
+    const results = await searchCelebrities(url.searchParams.get("q") || "");
+    sendJson(res, 200, { celebrities: results });
     return;
   }
 
