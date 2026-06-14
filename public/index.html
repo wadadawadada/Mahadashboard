@@ -13,7 +13,7 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=19" />
+    <link rel="stylesheet" href="/styles.css?v=22" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   </head>
   <body>
@@ -269,8 +269,9 @@
                 <div class="unified-report">
                   <nav class="report-nav" id="reportNav" aria-label="Report sections">
                     <a class="report-nav-link active" href="#rsec-overview" data-i18n="overview">Обзор</a>
+                    <a class="report-nav-link" href="#rsec-analytics" data-i18n="reportAnalytics">Analytics</a>
+                    <a class="report-nav-link" href="#rsec-tables" data-i18n="reportData">Data</a>
                     <a class="report-nav-link" href="#rsec-sources" data-i18n="sources">Источники</a>
-                    <a class="report-nav-link" href="#rsec-tables" data-i18n="tables">Таблицы</a>
                     <a class="report-nav-link" href="#rsec-export" data-i18n="exportNav">Export</a>
                     <button class="fc-ask-ai-btn report-ask-ai-btn" id="reportAskAI" type="button">
                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -281,6 +282,19 @@
                   <div class="unified-report-body">
                     <section class="report-section" id="rsec-overview">
                       <div class="panel" id="overviewPanel"></div>
+                    </section>
+
+                    <section class="report-section" id="rsec-analytics">
+                      <div class="report-analytics-grid">
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportStrengths">Strength Map</h2></div>
+                          <div class="table-wrap" id="strengthTable"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportDasha">Current Period</h2></div>
+                          <div class="table-wrap" id="dashaReportTable"></div>
+                        </div>
+                      </div>
                     </section>
 
                     <section class="report-section" id="rsec-sources">
@@ -297,6 +311,14 @@
                     <section class="report-section" id="rsec-tables">
                       <div class="table-stack">
                         <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportBirth">Birth & Calculation</h2></div>
+                          <div class="table-wrap" id="birthReportTable"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportLagna">Lagna</h2></div>
+                          <div class="table-wrap" id="lagnaReportTable"></div>
+                        </div>
+                        <div class="panel">
                           <div class="panel-head"><h2 data-i18n="planetTable">Планеты</h2></div>
                           <div class="table-wrap" id="planetTable"></div>
                         </div>
@@ -307,6 +329,14 @@
                         <div class="panel">
                           <div class="panel-head"><h2 data-i18n="aspectTable">Аспекты</h2></div>
                           <div class="table-wrap" id="aspectTable"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportD9">D9 Navamsa</h2></div>
+                          <div class="table-wrap" id="d9Table"></div>
+                        </div>
+                        <div class="panel">
+                          <div class="panel-head"><h2 data-i18n="reportDashaTimeline">Dasha Timeline</h2></div>
+                          <div class="table-wrap" id="dashaTimelineTable"></div>
                         </div>
                       </div>
                     </section>
@@ -637,6 +667,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="/app.js?v=22"></script>
+    <script src="/app.js?v=25"></script>
   </body>
 </html>

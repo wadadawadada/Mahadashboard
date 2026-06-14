@@ -33,12 +33,20 @@ const t = {
     overview: "Обзор",
     tables: "Таблицы",
     sources: "Источники",
+    reportAnalytics: "Аналитика",
+    reportData: "Данные",
+    reportStrengths: "Сила домов и планет",
+    reportDasha: "Текущий период",
+    reportD9: "D9 Навамша",
+    reportBirth: "Рождение и расчет",
+    reportLagna: "Лагна",
+    reportDashaTimeline: "Хронология даш",
     report: "Отчет",
     planetTable: "Планеты",
     houseTable: "Дома",
     aspectTable: "Аспекты",
     foundSources: "Найденные источники",
-    missingSources: "Недостающие ключи",
+    missingSources: "Пробелы в источниках",
     aiTitle: "Вопрос по карте",
     ask: "Спросить",
     askPlaceholder: "Спроси о карте, периоде, домах или источниках",
@@ -217,12 +225,20 @@ const t = {
     overview: "Overview",
     tables: "Tables",
     sources: "Sources",
+    reportAnalytics: "Analytics",
+    reportData: "Data",
+    reportStrengths: "House & Planet Strength",
+    reportDasha: "Current Period",
+    reportD9: "D9 Navamsa",
+    reportBirth: "Birth & Calculation",
+    reportLagna: "Lagna",
+    reportDashaTimeline: "Dasha Timeline",
     report: "Report",
     planetTable: "Planets",
     houseTable: "Houses",
     aspectTable: "Aspects",
     foundSources: "Found sources",
-    missingSources: "Missing keys",
+    missingSources: "Source gaps",
     aiTitle: "Ask about the chart",
     ask: "Ask",
     askPlaceholder: "Ask about the chart, period, houses, or sources",
@@ -1896,7 +1912,91 @@ function initSettingsModal() {
   });
 }
 
-function renderOverview(chart, context) {
+function risingSignArtwork(sign, title, subtitle, note = "") {
+  // Traditional zodiac symbols as clean SVG paths, viewBox 0 0 100 100
+  const SIGN_SVG = {
+    Aries:
+      `<path d="M50 62 C50 62 50 42 50 38 C50 26 38 18 28 24 C18 30 18 44 28 48 C34 50 40 47 44 42"/>
+       <path d="M50 62 C50 62 50 42 50 38 C50 26 62 18 72 24 C82 30 82 44 72 48 C66 50 60 47 56 42"/>`,
+    Taurus:
+      `<path d="M30 35 Q50 18 70 35"/>
+       <circle cx="50" cy="58" r="20" fill="none"/>`,
+    Gemini:
+      `<line x1="30" y1="20" x2="30" y2="80"/>
+       <line x1="70" y1="20" x2="70" y2="80"/>
+       <line x1="30" y1="20" x2="70" y2="20"/>
+       <line x1="30" y1="80" x2="70" y2="80"/>
+       <line x1="30" y1="50" x2="70" y2="50"/>`,
+    Cancer:
+      `<path d="M22 42 C22 32 32 26 42 30 C52 34 52 46 42 50 C32 54 22 48 22 58 C22 68 32 74 42 70 C52 66 58 56 58 46"/>
+       <path d="M78 58 C78 68 68 74 58 70 C48 66 48 54 58 50 C68 46 78 52 78 42 C78 32 68 26 58 30 C48 34 42 44 42 54"/>`,
+    Leo:
+      `<circle cx="36" cy="38" r="14" fill="none"/>
+       <path d="M36 52 C36 60 42 70 50 72 C60 74 70 66 70 56 C70 44 60 38 50 40 C46 41 42 44 40 48"/>
+       <path d="M70 56 Q76 70 72 78"/>`,
+    Virgo:
+      `<line x1="36" y1="78" x2="36" y2="30"/>
+       <path d="M36 30 C36 20 52 20 52 30 L52 54"/>
+       <path d="M52 30 C52 20 68 20 68 30 L68 54"/>
+       <path d="M52 62 C52 70 58 76 66 74 C72 72 74 66 70 62 C66 58 60 60 58 64"/>`,
+    Libra:
+      `<line x1="22" y1="68" x2="78" y2="68"/>
+       <path d="M32 68 C32 52 44 42 50 42 C56 42 68 52 68 68"/>
+       <line x1="22" y1="78" x2="78" y2="78"/>`,
+    Scorpio:
+      `<line x1="24" y1="30" x2="24" y2="72"/>
+       <line x1="44" y1="30" x2="44" y2="72"/>
+       <path d="M44 30 C44 20 64 20 64 32 L64 60 Q64 74 74 74 L80 74"/>
+       <polyline points="72,66 80,74 72,82"/>`,
+    Sagittarius:
+      `<line x1="22" y1="78" x2="78" y2="22"/>
+       <polyline points="54,22 78,22 78,46"/>`,
+    Capricorn:
+      `<path d="M24 72 L24 40 C24 28 36 22 44 28 C50 32 50 42 44 46 C38 50 30 46 30 38"/>
+       <path d="M44 46 C44 40 52 36 58 40 L60 72"/>
+       <path d="M60 58 C60 48 68 44 74 48 C80 52 80 62 74 68 C68 74 60 70 60 62"/>`,
+    Aquarius:
+      `<path d="M22 44 C30 36 38 52 46 44 C54 36 62 52 70 44 C74 40 76 38 78 36"/>
+       <path d="M22 62 C30 54 38 70 46 62 C54 54 62 70 70 62 C74 58 76 56 78 54"/>`,
+    Pisces:
+      `<path d="M50 22 L50 78"/>
+       <path d="M22 50 C22 36 34 26 50 26 C66 26 78 36 78 50"/>
+       <path d="M22 50 C22 64 34 74 50 74 C66 74 78 64 78 50"/>`,
+  };
+  const SIGN_COLOR = {
+    Aries: "#e07060", Taurus: "#8ec97a", Gemini: "#f0b84a", Cancer: "#7dcfbb",
+    Leo: "#f3d27a", Virgo: "#8ec97a", Libra: "#7db3ff", Scorpio: "#c097ff",
+    Sagittarius: "#f08a6c", Capricorn: "#aabbcc", Aquarius: "#7db3ff", Pisces: "#a090e0",
+  };
+  const paths = SIGN_SVG[sign] || `<circle cx="50" cy="50" r="28" fill="none"/><line x1="50" y1="22" x2="50" y2="78"/><line x1="22" y1="50" x2="78" y2="50"/>`;
+  const color = SIGN_COLOR[sign] || "#d8b764";
+
+  return `
+    <div class="rp-rising-art">
+      <div class="rp-rising-badge" style="--scol:${color}">
+        <svg class="rp-rising-badge-svg" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id="rpBadgeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="${color}" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="46" fill="url(#rpBadgeGlow)"/>
+          <circle cx="50" cy="50" r="46" stroke="${color}" stroke-opacity="0.25" stroke-width="1" fill="none"/>
+          <circle cx="50" cy="50" r="36" stroke="${color}" stroke-opacity="0.1" stroke-width="1" fill="none"/>
+          <g stroke="${color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none">${paths}</g>
+        </svg>
+      </div>
+      <div class="rp-rising-copy">
+        <span>${escapeHtml(title)}</span>
+        <strong>${escapeHtml(subtitle)}</strong>
+        ${note ? `<em>${escapeHtml(note)}</em>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderOverviewLegacy(chart, context) {
   const isRu = state.lang === "ru";
   const current = chart.dashas?.current || {};
   const lagna = chart.lagna || {};
@@ -2049,7 +2149,7 @@ function renderOverview(chart, context) {
   `;
 }
 
-function renderTables(chart) {
+function renderTablesLegacy(chart) {
   const isRu = state.lang === "ru";
   const PLANET_NAMES_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
     jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
@@ -2150,6 +2250,475 @@ function renderTables(chart) {
   }).join("");
 
   $("#aspectTable").innerHTML = `<div class="tbl-aspect-list">${aspectRowsHtml}</div>`;
+}
+
+function renderOverview(chart, context) {
+  const isRu = state.lang === "ru";
+  const birth = chart.birth || {};
+  const lagna = chart.lagna || {};
+  const planets = chart.planets || {};
+  const houses = chart.houses || {};
+  const dashas = chart.dashas || {};
+  const current = dashas.current || {};
+  const items = context?.items || [];
+  const missing = context?.missing || [];
+
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев", Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец", Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const PLANET_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий", jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const MODE_RU = { Cardinal:"Кардин.", Fixed:"Фиксир.", Mutable:"Мутаб." };
+  const ELEMENT_RU = { Fire:"Огонь", Earth:"Земля", Air:"Воздух", Water:"Вода" };
+  const DIG_RU = { exalted:"экзальтация", debilitated:"падение", own_sign:"свой знак", neutral:"нейтрально" };
+  const DIG_EN = { exalted:"exalted", debilitated:"debilitated", own_sign:"own sign", neutral:"neutral" };
+
+  const pkey = (value) => String(value || "").toLowerCase();
+  const pname = (value) => {
+    const key = pkey(value);
+    return isRu ? (PLANET_RU[key] || value || "") : cap(value || "");
+  };
+  const sname = (value) => isRu ? (SIGN_RU[value] || value || "") : (value || "");
+  const dignity = (value) => isRu ? (DIG_RU[value] || value || "") : (DIG_EN[value] || value || "");
+  const dateShort = (value) => value ? String(value).slice(0, 10) : "";
+  const pct = (value, total) => total ? Math.round((value / total) * 100) : 0;
+
+  const mainKeys = PLANET_ORDER.filter((key) => planets[key]);
+  const elementCounts = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  const modeCounts = { Cardinal: 0, Fixed: 0, Mutable: 0 };
+  [...mainKeys.map((key) => planets[key].sign), lagna.sign].filter(Boolean).forEach((sign) => {
+    const meta = SIGN_META[sign];
+    if (meta?.element) elementCounts[meta.element] += 1;
+    if (meta?.mode) modeCounts[meta.mode] += 1;
+  });
+  const balanceTotal = Object.values(elementCounts).reduce((sum, n) => sum + n, 0) || 1;
+  const modeTotal = Object.values(modeCounts).reduce((sum, n) => sum + n, 0) || 1;
+
+  const scoredPlanets = mainKeys
+    .map((key) => ({ key, score: scorePlanet(key, chart), planet: planets[key] }))
+    .sort((a, b) => b.score - a.score);
+  const strongPlanets = scoredPlanets.slice(0, 3);
+  const sensitivePlanets = scoredPlanets.slice(-3).reverse();
+  const sav = chart.ashtakavarga?.sav || [];
+  const houseStrength = Array.from({ length: 12 }, (_, idx) => ({
+    house: idx + 1,
+    score: Number(sav[idx] || 0),
+    data: houses[String(idx + 1)] || {},
+  })).sort((a, b) => b.score - a.score);
+  const strongestHouses = houseStrength.slice(0, 3);
+  const weakestHouses = houseStrength.slice(-3).reverse();
+  const activeHouses = Object.values(houses).filter((h) => (h.planets || []).length).length;
+  const dignityCounts = mainKeys.reduce((acc, key) => {
+    const d = planets[key]?.dignity || "neutral";
+    acc[d] = (acc[d] || 0) + 1;
+    return acc;
+  }, {});
+  const retrograde = mainKeys.filter((key) => planets[key]?.retrograde);
+  const dashaChain = [current.mahadasha, current.antardasha, current.pratyantardasha].filter(Boolean).map(pname);
+  const currentMaha = (dashas.mahadashas || []).find((item) => pkey(item.planet) === pkey(current.mahadasha));
+  const sourceCoverage = items.length + missing.length ? Math.round((items.length / (items.length + missing.length)) * 100) : 100;
+  const elementPct = {
+    Fire: pct(elementCounts.Fire, balanceTotal),
+    Earth: pct(elementCounts.Earth, balanceTotal),
+    Air: pct(elementCounts.Air, balanceTotal),
+    Water: pct(elementCounts.Water, balanceTotal),
+  };
+  const dominantElement = Object.entries(elementCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Fire";
+  const topPlanet = strongPlanets[0];
+  const topHouse = strongestHouses[0];
+  const currentMahaProgress = currentMaha
+    ? Math.max(0, Math.min(100, Math.round(((Date.now() - new Date(currentMaha.start).getTime()) / (new Date(currentMaha.end).getTime() - new Date(currentMaha.start).getTime())) * 100)))
+    : 0;
+  const elementOrder = [
+    ["Fire", "#e07060"],
+    ["Earth", "#8ec97a"],
+    ["Air", "#7db3ff"],
+    ["Water", "#7dcfbb"],
+  ];
+  const elementProfile = elementOrder.map(([key, color]) => `
+    <div class="rp-profile-row">
+      <span><i style="background:${color}"></i>${escapeHtml(isRu ? (ELEMENT_RU[key] || key) : key)}</span>
+      <b><em style="width:${elementPct[key] || 0}%; background:${color}"></em></b>
+      <strong>${elementCounts[key] || 0}</strong>
+      <small>${elementPct[key] || 0}%</small>
+    </div>
+  `).join("");
+
+  const barRows = (rows, total, className) => rows.map(([key, value]) => `
+    <div class="rp-bar-row ${className || ""}">
+      <span>${escapeHtml(isRu ? (ELEMENT_RU[key] || MODE_RU[key] || key) : key)}</span>
+      <div class="rp-bar-track"><i style="width:${pct(value, total)}%"></i></div>
+      <strong>${value}</strong>
+    </div>
+  `).join("");
+
+  const planetList = (list) => list.map(({ key, score, planet }) => {
+    const meta = PLANET_META[key] || {};
+    return `<div class="rp-mini-planet" style="--pcol:${meta.color || "var(--muted)"}">
+      <span class="rp-mini-glyph">${meta.glyph || ""}</span>
+      <span>${escapeHtml(pname(key))}</span>
+      <strong>${score.toFixed(1)}</strong>
+      <small>${escapeHtml(sname(planet.sign))}, ${isRu ? "дом" : "house"} ${planet.house}</small>
+    </div>`;
+  }).join("");
+
+  const houseList = (list) => list.map((item) => `<div class="rp-house-chip">
+    <strong>${item.house}</strong>
+    <span>${escapeHtml(sname(item.data.sign))}</span>
+    <em>SAV ${item.score || "—"}</em>
+  </div>`).join("");
+
+  const SIGN_UNICODE = { Aries:"♈", Taurus:"♉", Gemini:"♊", Cancer:"♋", Leo:"♌", Virgo:"♍", Libra:"♎", Scorpio:"♏", Sagittarius:"♐", Capricorn:"♑", Aquarius:"♒", Pisces:"♓" };
+  const ELEM_COLOR_MAP = { Fire:"#e07060", Earth:"#8ec97a", Air:"#7db3ff", Water:"#7dcfbb" };
+  const lagnaGlyph = SIGN_UNICODE[lagna.sign] || "◎";
+  const moonGlyph  = SIGN_UNICODE[planets.moon?.sign] || "☽";
+  const elemColor  = ELEM_COLOR_MAP[dominantElement] || "#d8b764";
+  const elemBarHtml = elementOrder.map(([key, color]) => {
+    const pctVal = elementPct[key] || 0;
+    return `<div class="rp-stat-elem-row">
+      <span style="color:${color}">${escapeHtml(isRu ? (ELEMENT_RU[key]||key) : key)}</span>
+      <div class="rp-stat-elem-track"><div class="rp-stat-elem-fill" style="width:${pctVal}%;background:${color}"></div></div>
+      <b>${elementCounts[key]}</b>
+    </div>`;
+  }).join("");
+
+  $("#overviewPanel").innerHTML = `
+    <div class="rp-overview">
+
+      <div class="rp-statbar">
+        <div class="rp-statbar-identity">
+          <div class="rp-statbar-name">${escapeHtml(birth.name || "—")}</div>
+          <div class="rp-statbar-meta">${escapeHtml([birth.local_date, birth.local_time, birth.city, birth.country].filter(Boolean).join(" · "))}</div>
+          <div class="rp-statbar-tags">
+            <span>${escapeHtml(chart.meta?.zodiac || "")} · ${escapeHtml(chart.meta?.ayanamsa || "")}</span>
+            <span>${escapeHtml(isRu ? "Домов" : "Houses")}: ${activeHouses}/12</span>
+          </div>
+        </div>
+        <div class="rp-statbar-divider"></div>
+        <div class="rp-statbar-stat">
+          <div class="rp-statbar-stat-icon rp-statbar-stat-icon--asc">${lagnaGlyph}</div>
+          <div>
+            <div class="rp-statbar-stat-label">${escapeHtml(isRu ? "Асцендент" : "Ascendant")}</div>
+            <div class="rp-statbar-stat-value">${escapeHtml(sname(lagna.sign))}</div>
+            <div class="rp-statbar-stat-sub">${escapeHtml([lagna.nakshatra, lagna.pada ? `п.${lagna.pada}` : ""].filter(Boolean).join(" · "))}</div>
+          </div>
+        </div>
+        <div class="rp-statbar-divider"></div>
+        <div class="rp-statbar-stat">
+          <div class="rp-statbar-stat-icon rp-statbar-stat-icon--moon">☽</div>
+          <div>
+            <div class="rp-statbar-stat-label">${escapeHtml(isRu ? "Луна" : "Moon")}</div>
+            <div class="rp-statbar-stat-value">${escapeHtml(sname(planets.moon?.sign))}</div>
+            <div class="rp-statbar-stat-sub">${escapeHtml(planets.moon?.nakshatra || "")}</div>
+          </div>
+        </div>
+        <div class="rp-statbar-divider"></div>
+        <div class="rp-statbar-stat rp-statbar-stat--period">
+          <div class="rp-statbar-stat-icon rp-statbar-stat-icon--dasha">◑</div>
+          <div>
+            <div class="rp-statbar-stat-label">${escapeHtml(isRu ? "Период" : "Period")}</div>
+            <div class="rp-statbar-stat-value">${escapeHtml(dashaChain.join(" → ") || "—")}</div>
+            <div class="rp-statbar-stat-sub rp-statbar-stat-progress">
+              <div class="rp-statbar-progress-track"><div class="rp-statbar-progress-fill" style="width:${currentMahaProgress}%"></div></div>
+              <span>${currentMahaProgress}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="rp-statbar-divider"></div>
+        <div class="rp-statbar-elem">
+          <div class="rp-statbar-stat-label">${escapeHtml(isRu ? "Стихии" : "Elements")}</div>
+          <div class="rp-statbar-elem-bars">${elemBarHtml}</div>
+        </div>
+        <div class="rp-statbar-divider"></div>
+        <div class="rp-statbar-stat">
+          <div class="rp-statbar-stat-icon rp-statbar-stat-icon--planet">✦</div>
+          <div>
+            <div class="rp-statbar-stat-label">${escapeHtml(isRu ? "Планета-лидер" : "Lead planet")}</div>
+            <div class="rp-statbar-stat-value">${escapeHtml(topPlanet ? pname(topPlanet.key) : "—")}</div>
+            <div class="rp-statbar-stat-sub">${topPlanet ? topPlanet.score.toFixed(1) : ""}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-kpi-grid">
+        <div class="rp-kpi rp-kpi--lagna"><i>ASC</i><span>${escapeHtml(isRu ? "Знак восхода" : "Rising sign")}</span><strong>${escapeHtml(sname(lagna.sign))}</strong><em>${escapeHtml([lagna.nakshatra, lagna.pada ? `${isRu ? "пада" : "pada"} ${lagna.pada}` : ""].filter(Boolean).join(" · "))}</em></div>
+        <div class="rp-kpi rp-kpi--moon"><i>☽</i><span>${escapeHtml(isRu ? "Луна" : "Moon")}</span><strong>${escapeHtml(sname(planets.moon?.sign))}</strong><em>${escapeHtml([planets.moon?.nakshatra, planets.moon?.house ? `${isRu ? "дом" : "house"} ${planets.moon.house}` : ""].filter(Boolean).join(" · "))}</em></div>
+        <div class="rp-kpi rp-kpi--period"><i>◑</i><span>${escapeHtml(isRu ? "Период" : "Period")}</span><strong>${escapeHtml(dashaChain.join(" / ") || "—")}</strong><em>${escapeHtml(currentMaha ? `${dateShort(currentMaha.start)} - ${dateShort(currentMaha.end)}` : "")}</em></div>
+        <div class="rp-kpi rp-kpi--sources"><i>${sourceCoverage}</i><span>${escapeHtml(isRu ? "Покрытие трактовок" : "Source coverage")}</span><strong>${sourceCoverage}%</strong><em>${items.length} ${escapeHtml(isRu ? "найдено" : "found")} · ${missing.length} ${escapeHtml(isRu ? "нет" : "missing")}</em></div>
+      </div>
+
+      <div class="rp-dashboard-grid">
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Баланс стихий" : "Element Balance")}</h3><span>${balanceTotal}</span></div>
+          ${barRows(Object.entries(elementCounts), balanceTotal, "rp-element-bar")}
+        </section>
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Качество знаков" : "Sign Modes")}</h3><span>${modeTotal}</span></div>
+          ${barRows(Object.entries(modeCounts), modeTotal, "rp-mode-bar")}
+        </section>
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Сильные планеты" : "Strongest Planets")}</h3><span>${strongPlanets.length}</span></div>
+          <div class="rp-mini-list">${planetList(strongPlanets)}</div>
+        </section>
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Зоны внимания" : "Focus Areas")}</h3><span>${activeHouses}/12</span></div>
+          <div class="rp-mini-list">${planetList(sensitivePlanets)}</div>
+        </section>
+      </div>
+
+      <div class="rp-insight-grid">
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Самые ресурсные дома" : "Most Supported Houses")}</h3></div>
+          <div class="rp-house-list">${houseList(strongestHouses)}</div>
+        </section>
+        <section class="rp-card">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Тонкие места карты" : "Lower-Scoring Houses")}</h3></div>
+          <div class="rp-house-list">${houseList(weakestHouses)}</div>
+        </section>
+        <section class="rp-card rp-card--notes">
+          <div class="rp-card-head"><h3>${escapeHtml(isRu ? "Факторы качества" : "Quality Factors")}</h3><span>${mainKeys.length}</span></div>
+          <p>${escapeHtml(isRu ? "Достоинства" : "Dignities")}: ${Object.entries(dignityCounts).map(([k, v]) => `${dignity(k)} ${v}`).join(", ") || "—"}</p>
+          <p>${escapeHtml(isRu ? "Ретроградные" : "Retrograde")}: ${retrograde.length ? retrograde.map(pname).join(", ") : (isRu ? "нет" : "none")}</p>
+          <p>${escapeHtml(isRu ? "Предупреждения расчета" : "Calculation warnings")}: ${(chart.warnings || []).length || (isRu ? "нет" : "none")}</p>
+        </section>
+      </div>
+    </div>
+  `;
+}
+
+function renderTables(chart) {
+  const isRu = state.lang === "ru";
+  const planets = chart.planets || {};
+  const houses = chart.houses || {};
+  const PLANET_NAMES_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий", jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев", Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец", Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+  const DIG_RU = { neutral:"нейтр.", exalted:"экзальт.", debilitated:"падение", own_sign:"свой знак" };
+  const DIG_EN = { neutral:"neutral", exalted:"exalted", debilitated:"debil.", own_sign:"own sign" };
+  const ELEMENT = { Aries:"fire", Taurus:"earth", Gemini:"air", Cancer:"water", Leo:"fire", Virgo:"earth", Libra:"air", Scorpio:"water", Sagittarius:"fire", Capricorn:"earth", Aquarius:"air", Pisces:"water" };
+  const pkey = (value) => String(value || "").toLowerCase();
+  const pname = (value) => isRu ? (PLANET_NAMES_RU[pkey(value)] || value || "") : cap(value || "");
+  const sname = (value) => isRu ? (SIGN_RU[value] || value || "") : (value || "");
+  const dignity = (value) => isRu ? (DIG_RU[value] || value || "") : (DIG_EN[value] || value || "");
+  const dateShort = (value) => value ? String(value).slice(0, 10) : "";
+  const factGrid = (rows) => `<div class="report-fact-grid">${rows.map(([label, value, note]) => `
+    <div class="report-fact">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value || "-")}</strong>
+      ${note ? `<em>${escapeHtml(note)}</em>` : ""}
+    </div>
+  `).join("")}</div>`;
+
+  const birthEl = $("#birthReportTable");
+  if (birthEl) {
+    const b = chart.birth || {};
+    const m = chart.meta || {};
+    birthEl.innerHTML = factGrid([
+      [isRu ? "Имя" : "Name", b.name],
+      [isRu ? "Дата" : "Date", b.local_date],
+      [isRu ? "Время" : "Time", b.local_time],
+      [isRu ? "Место" : "Place", [b.city, b.country].filter(Boolean).join(", ")],
+      [isRu ? "Координаты" : "Coordinates", [b.latitude, b.longitude].filter((v) => v !== undefined && v !== null).join(" / ")],
+      [isRu ? "Часовой пояс" : "Timezone", b.timezone],
+      ["UTC", b.utc_datetime],
+      [isRu ? "Юлианский день" : "Julian day", String(b.julian_day || "")],
+      ["Ayanamsa", m.ayanamsa],
+      [isRu ? "Зодиак" : "Zodiac", m.zodiac],
+      [isRu ? "Дома" : "Houses", m.house_system],
+      [isRu ? "Даши" : "Dashas", m.dasha_system],
+    ]);
+  }
+
+  const lagnaEl = $("#lagnaReportTable");
+  if (lagnaEl) {
+    const l = chart.lagna || {};
+    lagnaEl.innerHTML = `
+      ${factGrid([
+        [isRu ? "Знак восхода" : "Rising sign", sname(l.sign)],
+        [isRu ? "Градус" : "Degree", l.degree_formatted],
+        [isRu ? "Накшатра" : "Nakshatra", l.nakshatra],
+        [isRu ? "Пада" : "Pada", String(l.pada || "")],
+      ])}
+    `;
+  }
+
+  const planetCardsHtml = PLANET_ORDER.map((key) => {
+    const p = planets[key];
+    if (!p) return "";
+    const meta = PLANET_META[key] || { glyph: "?", color: "#888" };
+    const elem = ELEMENT[p.sign] || "";
+    const dignityClass = p.dignity === "exalted" ? "tbl-dignity--exalted" : p.dignity === "debilitated" ? "tbl-dignity--debilitated" : p.dignity === "own_sign" ? "tbl-dignity--own" : "tbl-dignity--neutral";
+    const rulers = (p.ruler_of_houses || []).map((h) => `<span class="tbl-ruler-badge">${h}</span>`).join("");
+    return `<div class="tbl-planet-card" style="--pcol:${meta.color}">
+      <div class="tbl-pc-top">
+        <span class="tbl-pc-glyph">${meta.glyph}</span>
+        <span class="tbl-pc-name">${escapeHtml(pname(key))}</span>
+        ${p.retrograde ? `<span class="tbl-retro">R</span>` : ""}
+        <span class="tbl-pc-deg">${escapeHtml(p.degree_formatted || "")}</span>
+      </div>
+      <div class="tbl-pc-sign tbl-elem--${elem}">
+        <span>${escapeHtml(sname(p.sign))}</span>
+        <span class="tbl-pc-house">${isRu ? "дом" : "house"} ${p.house || "—"}</span>
+      </div>
+      <div class="tbl-pc-nk">${escapeHtml(p.nakshatra || "—")} <span class="tbl-pc-pada">${p.pada ? `${isRu ? "п." : "p."}${p.pada}` : ""}</span></div>
+      <div class="tbl-pc-bottom">
+        <span class="tbl-dignity ${dignityClass}">${escapeHtml(dignity(p.dignity))}</span>
+        ${rulers ? `<span class="tbl-ruler-label">${isRu ? "упр." : "rules"}</span>${rulers}` : ""}
+      </div>
+    </div>`;
+  }).join("");
+  $("#planetTable").innerHTML = `<div class="tbl-planet-grid">${planetCardsHtml}</div>`;
+
+  const sav = chart.ashtakavarga?.sav || [];
+  const houseRowsHtml = Object.values(houses)
+    .sort((a, b) => a.number - b.number)
+    .map((h) => {
+      const elem = ELEMENT[h.sign] || "";
+      const score = Number(sav[h.number - 1] || 0);
+      const scorePct = Math.min(100, Math.round((score / 56) * 100));
+      const planetsInHouse = (h.planets || []).map((pn) => {
+        const meta = PLANET_META[pkey(pn)] || { glyph: pn[0], color: "#888" };
+        return `<span class="tbl-house-planet" style="--pcol:${meta.color}" title="${escapeHtml(pname(pn))}">${meta.glyph}</span>`;
+      }).join("");
+      return `<div class="tbl-house-row${(h.planets || []).length ? " tbl-house-row--occupied" : ""}">
+        <div class="tbl-house-num">${h.number}</div>
+        <div class="tbl-house-sign tbl-elem--${elem}">${escapeHtml(sname(h.sign))}</div>
+        <div class="tbl-house-lord">${escapeHtml(pname(h.lord))}</div>
+        <div class="tbl-house-planets">${planetsInHouse || '<span class="tbl-empty">-</span>'}</div>
+        <div class="tbl-sav-cell"><span>${score || "-"}<em>/56</em></span><i><b style="width:${scorePct}%"></b></i></div>
+      </div>`;
+    }).join("");
+  $("#houseTable").innerHTML = `
+    <div class="tbl-house-header tbl-house-header--sav">
+      <span>${isRu ? "Дом" : "House"}</span>
+      <span>${isRu ? "Знак" : "Sign"}</span>
+      <span>${isRu ? "Управитель" : "Lord"}</span>
+      <span>${isRu ? "Планеты" : "Planets"}</span>
+      <span>${isRu ? "Сила" : "Score"}</span>
+    </div>
+    <div class="tbl-house-list tbl-house-list--sav">${houseRowsHtml}</div>`;
+
+  const aspects = chart.aspects || [];
+  const aspectRowsHtml = aspects.length ? aspects.map((asp) => {
+    const fromKey = pkey(asp.from_planet);
+    const meta = PLANET_META[fromKey] || { glyph: "?", color: "#888" };
+    const elem = ELEMENT[asp.to_sign] || "";
+    return `<div class="tbl-aspect-row">
+      <div class="tbl-asp-from" style="--pcol:${meta.color}">
+        <span class="tbl-asp-glyph">${meta.glyph}</span>
+        <span class="tbl-asp-name">${escapeHtml(pname(asp.from_planet))}</span>
+        <span class="tbl-asp-house">${asp.from_house}</span>
+      </div>
+      <div class="tbl-asp-arrow">→</div>
+      <div class="tbl-asp-type">${escapeHtml(asp.aspect || "")}</div>
+      <div class="tbl-asp-to">
+        <span class="tbl-asp-house">${asp.to_house}</span>
+        <span class="tbl-asp-sign tbl-elem--${elem}">${escapeHtml(sname(asp.to_sign))}</span>
+      </div>
+    </div>`;
+  }).join("") : `<div class="report-empty">${escapeHtml(isRu ? "Аспекты не рассчитаны." : "No aspects calculated.")}</div>`;
+  $("#aspectTable").innerHTML = `<div class="tbl-aspect-list">${aspectRowsHtml}</div>`;
+
+  const d9Planets = chart.divisional_charts?.D9?.planets || {};
+  const d9Rows = PLANET_ORDER.filter((key) => d9Planets[key]).map((key) => {
+    const d9 = d9Planets[key];
+    const d1 = planets[key] || {};
+    const meta = PLANET_META[key] || { glyph: "?", color: "#888" };
+    return `<div class="d9-row" style="--pcol:${meta.color}">
+      <span class="d9-glyph">${meta.glyph}</span>
+      <strong>${escapeHtml(pname(key))}</strong>
+      <span>${escapeHtml(sname(d1.sign))} → ${escapeHtml(sname(d9.sign))}</span>
+      <em>${escapeHtml(dignity(d9.dignity || "neutral"))}</em>
+    </div>`;
+  }).join("");
+  const d9El = $("#d9Table");
+  if (d9El) d9El.innerHTML = d9Rows ? `<div class="d9-list">${d9Rows}</div>` : `<div class="report-empty">${escapeHtml(isRu ? "D9 не рассчитана." : "D9 is not calculated.")}</div>`;
+
+  const strengthEl = $("#strengthTable");
+  if (strengthEl) {
+    const houseStrength = Array.from({ length: 12 }, (_, idx) => ({
+      n: idx + 1,
+      score: Number(sav[idx] || 0),
+      sign: houses[String(idx + 1)]?.sign,
+    }));
+    const houseBars = houseStrength.map((h) => `<div class="strength-row">
+      <span>${isRu ? "Дом" : "House"} ${h.n}</span>
+      <div class="strength-track"><i style="width:${Math.min(100, Math.round((h.score / 56) * 100))}%"></i></div>
+      <strong>${h.score || "-"}</strong>
+      <em>${escapeHtml(sname(h.sign))}</em>
+    </div>`).join("");
+    const planetTotals = chart.ashtakavarga?.planet_totals || {};
+    const planetBars = Object.entries(planetTotals).sort((a, b) => b[1] - a[1]).map(([key, score]) => {
+      const meta = PLANET_META[key] || {};
+      return `<div class="strength-row strength-row--planet" style="--pcol:${meta.color || "var(--gold)"}">
+        <span>${escapeHtml(pname(key))}</span>
+        <div class="strength-track"><i style="width:${Math.min(100, Math.round((Number(score) / 56) * 100))}%"></i></div>
+        <strong>${score}</strong>
+      </div>`;
+    }).join("");
+    strengthEl.innerHTML = `<div class="strength-grid">
+      <section><h3>${escapeHtml(isRu ? "Сила домов" : "House Strength")}</h3>${houseBars}</section>
+      <section><h3>${escapeHtml(isRu ? "Сила планет" : "Planet Strength")}</h3>${planetBars || `<div class="report-empty">-</div>`}</section>
+    </div>`;
+  }
+
+  const dashaEl = $("#dashaReportTable");
+  if (dashaEl) {
+    const current = chart.dashas?.current || {};
+    const currentChain = [current.mahadasha, current.antardasha, current.pratyantardasha].filter(Boolean);
+    const mahadashas = chart.dashas?.mahadashas || [];
+    const activeMaha = mahadashas.find((item) => pkey(item.planet) === pkey(current.mahadasha));
+    const upcoming = mahadashas.filter((item) => item.start && new Date(item.start) > new Date()).slice(0, 4);
+    const chainHtml = currentChain.map((item) => {
+      const meta = PLANET_META[pkey(item)] || {};
+      return `<span class="dasha-chip" style="--pcol:${meta.color || "var(--gold)"}">${meta.glyph || ""} ${escapeHtml(pname(item))}</span>`;
+    }).join("");
+    const upcomingHtml = upcoming.map((item) => `<div class="dasha-next-row">
+      <strong>${escapeHtml(pname(item.planet))}</strong>
+      <span>${dateShort(item.start)} - ${dateShort(item.end)}</span>
+    </div>`).join("");
+    dashaEl.innerHTML = `<div class="report-dasha-card">
+      <div class="dasha-chain">${chainHtml || "-"}</div>
+      ${activeMaha ? `<div class="dasha-active-range">${dateShort(activeMaha.start)} - ${dateShort(activeMaha.end)}</div>` : ""}
+      <div class="dasha-next-list">${upcomingHtml || `<div class="report-empty">${escapeHtml(isRu ? "Нет будущих периодов в данных." : "No upcoming periods in data.")}</div>`}</div>
+    </div>`;
+  }
+
+  const dashaTimelineEl = $("#dashaTimelineTable");
+  if (dashaTimelineEl) {
+    const current = chart.dashas?.current || {};
+    const currentKey = pkey(current.mahadasha);
+    const mahadashas = chart.dashas?.mahadashas || [];
+    const antardashas = chart.dashas?.antardashas || [];
+    const currentAntars = antardashas.filter((item) => pkey(item.mahadasha) === currentKey);
+    const mahaRows = mahadashas.map((item) => {
+      const active = pkey(item.planet) === currentKey;
+      const meta = PLANET_META[pkey(item.planet)] || {};
+      return `<div class="timeline-row${active ? " timeline-row--active" : ""}" style="--pcol:${meta.color || "var(--gold)"}">
+        <span class="timeline-planet">${meta.glyph || ""} ${escapeHtml(pname(item.planet))}</span>
+        <span>${dateShort(item.start)}</span>
+        <span>${dateShort(item.end)}</span>
+      </div>`;
+    }).join("");
+    const antarRows = currentAntars.map((item) => {
+      const active = pkey(item.antardasha) === pkey(current.antardasha);
+      const meta = PLANET_META[pkey(item.antardasha)] || {};
+      return `<div class="timeline-row${active ? " timeline-row--active" : ""}" style="--pcol:${meta.color || "var(--gold)"}">
+        <span class="timeline-planet">${meta.glyph || ""} ${escapeHtml(pname(item.antardasha))}</span>
+        <span>${dateShort(item.start)}</span>
+        <span>${dateShort(item.end)}</span>
+      </div>`;
+    }).join("");
+    dashaTimelineEl.innerHTML = `<div class="timeline-grid">
+      <section>
+        <h3>${escapeHtml(isRu ? "Маха-даши" : "Mahadashas")}</h3>
+        <div class="timeline-head"><span>${escapeHtml(isRu ? "Период" : "Period")}</span><span>${escapeHtml(isRu ? "Начало" : "Start")}</span><span>${escapeHtml(isRu ? "Конец" : "End")}</span></div>
+        ${mahaRows || `<div class="report-empty">-</div>`}
+      </section>
+      <section>
+        <h3>${escapeHtml(isRu ? "Подпериоды текущей маха-даши" : "Current mahadasha sub-periods")}</h3>
+        <div class="timeline-head"><span>${escapeHtml(isRu ? "Подпериод" : "Sub-period")}</span><span>${escapeHtml(isRu ? "Начало" : "Start")}</span><span>${escapeHtml(isRu ? "Конец" : "End")}</span></div>
+        ${antarRows || `<div class="report-empty">-</div>`}
+      </section>
+    </div>`;
+  }
+
 }
 
 function renderDashas(chart) {
@@ -3019,7 +3588,14 @@ function closePratyaModal() {
 
 function renderSources(context) {
   const isRu = state.lang === "ru";
-  const items = context.items || [];
+  const seenItems = new Set();
+  const items = (context.items || []).filter((item) => {
+    const text = String(itemText(item) || "").trim().replace(/\s+/g, " ");
+    const key = text || `key:${item.key || ""}`;
+    if (seenItems.has(key)) return false;
+    seenItems.add(key);
+    return true;
+  });
 
   // ── helpers ──────────────────────────────────────────────
   const PLANET_ORDER = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
@@ -3046,7 +3622,9 @@ function renderSources(context) {
   const row = (item) => {
     const tt = escapeHtml(tagType(item.key));
     return `<div class="src-row src-row--${tt}">
-      <span class="src-tag src-tag--${tt}">${escapeHtml(tagLabel(item.key))}</span>
+      <div class="src-row-meta">
+        <span class="src-tag src-tag--${tt}">${escapeHtml(tagLabel(item.key))}</span>
+      </div>
       <span class="src-text">${escapeHtml(itemText(item))}</span>
     </div>`;
   };
@@ -3224,24 +3802,71 @@ function renderSources(context) {
       <div class="src-card src-card--wide">${otherItems.map(row).join("")}</div>
     </div>` : "";
 
-  $("#sourceList").innerHTML = lagnaHtml + planetsHtml + housesHtml + dashaHtml + d9Html + aspectsHtml + nakshatraHtml + otherHtml;
-
+  const categoryCards = [
+    ["lagna", isRu ? "Лагна" : "Lagna", lagnaItems.length],
+    ["planet", isRu ? "Планеты" : "Planets", planetItems.length],
+    ["house", isRu ? "Дома" : "Houses", houseItems.length],
+    ["dasha", isRu ? "Даши" : "Dashas", dashaItems.length],
+    ["d9", "D9", d9Items.length],
+    ["aspect", isRu ? "Аспекты" : "Aspects", aspectItems.length],
+    ["nakshatra", isRu ? "Накшатры" : "Nakshatras", nakshatraItems.length],
+    ["other", isRu ? "Прочее" : "Other", otherItems.length],
+  ];
   const missing = context.missing || [];
+  const sourceSummaryHtml = `<div class="source-audit">
+    <div class="source-audit-main">
+      <span>${escapeHtml(isRu ? "Покрытие базы" : "Knowledge coverage")}</span>
+      <strong>${items.length}</strong>
+      <em>${escapeHtml(isRu ? "уникальных трактовок найдено" : "unique interpretations found")}</em>
+    </div>
+    <div class="source-audit-main source-audit-main--missing">
+      <span>${escapeHtml(isRu ? "Пробелы" : "Gaps")}</span>
+      <strong>${missing.length}</strong>
+      <em>${escapeHtml(isRu ? "пробелов в базе" : "source gaps")}</em>
+    </div>
+    <div class="source-audit-cats">
+      ${categoryCards.map(([key, label, count]) => `<div class="source-audit-cat source-audit-cat--${key}">
+        <span>${escapeHtml(label)}</span>
+        <strong>${count}</strong>
+      </div>`).join("")}
+    </div>
+  </div>`;
+
+  $("#sourceList").innerHTML = sourceSummaryHtml + lagnaHtml + planetsHtml + housesHtml + dashaHtml + d9Html + aspectsHtml + nakshatraHtml + otherHtml;
+
   const detailsEl = $("#missingSourcesDetails");
   if (detailsEl) detailsEl.style.display = missing.length ? "" : "none";
   const countEl = $("#missingCount");
   if (countEl) countEl.textContent = missing.length ? `(${missing.length})` : "";
   $("#missingList").innerHTML = missing
-    .map((item) => `<div class="source-item"><strong>${escapeHtml(item.key)}</strong></div>`)
+    .map((_, index) => `<div class="source-item"><strong>${escapeHtml(isRu ? `Пробел трактовки ${index + 1}` : `Missing interpretation ${index + 1}`)}</strong></div>`)
     .join("");
 }
 
 function renderReport(run, markdown) {
+  const body = $(".export-body");
+  const chart = state.chart;
+  if (!body || !chart) return;
+  const name = (chart?.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
+  body.innerHTML = `
+    <div class="export-info">
+      <p class="export-desc" data-i18n="exportDesc">${escapeHtml(tr("exportDesc"))}</p>
+      <div class="export-meta" id="exportMeta"></div>
+      <ul class="export-contents">
+        <li data-i18n="exportContents1">${escapeHtml(tr("exportContents1"))}</li>
+        <li data-i18n="exportContents2">${escapeHtml(tr("exportContents2"))}</li>
+        <li data-i18n="exportContents3">${escapeHtml(tr("exportContents3"))}</li>
+        <li data-i18n="exportContents4">${escapeHtml(tr("exportContents4"))}</li>
+      </ul>
+    </div>
+    <a class="export-download-btn" id="exportDownloadBtn" href="/api/export/${run.id}?lang=${state.lang}" download="${escapeHtml(name)}_astro_report.md">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M5 16l7 5 7-5M3 21h18"/></svg>
+      <span>${escapeHtml(tr("exportDownload"))}</span>
+    </a>
+  `;
   const btn = $("#exportDownloadBtn");
   if (!btn) return;
   btn.href = `/api/export/${run.id}?lang=${state.lang}`;
-  const chart = state.chart;
-  const name = (chart?.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
   btn.download = `${name}_astro_report.md`;
   const meta = $("#exportMeta");
   if (meta && chart) {
@@ -3249,7 +3874,6 @@ function renderReport(run, markdown) {
     meta.textContent = `${b.name || ""} · ${b.local_date || ""} · ${b.city || ""}, ${b.country || ""}`;
   }
 }
-
 function table(headers, rows) {
   return `
     <table>
