@@ -12,6 +12,7 @@ const REPORTS_DIR = path.join(DATA_DIR, "reports");
 const PLACES_PATH = path.join(DATA_DIR, "places", "places.json");
 const SERVICE_DIR = path.join(DATA_DIR, "service");
 const RUNS_DIR = path.join(SERVICE_DIR, "runs");
+const COMPAT_DIR = path.join(SERVICE_DIR, "compatibility");
 const PROFILES_PATH = path.join(SERVICE_DIR, "profiles.json");
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ENV_PATH = path.join(ROOT, ".env");
@@ -480,6 +481,41 @@ async function loadRun(runId) {
   return { manifest, chart, context, markdown };
 }
 
+async function runCompatibility(runIdA, runIdB, language = "ru", context = "romance") {
+  if (!/^[a-f0-9-]{36}$/.test(runIdA) || !/^[a-f0-9-]{36}$/.test(runIdB)) {
+    throw new ApiError(400, "Invalid run id.");
+  }
+  const chartA = path.join(RUNS_DIR, runIdA, "chart.json");
+  const chartB = path.join(RUNS_DIR, runIdB, "chart.json");
+  await fsp.access(chartA).catch(() => {
+    throw new ApiError(404, "First profile report was not found.");
+  });
+  await fsp.access(chartB).catch(() => {
+    throw new ApiError(404, "Second profile report was not found.");
+  });
+
+  await fsp.mkdir(COMPAT_DIR, { recursive: true });
+  const safeLanguage = language === "en" ? "en" : "ru";
+  const safeContext = ["romance", "business", "friendship", "karma"].includes(context) ? context : "romance";
+  const outJson = path.join(COMPAT_DIR, `${runIdA}_${runIdB}_${safeLanguage}_${safeContext}.json`);
+  await runPython([
+    "-m",
+    "jyotish.cli",
+    "compatibility",
+    "--chart-a",
+    chartA,
+    "--chart-b",
+    chartB,
+    "--out-json",
+    outJson,
+    "--language",
+    safeLanguage,
+    "--context",
+    safeContext,
+  ]);
+  return readJson(outJson);
+}
+
 function compactDayForecast(dateStr, data) {
   const keyAspects = (data.transit_aspects || [])
     .filter((a) => a.aspect !== "jyotish_aspect" && (a.orb || 99) <= 4)
@@ -751,6 +787,18 @@ async function route(req, res) {
   const runMatch = pathname.match(/^\/api\/reports\/([a-f0-9-]{36})$/);
   if (req.method === "GET" && runMatch) {
     const result = await loadRun(runMatch[1]);
+    sendJson(res, 200, result);
+    return;
+  }
+
+  const compatibilityMatch = pathname.match(/^\/api\/compatibility\/([a-f0-9-]{36})\/([a-f0-9-]{36})$/);
+  if (req.method === "GET" && compatibilityMatch) {
+    const result = await runCompatibility(
+      compatibilityMatch[1],
+      compatibilityMatch[2],
+      url.searchParams.get("language") || "ru",
+      url.searchParams.get("context") || "romance",
+    );
     sendJson(res, 200, result);
     return;
   }

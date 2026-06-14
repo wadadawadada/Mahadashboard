@@ -7,6 +7,8 @@
   context: null,
   markdown: "",
   chartView: "2d",
+  pendingChatRunId: null,
+  pendingChatProfileId: null,
 };
 
 const t = {
@@ -201,6 +203,52 @@ const t = {
     forecastPlanet: "Планета",
     forecastAspectTo: "Аспект",
     forecastOrb: "Орб",
+    synastryTab: "Синастрия",
+    synastryTitle: "Сравнение профилей",
+    synastrySubtitle: "Совместимость, сильные стороны и зоны риска",
+    synastrySelectA: "Профиль A",
+    synastrySelectB: "Профиль B",
+    synastryCompare: "Сравнить",
+    synastryNoProfiles: "Нужно минимум 2 профиля для сравнения",
+    synastryContextRomance: "Романтика",
+    synastryContextBusiness: "Бизнес",
+    synastryContextFriendship: "Дружба",
+    synastryContextKarma: "Глубокая связь",
+    synastryScoreOverall: "Общая совместимость",
+    synastryScoreEmotional: "Эмоциональный резонанс",
+    synastryScoreIntellect: "Интеллект и общение",
+    synastryScoreKarma: "Карма и рост",
+    synastryScoreConflict: "Гармония",
+    synastryScoreConflictHint: "",
+    synastryScoreIndex: "Индекс пары",
+    synastryScoreMethod: "Классическая лунная проверка 36 баллов",
+    synastryScoreAdjusted: "Итоговая оценка",
+    synastryKeyAreasTitle: "Ключевые зоны",
+    synastryFlagsTitle: "Что важно обсудить",
+    synastryDetailsTitle: "Из чего сложился индекс",
+    synastryDoshaTitle: "Проверка конфликтности",
+    synastryBaseTitle: "Базовое сравнение",
+    synastryParamLagna: "Стартовый тип",
+    synastryParamMoon: "Луна",
+    synastryParamNakshatra: "Лунный тип",
+    synastryParamElement: "Стихия",
+    synastryParamDasha: "Текущий период",
+    synastryParamLord: "Ведущая планета",
+    synastryHousesTitle: "Сила жизненных сфер",
+    synastryHouseLabel: "Сфера",
+    synastryPlanetsTitle: "Как карты влияют друг на друга",
+    synastryPlanetsAinB: "A → B",
+    synastryPlanetsBinA: "B → A",
+    synastryPlanetHouse: "Сфера",
+    synastryThemesTitle: "Сильные стороны и напряжения",
+    synastryMatch: "Совпадение",
+    synastryTension: "Напряжение",
+    synastryConflict: "Конфликт",
+    synastryAskAI: "✨ Спросить ИИ о совместимости",
+    synastryAITitle: "ИИ о совместимости",
+    synastryAIPlaceholder: "Уточни вопрос о совместимости...",
+    synastryChooseFirst: "Выбери два профиля и нажми «Сравнить»",
+    synastryLoading: "Анализ совместимости...",
   },
   en: {
     subtitle: "precise calculation, live report",
@@ -393,6 +441,52 @@ const t = {
     forecastPlanet: "Planet",
     forecastAspectTo: "Aspect",
     forecastOrb: "Orb",
+    synastryTab: "Synastry",
+    synastryTitle: "Profile Comparison",
+    synastrySubtitle: "Compatibility, strengths, and risk areas",
+    synastrySelectA: "Profile A",
+    synastrySelectB: "Profile B",
+    synastryCompare: "Compare",
+    synastryNoProfiles: "You need at least 2 profiles to compare",
+    synastryContextRomance: "Romance",
+    synastryContextBusiness: "Business",
+    synastryContextFriendship: "Friendship",
+    synastryContextKarma: "Deep bond",
+    synastryScoreOverall: "Overall compatibility",
+    synastryScoreEmotional: "Emotional resonance",
+    synastryScoreIntellect: "Intellect & communication",
+    synastryScoreKarma: "Karma & growth",
+    synastryScoreConflict: "Harmony",
+    synastryScoreConflictHint: "",
+    synastryScoreIndex: "Pair index",
+    synastryScoreMethod: "Classic 36-point lunar check",
+    synastryScoreAdjusted: "Final rating",
+    synastryKeyAreasTitle: "Key areas",
+    synastryFlagsTitle: "What to discuss",
+    synastryDetailsTitle: "How the index is built",
+    synastryDoshaTitle: "Conflict-pattern check",
+    synastryBaseTitle: "Base comparison",
+    synastryParamLagna: "Starting style",
+    synastryParamMoon: "Moon",
+    synastryParamNakshatra: "Moon type",
+    synastryParamElement: "Element",
+    synastryParamDasha: "Current period",
+    synastryParamLord: "Leading planet",
+    synastryHousesTitle: "Life-area strength",
+    synastryHouseLabel: "Area",
+    synastryPlanetsTitle: "How the charts affect each other",
+    synastryPlanetsAinB: "A → B",
+    synastryPlanetsBinA: "B → A",
+    synastryPlanetHouse: "Area",
+    synastryThemesTitle: "Strengths and tensions",
+    synastryMatch: "Match",
+    synastryTension: "Tension",
+    synastryConflict: "Conflict",
+    synastryAskAI: "✨ Ask AI about compatibility",
+    synastryAITitle: "AI on compatibility",
+    synastryAIPlaceholder: "Ask a question about compatibility...",
+    synastryChooseFirst: "Select two profiles and click Compare",
+    synastryLoading: "Analysing compatibility...",
   },
 };
 
@@ -4117,7 +4211,11 @@ async function askQuestion(event) {
   event.preventDefault();
   const input = $("#chatQuestion");
   const question = input.value.trim();
-  if (!question || !state.currentRunId) return;
+  const runId = state.pendingChatRunId || state.currentRunId;
+  const profileId = state.pendingChatProfileId || state.currentProfileId;
+  state.pendingChatRunId = null;
+  state.pendingChatProfileId = null;
+  if (!question || !runId) return;
   addMessage("user", question);
   input.value = "";
   const pending = addMessage("assistant", state.lang === "ru" ? "Думаю по рассчитанной карте..." : "Reading the calculated chart...", { cancellable: true });
@@ -4146,8 +4244,8 @@ async function askQuestion(event) {
       method: "POST",
       signal: abortController.signal,
       body: JSON.stringify({
-        run_id: state.currentRunId,
-        profile_id: state.currentProfileId,
+        run_id: runId,
+        profile_id: profileId,
         question,
         language: state.lang,
         forecast_data: forecastData,
@@ -4514,6 +4612,16 @@ function setActiveTab(tab) {
     } else {
       _fcSetVisible("content");
     }
+  }
+
+  if (tab === "synastry") {
+    _synPopulateSelects();
+    // auto-compare if two different profiles are selected
+    setTimeout(() => {
+      const idA = $("#synProfileA")?.value;
+      const idB = $("#synProfileB")?.value;
+      if (idA && idB && idA !== idB) _synCompare();
+    }, 50);
   }
 
   if (tab === "dashas" && state.chart) {
@@ -5588,6 +5696,7 @@ function boot() {
   initGeoAI();
   initGeoHoverRating();
   initMapPicker();
+  initSynastry();
   $("#birthForm").addEventListener("submit", generateReport);
   $("#refreshProfiles").addEventListener("click", loadProfiles);
   $("#newProfileBtn").addEventListener("click", newProfile);
@@ -7414,6 +7523,699 @@ async function _pickerSearch(q, resultsBox, infoBox, confirmBtn) {
   } catch {
     resultsBox.classList.add("hidden");
   }
+}
+
+// ── Synastry tab ─────────────────────────────────────────────────────────────
+
+const _synState = { context: "romance", chatHistory: [] };
+
+const _SYN_PLANET_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий", jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+const _SYN_SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев", Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец", Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
+const _SYN_ELEM = { Aries:"fire", Taurus:"earth", Gemini:"air", Cancer:"water", Leo:"fire", Virgo:"earth", Libra:"air", Scorpio:"water", Sagittarius:"fire", Capricorn:"earth", Aquarius:"air", Pisces:"water" };
+const _SYN_ELEM_RU = { fire:"Огонь 🔥", earth:"Земля 🌍", air:"Воздух 💨", water:"Вода 💧" };
+const _SYN_ELEM_EN = { fire:"Fire 🔥", earth:"Earth 🌍", air:"Air 💨", water:"Water 💧" };
+const _SYN_ELEM_COMPAT = { fire:["fire","air"], earth:["earth","water"], air:["air","fire"], water:["water","earth"] };
+
+// House themes for synastry interpretation
+const _SYN_HOUSE_THEME = {
+  1:"self/identity", 2:"money/values", 3:"communication", 4:"home/family",
+  5:"creativity/romance", 6:"health/work", 7:"partnership", 8:"transformation/depth",
+  9:"wisdom/travel", 10:"career/status", 11:"community/dreams", 12:"spirituality/karma"
+};
+const _SYN_HOUSE_THEME_RU = {
+  1:"личность", 2:"деньги/ценности", 3:"общение", 4:"дом/семья",
+  5:"творчество/романтика", 6:"здоровье/работа", 7:"партнёрство", 8:"трансформация",
+  9:"мудрость/путешествия", 10:"карьера/статус", 11:"сообщество/мечты", 12:"духовность/карма"
+};
+
+function _synPname(k) {
+  const isRu = state.lang === "ru";
+  return isRu ? (_SYN_PLANET_RU[String(k).toLowerCase()] || k) : (k ? k.charAt(0).toUpperCase() + k.slice(1) : k);
+}
+function _synSname(s) {
+  return state.lang === "ru" ? (_SYN_SIGN_RU[s] || s || "—") : (s || "—");
+}
+function _synElem(sign) {
+  const isRu = state.lang === "ru";
+  const e = _SYN_ELEM[sign] || "";
+  return isRu ? (_SYN_ELEM_RU[e] || e) : (_SYN_ELEM_EN[e] || e);
+}
+
+const SYN_STORAGE_KEY = "astro_synastry_profiles";
+
+function _synSaveSelection(idA, idB) {
+  try { localStorage.setItem(SYN_STORAGE_KEY, JSON.stringify({ idA, idB })); } catch {}
+}
+
+function _synLoadSelection() {
+  try { return JSON.parse(localStorage.getItem(SYN_STORAGE_KEY) || "{}"); } catch { return {}; }
+}
+
+function _synLocalized(item) {
+  if (!item) return "";
+  return state.lang === "ru" ? (item.label_ru || item.label || "") : (item.label_en || item.label || "");
+}
+
+function _synScoreClass(percent) {
+  if (percent >= 70) return "good";
+  if (percent >= 50) return "mid";
+  return "low";
+}
+
+function _synStatusText(status) {
+  const isRu = state.lang === "ru";
+  if (status === "strong") return isRu ? "сильная зона" : "strong area";
+  if (status === "mixed") return isRu ? "смешанная зона" : "mixed area";
+  return isRu ? "требует внимания" : "needs attention";
+}
+
+function _synPopulateSelects() {
+  const selA = $("#synProfileA");
+  const selB = $("#synProfileB");
+  if (!selA || !selB) return;
+  const opts = state.profiles.map(p => `<option value="${p.id}">${escapeHtml(p.birth?.name || p.name || p.id)}</option>`).join("");
+  selA.innerHTML = opts;
+  selB.innerHTML = opts;
+
+  const saved = _synLoadSelection();
+  const ids = state.profiles.map(p => p.id);
+  if (saved.idA && ids.includes(saved.idA)) selA.value = saved.idA;
+  if (saved.idB && ids.includes(saved.idB)) selB.value = saved.idB;
+
+  // fallback: если не сохранено — выбрать разные профили
+  if (!saved.idA || !saved.idB) {
+    if (state.profiles.length >= 2) selB.selectedIndex = 1;
+  }
+}
+
+function _synPlanetsInHouses(chartA, chartB) {
+  // For each planet in A, find which house of B it falls into
+  const planetsA = chartA.planets || {};
+  const housesB = chartB.houses || {};
+  const result = [];
+  for (const [key, planet] of Object.entries(planetsA)) {
+    if (!planet?.sign || key === "ketu") continue;
+    // Find house in B whose sign matches planet sign
+    const matchHouse = Object.values(housesB).find(h => h.sign === planet.sign);
+    if (matchHouse) {
+      result.push({ planet: key, sign: planet.sign, house: matchHouse.number });
+    }
+  }
+  return result;
+}
+
+function _synThemes(chartA, chartB, nameA, nameB, context) {
+  const isRu = state.lang === "ru";
+  const planetsA = chartA.planets || {};
+  const planetsB = chartB.planets || {};
+  const themes = [];
+
+  // Element match
+  const elemA = _SYN_ELEM[chartA.lagna?.sign];
+  const elemB = _SYN_ELEM[chartB.lagna?.sign];
+  if (elemA && elemA === elemB) {
+    themes.push({ type:"match", text: isRu
+      ? `Похожий базовый ритм (${_SYN_ELEM_RU[elemA]}) — легче понимать темп друг друга`
+      : `Similar base rhythm (${_SYN_ELEM_EN[elemA]}) — easier to understand each other's pace` });
+  } else if (_SYN_ELEM_COMPAT[elemA]?.includes(elemB)) {
+    themes.push({ type:"match", text: isRu
+      ? `Базовые ритмы хорошо сочетаются (${_SYN_ELEM_RU[elemA]} + ${_SYN_ELEM_RU[elemB]})`
+      : `Base rhythms combine well (${_SYN_ELEM_EN[elemA]} + ${_SYN_ELEM_EN[elemB]})` });
+  } else if (elemA && elemB) {
+    themes.push({ type:"tension", text: isRu
+      ? `Разные базовые ритмы (${_SYN_ELEM_RU[elemA]} + ${_SYN_ELEM_RU[elemB]}) — важно договариваться о темпе жизни`
+      : `Different base rhythms (${_SYN_ELEM_EN[elemA]} + ${_SYN_ELEM_EN[elemB]}) — life pace needs agreement` });
+  }
+
+  // Moon sign
+  const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+  const mA = planetsA.moon?.sign; const mB = planetsB.moon?.sign;
+  if (mA && mB) {
+    const dist = Math.min(Math.abs(SIGNS.indexOf(mA) - SIGNS.indexOf(mB)), 12 - Math.abs(SIGNS.indexOf(mA) - SIGNS.indexOf(mB)));
+    if (dist <= 1) themes.push({ type:"match", text: isRu ? `Эмоциональные реакции похожи (${_synSname(mA)} ↔ ${_synSname(mB)})` : `Emotional reactions are similar (${mA} ↔ ${mB})` });
+    else if (dist === 6) themes.push({ type:"tension", text: isRu ? `Эмоциональные реакции контрастные (${_synSname(mA)} ↔ ${_synSname(mB)})` : `Emotional reactions contrast (${mA} ↔ ${mB})` });
+  }
+
+  // Dasha sync
+  const dashaA = chartA.dashas?.current?.mahadasha;
+  const dashaB = chartB.dashas?.current?.mahadasha;
+  if (dashaA && dashaA === dashaB) {
+    themes.push({ type:"match", text: isRu
+      ? `Оба в период ${_synPname(dashaA)} — схожие жизненные темы прямо сейчас`
+      : `Both in ${_synPname(dashaA)} period — similar life themes right now` });
+  }
+
+  // Rahu/Ketu overlap (karmic)
+  const rahuA = planetsA.rahu?.sign; const ketuA = planetsA.ketu?.sign;
+  const rahuB = planetsB.rahu?.sign; const ketuB = planetsB.ketu?.sign;
+  if (rahuA && (rahuA === rahuB || rahuA === ketuB)) {
+    themes.push({ type:"match", text: isRu
+      ? `Есть ощущение сильного притяжения и важных уроков друг для друга`
+      : `There is a sense of strong pull and important lessons for each other` });
+  }
+
+  // Mars tension
+  const marsAHouse = planetsA.mars?.house;
+  if ([7,8].includes(marsAHouse)) {
+    themes.push({ type:"conflict", text: isRu
+      ? `${nameA}: повышенная прямота может создавать давление в близости`
+      : `${nameA}: stronger directness may create pressure in closeness` });
+  }
+  const marsBHouse = planetsB.mars?.house;
+  if ([7,8].includes(marsBHouse)) {
+    themes.push({ type:"conflict", text: isRu
+      ? `${nameB}: повышенная прямота может создавать давление в близости`
+      : `${nameB}: stronger directness may create pressure in closeness` });
+  }
+
+  // Context-specific
+  if (context === "business") {
+    const sunAHouse = planetsA.sun?.house;
+    const sunBHouse = planetsB.sun?.house;
+    if ([1,10].includes(sunAHouse) || [1,10].includes(sunBHouse)) {
+      themes.push({ type:"match", text: isRu ? "Есть потенциал брать ответственность и вести общие проекты" : "There is potential to take responsibility and lead shared projects" });
+    }
+    const jupAHouse = planetsA.jupiter?.house;
+    const jupBHouse = planetsB.jupiter?.house;
+    if (jupAHouse === jupBHouse) {
+      themes.push({ type:"match", text: isRu ? "Похожее чувство роста, пользы и деловых ценностей" : "Similar sense of growth, usefulness, and business values" });
+    }
+  }
+  if (context === "karma") {
+    themes.push({ type:"match", text: isRu ? "Для глубокой связи особенно важны повторяющиеся темы роста и принятия" : "For a deep bond, repeating growth and acceptance themes matter most" });
+  }
+
+  return themes;
+}
+
+function _synBuildAIPrompt(profileA, profileB, chartA, chartB, compatibility, context) {
+  const isRu = state.lang === "ru";
+  const ctxLabel = { romance: isRu?"Романтика":"Romance", business: isRu?"Бизнес":"Business", friendship: isRu?"Дружба":"Friendship", karma: isRu?"Глубокая связь":"Deep bond" }[context] || context;
+  const nameA = profileA.birth?.name || "A";
+  const nameB = profileB.birth?.name || "B";
+  const score = compatibility?.score || {};
+  const view = compatibility?.context_view || {};
+  const finalPercent = score.context_percent ?? view.percent ?? score.adjusted_percent ?? score.percent ?? "—";
+
+  const PLANET_KEYS = ["sun","moon","mercury","venus","mars","jupiter","saturn","rahu","ketu"];
+  const PLANET_LABELS_RU = { sun:"Солнце", moon:"Луна", mercury:"Меркурий", venus:"Венера", mars:"Марс", jupiter:"Юпитер", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
+  const PLANET_LABELS_EN = { sun:"Sun", moon:"Moon", mercury:"Mercury", venus:"Venus", mars:"Mars", jupiter:"Jupiter", saturn:"Saturn", rahu:"Rahu", ketu:"Ketu" };
+
+  const formatPlanets = (chart, isRu) => {
+    const planets = chart.planets || {};
+    return PLANET_KEYS.map(key => {
+      const p = planets[key];
+      if (!p) return null;
+      const label = isRu ? (PLANET_LABELS_RU[key] || key) : (PLANET_LABELS_EN[key] || key);
+      const retro = p.retrograde ? (isRu ? " (ретро)" : " (retro)") : "";
+      const dignity = p.dignity && p.dignity !== "none" ? ` [${p.dignity}]` : "";
+      const houseWord = isRu ? "дом" : "house";
+      const nakWord = isRu ? "накшатра" : "nakshatra";
+      const padaWord = isRu ? "пада" : "pada";
+      return `  ${label}: ${p.sign} / ${houseWord} ${p.house}${dignity}${retro}, ${nakWord} ${p.nakshatra} ${padaWord} ${p.pada}`;
+    }).filter(Boolean).join("\n");
+  };
+
+  const formatAspects = (chart, name, isRu) => {
+    const aspects = chart.aspects || [];
+    if (!aspects.length) return isRu ? "  нет данных" : "  no data";
+    const houseWord = isRu ? "дом" : "house";
+    return aspects.slice(0, 12).map(a => {
+      return `  ${a.from_planet} → ${houseWord} ${a.to_house} (${a.to_sign}): ${a.aspect}`;
+    }).join("\n");
+  };
+
+  const formatKuta = (kuta, isRu) => {
+    return (kuta || []).map(k => {
+      const label = isRu ? k.label_ru : k.label_en;
+      const note = isRu ? k.note_ru : k.note_en;
+      const noteStr = note ? ` — ${note}` : "";
+      return `  ${label}: ${k.score}/${k.max} (${k.percent}%) [${k.status}]${noteStr}`;
+    }).join("\n");
+  };
+
+  const formatCategories = (view, isRu) => {
+    return (view.categories || []).map(c => {
+      const label = isRu ? c.label_ru : c.label_en;
+      return `  ${label}: ${c.percent}%`;
+    }).join("\n");
+  };
+
+  const formatFlags = (flags, isRu) => {
+    return (flags || []).map(f => `  [${f.level}] ${f.text}`).join("\n");
+  };
+
+  const formatDasha = (chart) => {
+    const d = chart.dashas?.current;
+    if (!d) return "—";
+    return [d.mahadasha, d.antardasha, d.pratyantardasha].filter(Boolean).join(" / ");
+  };
+
+  const formatMangal = (mangal, isRu) => {
+    if (!mangal) return "—";
+    const pA = mangal.a || {};
+    const pB = mangal.b || {};
+    return isRu
+      ? `Статус: ${mangal.status}, штраф: -${mangal.penalty}%\n  ${nameA}: доша=${pA.has_dosha}, уровень=${pA.level}\n  ${nameB}: доша=${pB.has_dosha}, уровень=${pB.level}\n  ${mangal.message || ""}`
+      : `Status: ${mangal.status}, penalty: -${mangal.penalty}%\n  ${nameA}: dosha=${pA.has_dosha}, level=${pA.level}\n  ${nameB}: dosha=${pB.has_dosha}, level=${pB.level}\n  ${mangal.message || ""}`;
+  };
+
+  const navamsaLine = (chart, isRu) => {
+    const nav = chart.divisional_charts?.D9 || {};
+    if (!Object.keys(nav).length) return isRu ? "  нет данных" : "  no data";
+    return Object.entries(nav).slice(0, 7).map(([k, v]) => `  ${k}: ${v?.sign || "—"}`).join("\n");
+  };
+
+  if (isRu) return `Ты астролог ведической традиции. Сделай точный анализ синастрии на основе расчётных данных ниже. Контекст: ${ctxLabel}.
+Не придумывай данные — опирайся только на то, что указано. Не используй санскритские термины без пояснения.
+
+═══ ${nameA} ═══
+Лагна: ${chartA.lagna?.sign} (${chartA.lagna?.degree_formatted}), накшатра ${chartA.lagna?.nakshatra} пада ${chartA.lagna?.pada}
+Даша сейчас: ${formatDasha(chartA)}
+
+Планеты:
+${formatPlanets(chartA, true)}
+
+Аспекты (планета → дом):
+${formatAspects(chartA, nameA, true)}
+
+Навамша (D9):
+${navamsaLine(chartA, true)}
+
+═══ ${nameB} ═══
+Лагна: ${chartB.lagna?.sign} (${chartB.lagna?.degree_formatted}), накшатра ${chartB.lagna?.nakshatra} пада ${chartB.lagna?.pada}
+Даша сейчас: ${formatDasha(chartB)}
+
+Планеты:
+${formatPlanets(chartB, true)}
+
+Аспекты (планета → дом):
+${formatAspects(chartB, nameB, true)}
+
+Навамша (D9):
+${navamsaLine(chartB, true)}
+
+═══ ИНДЕКС СОВМЕСТИМОСТИ ═══
+Метод: Ашта-кута, 36 баллов
+Итого: ${score.points}/${score.max_points || 36} (${score.percent}%)
+С учётом корректировок: ${score.adjusted_percent}%
+Оценка режима «${ctxLabel}»: ${finalPercent}%
+
+Куты по отдельности:
+${formatKuta(compatibility?.kuta, true)}
+
+Конфликтный паттерн (Мангал):
+${formatMangal(compatibility?.mangal, true)}
+
+Ключевые зоны режима «${ctxLabel}»:
+${formatCategories(view, true)}
+
+Зоны риска:
+${formatFlags(compatibility?.flags, true)}
+
+═══ ЗАДАЧА ═══
+Дай конкретный анализ совместимости для контекста «${ctxLabel}». Укажи: что работает хорошо, где будут напряжения, и 2–3 практических рекомендации. Опирайся строго на данные выше. Отвечай на русском.`;
+
+  return `You are a Vedic astrology analyst. Provide a precise synastry analysis based strictly on the calculated data below. Context: ${ctxLabel}.
+Do not invent data — use only what is listed. Explain any technical terms plainly.
+
+═══ ${nameA} ═══
+Lagna: ${chartA.lagna?.sign} (${chartA.lagna?.degree_formatted}), nakshatra ${chartA.lagna?.nakshatra} pada ${chartA.lagna?.pada}
+Current dasha: ${formatDasha(chartA)}
+
+Planets:
+${formatPlanets(chartA, false)}
+
+Aspects (planet → house):
+${formatAspects(chartA, nameA, false)}
+
+Navamsa (D9):
+${navamsaLine(chartA, false)}
+
+═══ ${nameB} ═══
+Lagna: ${chartB.lagna?.sign} (${chartB.lagna?.degree_formatted}), nakshatra ${chartB.lagna?.nakshatra} pada ${chartB.lagna?.pada}
+Current dasha: ${formatDasha(chartB)}
+
+Planets:
+${formatPlanets(chartB, false)}
+
+Aspects (planet → house):
+${formatAspects(chartB, nameB, false)}
+
+Navamsa (D9):
+${navamsaLine(chartB, false)}
+
+═══ COMPATIBILITY INDEX ═══
+Method: Ashta Kuta, 36 points
+Total: ${score.points}/${score.max_points || 36} (${score.percent}%)
+Adjusted: ${score.adjusted_percent}%
+"${ctxLabel}" mode rating: ${finalPercent}%
+
+Kuta breakdown:
+${formatKuta(compatibility?.kuta, false)}
+
+Conflict pattern (Mangal check):
+${formatMangal(compatibility?.mangal, false)}
+
+Key zones for "${ctxLabel}":
+${formatCategories(view, false)}
+
+Risk flags:
+${formatFlags(compatibility?.flags, false)}
+
+═══ TASK ═══
+Give a concrete compatibility analysis for the "${ctxLabel}" context. Cover: what works well, where tensions will arise, and 2–3 practical recommendations. Base your answer strictly on the data above. Reply in English.`;
+}
+
+function _synRender(profileA, profileB, chartA, chartB, compatibility) {
+  const isRu = state.lang === "ru";
+  const tr = (k) => t[state.lang][k] || t.ru[k] || k;
+  const nameA = escapeHtml(profileA.birth?.name || "A");
+  const nameB = escapeHtml(profileB.birth?.name || "B");
+  const ctx = _synState.context;
+  const compatScore = compatibility?.score || {};
+  const view = compatibility?.context_view || {};
+  const finalPercent = Number(compatScore.context_percent ?? view.percent ?? compatScore.adjusted_percent ?? compatScore.percent ?? 0);
+  const points = Number(compatScore.points ?? 0);
+  const maxPoints = Number(compatScore.max_points ?? 36);
+
+  // ── Score section ──────────────────────────────────────────────────────────
+  const activeCategories = view.categories || compatibility?.categories || [];
+  const categoryRows = activeCategories.map((item) => {
+    const label = _synLocalized(item);
+    const val = Number(item.percent || 0);
+    return `
+    <div class="syn-score-row">
+      <span class="syn-score-label">${escapeHtml(label)}</span>
+      <div class="syn-score-track"><div class="syn-score-fill" style="width:${val}%"></div></div>
+      <span class="syn-score-val">${val}%</span>
+    </div>`;
+  }).join("");
+
+  const flagsHtml = (compatibility?.flags || []).map((flag) => `
+    <div class="syn-compat-flag syn-compat-flag--${escapeHtml(flag.level || "good")}">${escapeHtml(flag.text || "")}</div>
+  `).join("");
+
+  const detailRows = (compatibility?.kuta || []).map((item) => {
+    const val = Number(item.percent || 0);
+    const note = state.lang === "ru" ? item.note_ru : item.note_en;
+    return `
+      <div class="syn-compat-detail">
+        <div>
+          <strong>${escapeHtml(_synLocalized(item))}</strong>
+          <span>${escapeHtml(_synStatusText(item.status))}</span>
+          ${note ? `<em>${escapeHtml(note)}</em>` : ""}
+        </div>
+        <b>${escapeHtml(String(item.score))}/${escapeHtml(String(item.max))}</b>
+        <div class="syn-score-track"><div class="syn-score-fill" style="width:${val}%"></div></div>
+      </div>`;
+  }).join("");
+
+  $("#synScoreSection").innerHTML = `
+    <div class="syn-score-card">
+      <div class="syn-score-left">
+        <span class="syn-score-badge syn-score-badge--${_synScoreClass(finalPercent)}">${finalPercent}%</span>
+      </div>
+      <div class="syn-score-right">
+        <div class="syn-score-right-top">
+          <span class="syn-score-title">${escapeHtml(tr("synastryScoreMethod"))}</span>
+          <div class="syn-names-pair">
+            <span class="syn-name syn-name--a">${nameA}</span>
+            <span class="syn-names-sep"></span>
+            <span class="syn-name syn-name--b">${nameB}</span>
+          </div>
+        </div>
+        <span class="syn-score-points">${escapeHtml(view.label || tr("synastryScoreAdjusted"))}: ${finalPercent}% · ${escapeHtml(tr("synastryScoreIndex"))}: ${points}/${maxPoints}</span>
+        ${compatibility?.summary ? `<span class="syn-score-summary">${escapeHtml(compatibility.summary)}</span>` : ""}
+        ${view.note ? `<span class="syn-score-note">${escapeHtml(view.note)}</span>` : ""}
+      </div>
+    </div>
+    <h3 class="syn-h3">${escapeHtml(tr("synastryKeyAreasTitle"))}</h3>
+    <div class="syn-score-list">${categoryRows || `<div class="syn-empty-small">—</div>`}</div>
+    <h3 class="syn-h3 syn-h3--spaced">${escapeHtml(tr("synastryFlagsTitle"))}</h3>
+    <div class="syn-compat-flags">${flagsHtml || `<div class="syn-empty-small">—</div>`}</div>
+    <details class="syn-compat-details">
+      <summary>${escapeHtml(tr("synastryDetailsTitle"))}</summary>
+      <div class="syn-compat-detail-list">${detailRows || `<div class="syn-empty-small">—</div>`}</div>
+    </details>`;
+
+  // ── Base comparison ────────────────────────────────────────────────────────
+  const planetsA = chartA.planets || {};
+  const planetsB = chartB.planets || {};
+
+  // Lagna lord: derive from houses if not in lagna object directly
+  const _lordOf = (chart) => {
+    const lord = chart.lagna?.lord;
+    if (lord) return _synPname(lord);
+    // fallback: управитель знака лагны
+    const SIGN_LORDS = { Aries:"Mars", Taurus:"Venus", Gemini:"Mercury", Cancer:"Moon", Leo:"Sun",
+      Virgo:"Mercury", Libra:"Venus", Scorpio:"Mars", Sagittarius:"Jupiter",
+      Capricorn:"Saturn", Aquarius:"Saturn", Pisces:"Jupiter" };
+    return _synPname(SIGN_LORDS[chart.lagna?.sign] || "");
+  };
+
+  const rows = [
+    { label: tr("synastryParamLagna"),     a: _synSname(chartA.lagna?.sign),            b: _synSname(chartB.lagna?.sign) },
+    { label: tr("synastryParamMoon"),      a: _synSname(planetsA.moon?.sign),            b: _synSname(planetsB.moon?.sign) },
+    { label: tr("synastryParamNakshatra"), a: planetsA.moon?.nakshatra || "—",           b: planetsB.moon?.nakshatra || "—" },
+    { label: tr("synastryParamElement"),   a: _synElem(chartA.lagna?.sign),              b: _synElem(chartB.lagna?.sign) },
+    { label: tr("synastryParamDasha"),
+      a: [chartA.dashas?.current?.mahadasha, chartA.dashas?.current?.antardasha].filter(Boolean).map(_synPname).join(" / ") || "—",
+      b: [chartB.dashas?.current?.mahadasha, chartB.dashas?.current?.antardasha].filter(Boolean).map(_synPname).join(" / ") || "—" },
+    { label: tr("synastryParamLord"),      a: _lordOf(chartA),                           b: _lordOf(chartB) },
+  ].map(r => `<div class="syn-base-row"><span class="syn-base-a">${escapeHtml(r.a)}</span><span class="syn-base-label">${escapeHtml(r.label)}</span><span class="syn-base-b">${escapeHtml(r.b)}</span></div>`).join("");
+
+  $("#synBaseSection").innerHTML = `
+    <div class="syn-section-head">
+      <span class="syn-section-name syn-section-name--a">${nameA}</span>
+      <h3>${escapeHtml(tr("synastryBaseTitle"))}</h3>
+      <span class="syn-section-name syn-section-name--b">${nameB}</span>
+    </div>
+    <div class="syn-base-table">${rows}</div>`;
+
+  // ── House SAV ──────────────────────────────────────────────────────────────
+  const savA = chartA.ashtakavarga?.sav || [];
+  const savB = chartB.ashtakavarga?.sav || [];
+  const hasSavA = savA.length === 12;
+  const hasSavB = savB.length === 12;
+  const houseRows = Array.from({ length: 12 }, (_, i) => {
+    const n = i + 1;
+    const va = hasSavA ? Number(savA[i] || 0) : null;
+    const vb = hasSavB ? Number(savB[i] || 0) : null;
+    const pctA = va !== null ? Math.round((va / 56) * 100) : 0;
+    const pctB = vb !== null ? Math.round((vb / 56) * 100) : 0;
+    const themeLabel = isRu ? _SYN_HOUSE_THEME_RU[n] : _SYN_HOUSE_THEME[n];
+    return `<div class="syn-house-row">
+      <div class="syn-house-num">${n}</div>
+      <div class="syn-house-theme">${themeLabel || ""}</div>
+      <div class="syn-house-bars">
+        <div class="syn-house-bar-wrap">
+          ${va !== null ? `<div class="syn-house-bar syn-house-bar--a" style="width:${pctA}%"></div><span class="syn-house-val">${va}</span>` : `<span class="syn-house-val syn-house-val--na">—</span>`}
+        </div>
+        <div class="syn-house-bar-wrap">
+          ${vb !== null ? `<div class="syn-house-bar syn-house-bar--b" style="width:${pctB}%"></div><span class="syn-house-val">${vb}</span>` : `<span class="syn-house-val syn-house-val--na">—</span>`}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  $("#synHouseSection").innerHTML = `
+    <h3 class="syn-h3">${escapeHtml(tr("synastryHousesTitle"))}</h3>
+    <div class="syn-house-legend">
+      <span class="syn-leg syn-leg--a">${nameA}</span>
+      <span class="syn-leg syn-leg--b">${nameB}</span>
+    </div>
+    <div class="syn-house-list">${houseRows}</div>`;
+
+  // ── Planet synastry ────────────────────────────────────────────────────────
+  const renderPlanetList = (overlay) => overlay.map(o => {
+    const meta = PLANET_META[o.planet] || { glyph: "?", color: "#888" };
+    const themeLabel = isRu ? _SYN_HOUSE_THEME_RU[o.house] : _SYN_HOUSE_THEME[o.house];
+    return `<div class="syn-overlay-row">
+      <span class="syn-overlay-glyph" style="color:${meta.color}">${meta.glyph}</span>
+      <span class="syn-overlay-pname">${escapeHtml(_synPname(o.planet))}</span>
+      <span class="syn-overlay-arrow">→</span>
+      <span class="syn-overlay-house">${escapeHtml(tr("synastryPlanetHouse"))} ${o.house}</span>
+      <span class="syn-overlay-theme">${themeLabel || ""}</span>
+    </div>`;
+  }).join("") || `<div class="syn-empty-small">—</div>`;
+
+  const overlayAinB = _synPlanetsInHouses(chartA, chartB);
+  const overlayBinA = _synPlanetsInHouses(chartB, chartA);
+
+  $("#synPlanetSection").innerHTML = `
+    <h3 class="syn-h3">${escapeHtml(tr("synastryPlanetsTitle"))}</h3>
+    <div class="syn-planet-grid">
+      <div class="syn-planet-col">
+        <div class="syn-planet-col-head syn-section-name--a">${nameA} → ${nameB}</div>
+        ${renderPlanetList(overlayAinB)}
+      </div>
+      <div class="syn-planet-col">
+        <div class="syn-planet-col-head syn-section-name--b">${nameB} → ${nameA}</div>
+        ${renderPlanetList(overlayBinA)}
+      </div>
+    </div>`;
+
+  // ── Themes & conflicts ─────────────────────────────────────────────────────
+  const themes = _synThemes(chartA, chartB, profileA.birth?.name || "A", profileB.birth?.name || "B", ctx);
+  const themeIcons = { match:"✅", tension:"⚠️", conflict:"❌" };
+  const themeLabels = { match: tr("synastryMatch"), tension: tr("synastryTension"), conflict: tr("synastryConflict") };
+  const themeHtml = themes.map(th => `<div class="syn-theme-row syn-theme--${th.type}">
+    <span class="syn-theme-icon">${themeIcons[th.type]}</span>
+    <span class="syn-theme-badge">${escapeHtml(themeLabels[th.type])}</span>
+    <span class="syn-theme-text">${escapeHtml(th.text)}</span>
+  </div>`).join("") || `<div class="syn-empty-small">—</div>`;
+
+  $("#synThemeSection").innerHTML = `
+    <h3 class="syn-h3">${escapeHtml(tr("synastryThemesTitle"))}</h3>
+    <div class="syn-theme-list">${themeHtml}</div>`;
+
+  // ── AI section button ──────────────────────────────────────────────────────
+  const aiBtn = $("#synAskAIBtn");
+  if (aiBtn) {
+    aiBtn.textContent = tr("synastryAskAI");
+    aiBtn.classList.remove("hidden");
+    aiBtn.onclick = () => _synOpenAIChat(profileA, profileB, chartA, chartB, compatibility, ctx);
+  }
+  $("#synAISend")?.addEventListener("click", () => _synSendAI());
+  $("#synAIInput")?.addEventListener("keydown", (e) => { if (e.key === "Enter") _synSendAI(); });
+}
+
+async function _synOpenAIChat(profileA, profileB, chartA, chartB, compatibility, ctx) {
+  const prompt = _synBuildAIPrompt(profileA, profileB, chartA, chartB, compatibility, ctx);
+  _synState.chartA = chartA; _synState.chartB = chartB;
+  _synState.profileA = profileA; _synState.profileB = profileB;
+  _synState.compatibility = compatibility; _synState.ctx = ctx;
+  state.pendingChatRunId = profileA?.last_run_id || state.currentRunId;
+  state.pendingChatProfileId = profileA?.id || state.currentProfileId;
+  setActiveTab("ai");
+  const chatInp = $("#chatQuestion");
+  if (chatInp) {
+    chatInp.value = prompt;
+    chatInp.focus();
+    setTimeout(() => $("#chatForm")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 80);
+  }
+}
+
+async function _synSendAI() {
+  const input = $("#synAIInput");
+  if (!input?.value.trim()) return;
+  const msg = input.value.trim();
+  input.value = "";
+  await _synDoAI(msg, false);
+}
+
+function _synAppendMsg(role, text) {
+  const log = $("#synAILog");
+  if (!log) return;
+  const div = document.createElement("div");
+  div.className = `syn-ai-msg syn-ai-msg--${role}`;
+  div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function _synDoAI(userMsg, isInit) {
+  const log = $("#synAILog");
+  if (!log) return;
+  if (!isInit) _synAppendMsg("user", userMsg);
+  _synState.chatHistory.push({ role: "user", content: userMsg });
+
+  const thinking = document.createElement("div");
+  thinking.className = "syn-ai-msg syn-ai-msg--thinking";
+  thinking.textContent = "...";
+  log.appendChild(thinking);
+  log.scrollTop = log.scrollHeight;
+
+  try {
+    const res = await api("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: userMsg,
+        profile_id: _synState.profileA?.id || state.currentProfileId,
+        language: state.lang,
+        followup_context: isInit ? null : (_synState.chatHistory || []).slice(-4).map((m) => `${m.role}: ${m.content}`).join("\n\n"),
+      }),
+    });
+    thinking.remove();
+    const reply = res.answer || res.reply || res.content || res.text || "";
+    _synState.chatHistory.push({ role: "assistant", content: reply });
+    _synAppendMsg("assistant", reply);
+  } catch (e) {
+    thinking.remove();
+    _synAppendMsg("assistant", "⚠ " + (e.message || "Error"));
+  }
+}
+
+async function _synCompare() {
+  const isRu = state.lang === "ru";
+  const idA = $("#synProfileA")?.value;
+  const idB = $("#synProfileB")?.value;
+
+  if (!idA || !idB || idA === idB) return;
+
+  _synSaveSelection(idA, idB);
+
+  const synEmpty   = $("#synEmpty");
+  const synLoading = $("#synLoading");
+  const synResult  = $("#synResult");
+
+  synEmpty?.classList.add("hidden");
+  synResult?.classList.add("hidden");
+  synLoading?.classList.remove("hidden");
+
+  _synState.chatHistory = [];
+  const aiChat = $("#synAIChat");
+  if (aiChat) aiChat.classList.add("hidden");
+  const logEl = $("#synAILog");
+  if (logEl) logEl.innerHTML = "";
+
+  const profileA = state.profiles.find(p => p.id === idA);
+  const profileB = state.profiles.find(p => p.id === idB);
+
+  if (!profileA?.last_run_id || !profileB?.last_run_id) {
+    synLoading?.classList.add("hidden");
+    synEmpty?.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    const [dataA, dataB, compatibility] = await Promise.all([
+      api(`/api/reports/${profileA.last_run_id}`),
+      api(`/api/reports/${profileB.last_run_id}`),
+      api(`/api/compatibility/${profileA.last_run_id}/${profileB.last_run_id}?language=${encodeURIComponent(state.lang)}&context=${encodeURIComponent(_synState.context)}`),
+    ]);
+
+    if (!dataA?.chart) throw new Error("No chart data for profile A");
+    if (!dataB?.chart) throw new Error("No chart data for profile B");
+
+    _synRender(profileA, profileB, dataA.chart, dataB.chart, compatibility);
+
+    synLoading?.classList.add("hidden");
+    synResult?.classList.remove("hidden");
+  } catch (e) {
+    console.error("[Synastry]", e);
+    synLoading?.classList.add("hidden");
+    synEmpty?.classList.remove("hidden");
+  }
+}
+
+function initSynastry() {
+  _synPopulateSelects();
+
+  $$(".syn-ctx-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $$(".syn-ctx-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      _synState.context = btn.dataset.ctx;
+      // re-compare with new context if result already shown
+      if (!$("#synResult")?.classList.contains("hidden")) _synCompare();
+    });
+  });
+
+  $("#synProfileA")?.addEventListener("change", () => _synCompare());
+  $("#synProfileB")?.addEventListener("change", () => _synCompare());
 }
 
 boot();

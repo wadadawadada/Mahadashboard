@@ -96,6 +96,31 @@ def report(
 
 
 @app.command()
+def compatibility(
+    chart_a: Path = typer.Option(..., help="Путь к chart.json первого профиля"),
+    chart_b: Path = typer.Option(..., help="Путь к chart.json второго профиля"),
+    out_json: Path = typer.Option(..., help="Выходной JSON совместимости"),
+    language: str = typer.Option("ru", help="Язык: ru или en"),
+    context: str = typer.Option("romance", help="Контекст: romance, business, friendship или karma"),
+):
+    """Рассчитать совместимость двух готовых карт."""
+    from jyotish.engine.compatibility import calculate_compatibility
+
+    try:
+        raw_a = json.loads(chart_a.read_text(encoding="utf-8"))
+        raw_b = json.loads(chart_b.read_text(encoding="utf-8"))
+    except Exception as e:
+        console.print(f"[red]Ошибка чтения chart.json:[/red] {e}")
+        raise typer.Exit(1)
+
+    result = calculate_compatibility(raw_a, raw_b, language=language, context=context)
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    console.print(f"[green]Совместимость:[/green] {result['score']['points']}/36")
+    console.print(f"[green]Файл:[/green] {out_json}")
+
+
+@app.command()
 def geo(
     input: Path = typer.Option(..., help="Путь к birth.json"),
     out_geo: Path = typer.Option(..., help="Выходной JSON астрокартографии"),
