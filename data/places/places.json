@@ -1993,8 +1993,8 @@
   },
   "paris,france": {
     "name": "Paris, France",
-    "lat": 48.8333,
-    "lon": 2.3333,
+    "lat": 48.857,
+    "lon": 2.351,
     "timezone": "Europe/Paris"
   },
   "perth,australia": {

@@ -924,13 +924,15 @@ async function route(req, res) {
   const exportMatch = pathname.match(/^\/api\/export\/([a-f0-9-]{36})$/);
   if (req.method === "GET" && exportMatch) {
     const { chart, context } = await loadRun(exportMatch[1]);
-    const name = (chart.birth?.name || "chart").replace(/[^a-zа-яёА-ЯЁ0-9_-]/gi, "_");
+    const rawName = chart.birth?.name || "chart";
+    const asciiName = rawName.replace(/[^a-z0-9_-]/gi, "_").replace(/^_+|_+$/g, "") || "chart";
+    const encodedName = encodeURIComponent(rawName.replace(/[^\w\s.-]/g, "_")) + "_astro_report.md";
     const urlParams = new URL("http://x" + req.url).searchParams;
     const lang = urlParams.get("lang") === "en" ? "en" : "ru";
     const md = buildExportMarkdown(chart, context, lang);
     res.writeHead(200, {
       "content-type": "text/markdown; charset=utf-8",
-      "content-disposition": `attachment; filename="${name}_astro_report.md"`,
+      "content-disposition": `attachment; filename="${asciiName}_astro_report.md"; filename*=UTF-8''${encodedName}`,
       "cache-control": "no-store",
     });
     res.end(md);
