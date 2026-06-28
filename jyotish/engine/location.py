@@ -9,8 +9,23 @@ from jyotish.schemas import ResolvedLocation
 def resolve_location(city: str, country: str, places_path: Path) -> ResolvedLocation:
     key = f"{city.lower()},{country.lower()}"
 
-    with open(places_path, encoding="utf-8") as f:
-        places = json.load(f)
+    try:
+        with open(places_path, encoding="utf-8") as f:
+            places = json.load(f)
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"Places database not found: '{places_path}'. "
+            "Provide a valid data/places/places.json file."
+        ) from exc
+    except (json.JSONDecodeError, OSError) as exc:
+        raise ValueError(
+            f"Places database could not be read: '{places_path}' ({exc})."
+        ) from exc
+
+    if not isinstance(places, dict):
+        raise ValueError(
+            f"Places database is malformed (expected a JSON object): '{places_path}'."
+        )
 
     if key in places:
         entry = places[key]

@@ -109,7 +109,7 @@ _NAKSHATRA_NATURE: dict[str, float] = {
     "Purva Ashadha": 0.4,
     "Uttara Ashadha": 0.8,
     "Shravana":     0.6,
-    "Dhanishtha":   0.4,
+    "Dhanishta":   0.4,
     "Shatabhisha":  -0.2,
     "Purva Bhadrapada": -0.4,
     "Uttara Bhadrapada": 0.6,
@@ -1153,7 +1153,7 @@ def _build_personal_tips(tips, _tip, transit_planets, transit_aspects,
 # Good: Rohini, Mrigashira, Punarvasu, Hasta, Chitra, Swati, Anuradha, Revati,
 #        Ashwini, Pushya, Shravana, Uttara Phalguni, Uttara Ashadha, Uttara Bhadrapada
 # Avoid: Bharani, Krittika, Ardra, Ashlesha, Magha, Vishakha, Jyeshtha,
-#         Mula, Purva Phalguni, Purva Ashadha, Purva Bhadrapada, Shatabhisha, Dhanishtha
+#         Mula, Purva Phalguni, Purva Ashadha, Purva Bhadrapada, Shatabhisha, Dhanishta
 _HAIRCUT_NK_GOOD = {
     "Rohini", "Mrigashira", "Punarvasu", "Hasta", "Chitra",
     "Swati", "Anuradha", "Revati", "Ashwini", "Pushya",
@@ -1162,7 +1162,7 @@ _HAIRCUT_NK_GOOD = {
 _HAIRCUT_NK_BAD = {
     "Bharani", "Krittika", "Ardra", "Ashlesha", "Magha",
     "Vishakha", "Jyeshtha", "Mula", "Purva Phalguni",
-    "Purva Ashadha", "Purva Bhadrapada", "Shatabhisha", "Dhanishtha",
+    "Purva Ashadha", "Purva Bhadrapada", "Shatabhisha", "Dhanishta",
 }
 # Tithis to avoid for haircut (4, 9, 14, 30)
 _HAIRCUT_TITHI_BAD = {4, 9, 14, 30}
@@ -1339,7 +1339,7 @@ def _build_indicators(
     travel_good_nk = {"Ashwini", "Punarvasu", "Pushya", "Hasta", "Anuradha",
                       "Shravana", "Revati", "Mrigashira", "Swati"}
     travel_bad_nk = {"Ardra", "Ashlesha", "Jyeshtha", "Mula", "Bharani",
-                     "Shatabhisha", "Dhanishtha"}
+                     "Shatabhisha", "Dhanishta"}
     travel_bad_tithi = tithi in {4, 8, 9, 12, 14, 30}
 
     saturn = next((t for t in transit_planets if t["planet"] == "saturn"), None)
