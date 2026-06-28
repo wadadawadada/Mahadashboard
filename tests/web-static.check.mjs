@@ -19,9 +19,13 @@ async function run() {
     const chartResponse = await fetch(`${BASE_URL}/chart3d.mjs`);
     assert.equal(chartResponse.status, 200);
     assert.match(chartResponse.headers.get("content-type") || "", /application\/javascript/i);
-    assert.match(chartResponse.headers.get("cache-control") || "", /no-store/i);
+    // S6.1: static assets are now streamed with a revalidatable cache header
+    // (no longer no-store).
+    assert.doesNotMatch(chartResponse.headers.get("cache-control") || "", /no-store/i);
+    assert.match(chartResponse.headers.get("cache-control") || "", /max-age|must-revalidate/i);
     const chartBody = await chartResponse.text();
-    assert.match(chartBody, /from "\/vendor\/three\.module\.js"/);
+    // chart3d.mjs uses the importmap alias "three" (resolved to /vendor/three.module.js by index.html)
+    assert.match(chartBody, /from "three"/);
     ok("serves chart3d module locally with JS MIME");
 
     const vendorResponse = await fetch(`${BASE_URL}/vendor/three.module.js`);
