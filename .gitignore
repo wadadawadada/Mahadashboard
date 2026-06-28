@@ -30,3 +30,9 @@ Thumbs.db
 
 # Logs
 server.log
+
+# Backup files
+*.bak*
+
+# OMC operational state (sprint-plan state, project memory) — not part of the repo
+.omc/

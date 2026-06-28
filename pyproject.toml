@@ -7,3 +7,19 @@ requires-python = ">=3.10"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.ruff]
+# Target the minimum supported Python version.
+target-version = "py310"
+line-length = 100
+# Exclude generated data scripts and any local venv.
+exclude = [".venv", "scripts"]
+
+[tool.ruff.lint]
+# E/F  — pycodestyle errors + pyflakes (baseline correctness)
+# I    — isort import ordering
+# UP   — pyupgrade (modernise syntax for py3.10+)
+# B    — flake8-bugbear (opinionated correctness catches)
+select = ["E", "F", "I", "UP", "B"]
+# B008: typer uses function-call defaults (e.g. typer.Option()) — ignore globally.
+ignore = ["B008"]

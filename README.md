@@ -147,6 +147,45 @@ Not familiar with Vedic astrology terms? Here's the short version:
 
 ---
 
+## Development
+
+### Python engine setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pytest -q                          # 90+ tests, all should pass
+```
+
+### Running the server
+
+```bash
+npm start
+```
+
+The app opens at **http://localhost:7860**. Configurable environment variables (copy `.env.example` to `.env` and edit):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `7860` | HTTP port |
+| `HOST` | `127.0.0.1` | Bind address (`0.0.0.0` to expose on LAN) |
+| `PY_TIMEOUT_MS` | `30000` | Max milliseconds a Python subprocess may run |
+| `PY_MAX_CONCURRENCY` | `4` | Max simultaneous Python subprocesses |
+| `PYTHON_BIN` | `python` | Python executable to use |
+| `OPENROUTER_API_KEY` | *(none)* | Required only for the AI chat tab |
+
+### Linting
+
+```bash
+ruff check .          # report issues
+ruff check . --fix    # auto-fix safe issues
+```
+
+Ruff is configured in `pyproject.toml` (rules: E, F, I, UP, B; line-length 100).
+
+---
+
 ## Troubleshooting
 
 **`npm install` says Python was not found**
