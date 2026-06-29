@@ -1571,6 +1571,30 @@ function scorePlanet(key, chart) {
   return Math.max(0.5, Math.min(10, Math.round(score * 10) / 10));
 }
 
+function zodiacSignIndex(sign) {
+  return ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"].indexOf(sign);
+}
+
+function getSavForSign(sav, sign) {
+  const idx = zodiacSignIndex(sign);
+  if (idx === -1) return null;
+  const score = Number(sav?.[idx]);
+  return Number.isFinite(score) ? score : null;
+}
+
+function getHouseSavScore(chart, house) {
+  return getSavForSign(chart.ashtakavarga?.sav || [], house?.sign);
+}
+
+function getNatalPlanetBavScore(chart, key) {
+  const sign = chart.planets?.[key]?.sign;
+  const idx = zodiacSignIndex(sign);
+  const row = chart.ashtakavarga?.bav?.[key];
+  if (!Array.isArray(row) || idx === -1) return null;
+  const score = Number(row[idx]);
+  return Number.isFinite(score) ? score : null;
+}
+
 function renderD9(chart) {
   const planets = chart.divisional_charts?.D9?.planets || {};
   const entries = PLANET_ORDER.filter((key) => planets[key]).map((key) => [key, planets[key]]);
@@ -2402,12 +2426,13 @@ function renderOverview(chart, context) {
     .sort((a, b) => b.score - a.score);
   const strongPlanets = scoredPlanets.slice(0, 3);
   const sensitivePlanets = scoredPlanets.slice(-3).reverse();
-  const sav = chart.ashtakavarga?.sav || [];
-  const houseStrength = Array.from({ length: 12 }, (_, idx) => ({
-    house: idx + 1,
-    score: Number(sav[idx] || 0),
-    data: houses[String(idx + 1)] || {},
-  })).sort((a, b) => b.score - a.score);
+  const houseStrength = Object.values(houses)
+    .map((house) => ({
+      house: house.number,
+      score: Number(getHouseSavScore(chart, house) || 0),
+      data: house || {},
+    }))
+    .sort((a, b) => b.score - a.score);
   const strongestHouses = houseStrength.slice(0, 3);
   const weakestHouses = houseStrength.slice(-3).reverse();
   const activeHouses = Object.values(houses).filter((h) => (h.planets || []).length).length;
@@ -2671,12 +2696,11 @@ function renderTables(chart) {
   }).join("");
   $("#planetTable").innerHTML = `<div class="tbl-planet-grid">${planetCardsHtml}</div>`;
 
-  const sav = chart.ashtakavarga?.sav || [];
   const houseRowsHtml = Object.values(houses)
     .sort((a, b) => a.number - b.number)
     .map((h) => {
       const elem = ELEMENT[h.sign] || "";
-      const score = Number(sav[h.number - 1] || 0);
+      const score = Number(getHouseSavScore(chart, h) || 0);
       const scorePct = Math.min(100, Math.round((score / 56) * 100));
       const planetsInHouse = (h.planets || []).map((pn) => {
         const meta = PLANET_META[pkey(pn)] || { glyph: pn[0], color: "#888" };
@@ -2738,29 +2762,34 @@ function renderTables(chart) {
 
   const strengthEl = $("#strengthTable");
   if (strengthEl) {
-    const houseStrength = Array.from({ length: 12 }, (_, idx) => ({
-      n: idx + 1,
-      score: Number(sav[idx] || 0),
-      sign: houses[String(idx + 1)]?.sign,
-    }));
+    const houseStrength = Object.values(houses)
+      .sort((a, b) => a.number - b.number)
+      .map((house) => ({
+        n: house.number,
+        score: Number(getHouseSavScore(chart, house) || 0),
+        sign: house.sign,
+      }));
     const houseBars = houseStrength.map((h) => `<div class="strength-row">
       <span>${isRu ? "Дом" : "House"} ${h.n}</span>
       <div class="strength-track"><i style="width:${Math.min(100, Math.round((h.score / 56) * 100))}%"></i></div>
       <strong>${h.score || "-"}</strong>
       <em>${escapeHtml(sname(h.sign))}</em>
     </div>`).join("");
-    const planetTotals = chart.ashtakavarga?.planet_totals || {};
-    const planetBars = Object.entries(planetTotals).sort((a, b) => b[1] - a[1]).map(([key, score]) => {
+    const planetBars = ["sun","moon","mars","mercury","jupiter","venus","saturn"]
+      .map((key) => ({ key, score: getNatalPlanetBavScore(chart, key) }))
+      .filter((item) => item.score !== null)
+      .sort((a, b) => b.score - a.score)
+      .map(({ key, score }) => {
       const meta = PLANET_META[key] || {};
       return `<div class="strength-row strength-row--planet" style="--pcol:${meta.color || "var(--gold)"}">
         <span>${escapeHtml(pname(key))}</span>
-        <div class="strength-track"><i style="width:${Math.min(100, Math.round((Number(score) / 56) * 100))}%"></i></div>
+        <div class="strength-track"><i style="width:${Math.min(100, Math.round((Number(score) / 8) * 100))}%"></i></div>
         <strong>${score}</strong>
       </div>`;
     }).join("");
     strengthEl.innerHTML = `<div class="strength-grid">
       <section><h3>${escapeHtml(isRu ? "Сила домов" : "House Strength")}</h3>${houseBars}</section>
-      <section><h3>${escapeHtml(isRu ? "Сила планет" : "Planet Strength")}</h3>${planetBars || `<div class="report-empty">-</div>`}</section>
+      <section><h3>${escapeHtml(isRu ? "Сила планет (натальный BAV)" : "Planet Strength (Natal BAV)")}</h3>${planetBars || `<div class="report-empty">-</div>`}</section>
     </div>`;
   }
 
@@ -6486,9 +6515,7 @@ function _buildGeoAIPrompt(lat, lng, locName, isRu) {
     for (const pl of allPolylines) {
       const lls = pl.getLatLngs ? pl.getLatLngs() : [];
       for (const pt of lls) {
-        const d = Math.abs(pt.lng - lng);
-        const wrap = Math.min(d, 360 - d);
-        const dist = Math.sqrt(wrap * wrap + (pt.lat - lat) * (pt.lat - lat));
+        const dist = _geoDistanceDeg(lat, lng, pt.lat, pt.lng);
         if (dist < minDist) minDist = dist;
       }
     }
@@ -7111,12 +7138,9 @@ function _scoreCityFromLines(cityLat, cityLon, lines) {
     let minDist = Infinity;
     for (const seg of (line.coords || [])) {
       for (const [lon, lat] of seg) {
-        // Use lat-weighted longitude distance
         const dLat = Math.abs(lat - cityLat);
         if (dLat > 15) continue; // skip far latitudes
-        const dLon = Math.abs(lon - cityLon);
-        const dLonWrapped = Math.min(dLon, 360 - dLon);
-        const dist = Math.sqrt(dLonWrapped * dLonWrapped + dLat * dLat);
+        const dist = _geoDistanceDeg(cityLat, cityLon, lat, lon);
         if (dist < minDist) minDist = dist;
       }
     }
@@ -7133,6 +7157,15 @@ function _scoreCityFromLines(cityLat, cityLon, lines) {
   // Sort influences by abs impact
   influences.sort((a, b) => Math.abs(b.score * b.weight) - Math.abs(a.score * a.weight));
   return { total: Math.round(total * 10) / 10, influences: influences.slice(0, 3) };
+}
+
+function _geoDistanceDeg(latA, lonA, latB, lonB) {
+  const dLat = Number(latB) - Number(latA);
+  const dLonRaw = Math.abs(Number(lonB) - Number(lonA));
+  const dLonWrapped = Math.min(dLonRaw, 360 - dLonRaw);
+  const meanLat = ((Number(latA) + Number(latB)) / 2) * Math.PI / 180;
+  const lonScale = Math.max(0.2, Math.cos(meanLat));
+  return Math.sqrt((dLonWrapped * lonScale) * (dLonWrapped * lonScale) + dLat * dLat);
 }
 
 function _buildCityRankings(lines) {

@@ -27,6 +27,9 @@ PLANET_IDS: dict[str, int] = {
 }
 
 ANGLES = ["ASC", "MC", "DSC", "IC"]
+MERIDIAN_ANGLES = ("MC", "IC")
+HORIZON_ANGLES = ("ASC", "DSC")
+GEO_ALGORITHM_VERSION = 2
 
 # ── Scoring weights ────────────────────────────────────────────────────────────
 # Each (planet, angle) pair gets a base score: positive = beneficial, negative = challenging
@@ -204,6 +207,76 @@ def _lon_diff(a: float, b: float) -> float:
     """Signed difference b - a, wrapped to [-180, 180]."""
     d = (b - a) % 360.0
     return d - 360.0 if d > 180.0 else d
+
+
+def _normalize_lon_180(lon: float) -> float:
+    """Normalize longitude to [-180, 180)."""
+    return (lon + 180.0) % 360.0 - 180.0
+
+
+def _angular_distance_deg(a: float, b: float) -> float:
+    """Smallest angular distance between two longitudes in degrees."""
+    return abs(_lon_diff(a, b))
+
+
+def _wrapped_midpoint(a: float, b: float) -> float:
+    """
+    Midpoint between two longitudes using the shortest wrapped arc.
+    This keeps 179° and -179° near the antimeridian instead of averaging to 0°.
+    """
+    return _normalize_lon_180(a + _lon_diff(a, b) / 2.0)
+
+
+def _average_wrapped_longitudes(values: list[float]) -> float:
+    """Average a sequence of longitudes without jumping across the antimeridian."""
+    if not values:
+        return 0.0
+    unwrapped = [_normalize_lon_180(values[0])]
+    prev = unwrapped[0]
+    for raw in values[1:]:
+        cur = _normalize_lon_180(raw)
+        prev = prev + _lon_diff(prev, cur)
+        unwrapped.append(prev)
+    return _normalize_lon_180(sum(unwrapped) / len(unwrapped))
+
+
+def _cluster_paran_hits(hits: list[dict]) -> list[dict]:
+    """
+    Merge adjacent latitude samples for the same paran into one hotspot.
+    The raw sweep produces many neighboring hits that belong to one zone.
+    """
+    if not hits:
+        return []
+
+    hits = sorted(hits, key=lambda hit: (hit["latitude"], hit["mid_lon"]))
+    clusters: list[list[dict]] = [[hits[0]]]
+
+    for hit in hits[1:]:
+        prev = clusters[-1][-1]
+        lat_gap = abs(hit["latitude"] - prev["latitude"])
+        lon_gap = _angular_distance_deg(hit["mid_lon"], prev["mid_lon"])
+        if lat_gap <= 1.5 and lon_gap <= 12.0:
+            clusters[-1].append(hit)
+        else:
+            clusters.append([hit])
+
+    merged: list[dict] = []
+    for cluster in clusters:
+        first = cluster[0]
+        merged.append({
+            "planet_a": first["planet_a"],
+            "angle_a": first["angle_a"],
+            "planet_b": first["planet_b"],
+            "angle_b": first["angle_b"],
+            "latitude": round(sum(item["latitude"] for item in cluster) / len(cluster), 1),
+            "longitude": round(_average_wrapped_longitudes([item["mid_lon"] for item in cluster]), 2),
+            "score": first["score"],
+            "label": first["label"],
+            "glyph_a": first["glyph_a"],
+            "glyph_b": first["glyph_b"],
+            "samples": len(cluster),
+        })
+    return merged
 
 
 def _compute_line_for_planet_angle(
@@ -449,6 +522,7 @@ def compute_acg_lines(jd: float, language: str = "ru") -> dict:
             "angles": ANGLES,
             "planet_colors": PLANET_COLORS,
             "planet_glyphs": PLANET_GLYPHS,
+            "algorithm_version": GEO_ALGORITHM_VERSION,
         },
     }
 
@@ -458,13 +532,13 @@ def _compute_parans(
     lang: str,
 ) -> list[dict]:
     """
-    Find parans: latitude where two different planet lines intersect.
-    We check vertical (MC/IC) lines against other lines' latitudes.
-    Simplified: find closest lat approach between any two lines.
+    Find simplified parans as crossings between meridian lines (MC/IC)
+    of one planet and horizon lines (ASC/DSC) of another planet.
+    Neighboring latitude samples are merged into a single hotspot.
     """
     p_desc = PLANET_DESC[lang]
     parans = []
-    seen: set[frozenset] = set()
+    seen: set[tuple[str, str, str, str]] = set()
 
     # Index lines by (planet, angle) for quick lookup
     line_idx: dict[tuple[str, str], list[list[float]]] = {}
@@ -477,51 +551,55 @@ def _compute_parans(
     planet_keys = list(PLANET_IDS.keys())
 
     for i, pk_a in enumerate(planet_keys):
-        for angle_a in ANGLES:
-            coords_a = line_idx.get((pk_a, angle_a), [])
-            if not coords_a:
-                continue
-            for pk_b in planet_keys[i + 1:]:
-                for angle_b in ANGLES:
-                    coords_b = line_idx.get((pk_b, angle_b), [])
-                    if not coords_b:
+        for pk_b in planet_keys[i + 1:]:
+            for meridian_planet, meridian_angle, horizon_planet, horizon_angle in (
+                (pk_a, angle_a, pk_b, angle_b)
+                for angle_a in MERIDIAN_ANGLES
+                for angle_b in HORIZON_ANGLES
+            ):
+                combos = [
+                    (meridian_planet, meridian_angle, horizon_planet, horizon_angle),
+                    (pk_b, meridian_angle, pk_a, horizon_angle),
+                ]
+                for planet_a, angle_a, planet_b, angle_b in combos:
+                    coords_a = line_idx.get((planet_a, angle_a), [])
+                    coords_b = line_idx.get((planet_b, angle_b), [])
+                    if not coords_a or not coords_b:
                         continue
 
-                    pair = frozenset([(pk_a, angle_a), (pk_b, angle_b)])
+                    pair = (planet_a, angle_a, planet_b, angle_b)
                     if pair in seen:
                         continue
                     seen.add(pair)
 
-                    # Find closest approach in latitude
                     lats_a = {round(c[1], 0): c[0] for c in coords_a}
                     lats_b = {round(c[1], 0): c[0] for c in coords_b}
-                    common_lats = set(lats_a.keys()) & set(lats_b.keys())
+                    common_lats = sorted(set(lats_a.keys()) & set(lats_b.keys()))
+                    hits: list[dict] = []
 
                     for lat in common_lats:
                         lon_a = lats_a[lat]
                         lon_b = lats_b[lat]
-                        lon_diff = abs(lon_a - lon_b)
-                        if lon_diff > 180:
-                            lon_diff = 360 - lon_diff
+                        lon_diff = _angular_distance_deg(lon_a, lon_b)
                         if lon_diff < 8:  # within ~800km — paran zone
-                            score_a = SCORES.get((pk_a, angle_a), 0)
-                            score_b = SCORES.get((pk_b, angle_b), 0)
+                            score_a = SCORES.get((planet_a, angle_a), 0)
+                            score_b = SCORES.get((planet_b, angle_b), 0)
                             combined = round((score_a + score_b) / 2, 1)
-                            mid_lon = round((lon_a + lon_b) / 2, 2)
-
-                            parans.append({
-                                "planet_a": pk_a,
+                            hits.append({
+                                "planet_a": planet_a,
                                 "angle_a": angle_a,
-                                "planet_b": pk_b,
+                                "planet_b": planet_b,
                                 "angle_b": angle_b,
                                 "latitude": float(lat),
-                                "longitude": mid_lon,
+                                "mid_lon": _wrapped_midpoint(lon_a, lon_b),
                                 "score": combined,
-                                "label": f"{p_desc[pk_a]} {angle_a} × {p_desc[pk_b]} {angle_b}",
-                                "glyph_a": PLANET_GLYPHS.get(pk_a, ""),
-                                "glyph_b": PLANET_GLYPHS.get(pk_b, ""),
+                                "label": f"{p_desc[planet_a]} {angle_a} × {p_desc[planet_b]} {angle_b}",
+                                "glyph_a": PLANET_GLYPHS.get(planet_a, ""),
+                                "glyph_b": PLANET_GLYPHS.get(planet_b, ""),
                             })
 
+                    parans.extend(_cluster_paran_hits(hits))
+
     # Sort by abs score descending
-    parans.sort(key=lambda p: abs(p["score"]), reverse=True)
+    parans.sort(key=lambda p: (abs(p["score"]), p.get("samples", 1)), reverse=True)
     return parans[:40]  # top 40 most significant

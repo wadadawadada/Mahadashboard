@@ -33,6 +33,10 @@ const MIME = {
   ".md": "text/markdown; charset=utf-8",
 };
 
+const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+const CLASSICAL_PLANETS = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn"];
+const GEO_ALGORITHM_VERSION = 2;
+
 function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return;
   const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
@@ -70,6 +74,44 @@ function encodeEnvValue(value) {
   const clean = String(value ?? "").replace(/\r?\n/g, " ").trim();
   if (!clean) return "";
   return /\s|#|["'`]/.test(clean) ? JSON.stringify(clean) : clean;
+}
+
+function zodiacSignIndex(sign) {
+  return ZODIAC_SIGNS.indexOf(sign);
+}
+
+function getSavForSign(sav, sign) {
+  const idx = zodiacSignIndex(sign);
+  if (idx === -1) return null;
+  const score = Number(sav?.[idx]);
+  return Number.isFinite(score) ? score : null;
+}
+
+function buildHouseSavEntries(chart) {
+  const sav = chart.ashtakavarga?.sav || [];
+  return Object.values(chart.houses || {})
+    .sort((a, b) => a.number - b.number)
+    .map((house) => ({
+      number: house.number,
+      sign: house.sign,
+      score: getSavForSign(sav, house.sign),
+    }));
+}
+
+function buildNatalBavEntries(chart) {
+  return CLASSICAL_PLANETS
+    .map((planetKey) => {
+      const planet = chart.planets?.[planetKey];
+      if (!planet) return null;
+      const row = chart.ashtakavarga?.bav?.[planetKey];
+      const idx = zodiacSignIndex(planet.sign);
+      if (!Array.isArray(row) || idx === -1) return null;
+      const score = Number(row[idx]);
+      return Number.isFinite(score)
+        ? { planet: planetKey, sign: planet.sign, house: planet.house, score }
+        : null;
+    })
+    .filter(Boolean);
 }
 
 async function readOpenRouterSettings() {
@@ -679,14 +721,17 @@ function compactChartFacts(chart) {
   // Retrograde list
   const retrograde = planets.filter((p) => p.retrograde).map((p) => p.name);
 
-  // Ashtakavarga — bav + sav + totals
+  // Ashtakavarga — preserve raw sign-based data and add lagna-aware summaries.
   const av = chart.ashtakavarga;
+  const houseSav = buildHouseSavEntries(chart);
+  const natalPlanetBav = buildNatalBavEntries(chart);
   const ashtakavarga = av ? {
     bav: av.bav,
     sav: av.sav,
-    planet_totals: av.planet_totals,
-    strong_houses: (av.sav || []).map((v, i) => v >= 28 ? i + 1 : null).filter(Boolean),
-    weak_houses: (av.sav || []).map((v, i) => v < 25 ? i + 1 : null).filter(Boolean),
+    house_sav: houseSav,
+    planet_natal_bav: natalPlanetBav,
+    strong_houses: houseSav.filter((item) => item.score !== null && item.score >= 28).map((item) => item.number),
+    weak_houses: houseSav.filter((item) => item.score !== null && item.score < 25).map((item) => item.number),
   } : undefined;
 
   return {
@@ -749,7 +794,7 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
     "Never calculate astrology facts yourself — all positions, dignities, aspects, dashas, ashtakavarga scores, and D9 placements are pre-calculated and provided in natal_chart.",
     "Never invent signs, houses, nakshatras, dashas, degrees, aspects, dignities, or source ids.",
     "Use only the provided chart facts, curated interpretation snippets, and transit data.",
-    "The natal_chart contains: birth data, lagna, all 9 planets with sign/house/nakshatra/pada/dignity/retrograde/ruler_of_houses, dignity summary (exalted/own_sign/debilitated), retrograde planet list, 12 houses with lord and occupants, graha drishti aspects, D9 Navamsha placements with dignity, Ashtakavarga (BAV per planet per house, SAV totals, planet strength totals, strong/weak houses), and full Vimshottari dasha tree (current period, all mahadashas, active antardashas, current pratyantardashas).",
+    "The natal_chart contains: birth data, lagna, all 9 planets with sign/house/nakshatra/pada/dignity/retrograde/ruler_of_houses, dignity summary (exalted/own_sign/debilitated), retrograde planet list, 12 houses with lord and occupants, graha drishti aspects, D9 Navamsha placements with dignity, Ashtakavarga (raw BAV by zodiac sign, raw SAV by zodiac sign, house SAV mapped from lagna, natal-position BAV for each classical planet, strong/weak houses), and full Vimshottari dasha tree (current period, all mahadashas, active antardashas, current pratyantardashas).",
     "When answering, cross-reference multiple layers: dignity + house placement + dasha lord + ashtakavarga strength.",
     "Every interpretive claim must cite source ids from the provided curated context.",
     "If a needed interpretation source is missing, say: No curated interpretation source found for this key.",
@@ -949,8 +994,11 @@ async function route(req, res) {
     // Serve cached result if available
     try {
       const cached = await fsp.readFile(geoPath, "utf8");
-      sendJson(res, 200, JSON.parse(cached));
-      return;
+      const parsed = JSON.parse(cached);
+      if (parsed?.meta?.algorithm_version === GEO_ALGORITHM_VERSION) {
+        sendJson(res, 200, parsed);
+        return;
+      }
     } catch (err) {
       if (err.code !== "ENOENT") throw err;
     }
@@ -1365,16 +1413,16 @@ function buildExportMarkdown(chart, context, lang = "ru") {
   if (av) {
     h(2, isEn ? "Ashtakavarga" : "Аштакаварга");
     blank();
-    const HOUSES_12 = [1,2,3,4,5,6,7,8,9,10,11,12];
-    const CLASSICAL = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+    const houseSav = buildHouseSavEntries(chart);
+    const natalPlanetBav = buildNatalBavEntries(chart);
     const PLANET_NAMES = { sun: isEn ? "Sun" : "Солнце", moon: isEn ? "Moon" : "Луна", mars: isEn ? "Mars" : "Марс", mercury: isEn ? "Mercury" : "Меркурий", jupiter: isEn ? "Jupiter" : "Юпитер", venus: isEn ? "Venus" : "Венера", saturn: isEn ? "Saturn" : "Сатурн" };
 
     // BAV table
-    h(3, isEn ? "Benefic points by planet (BAV)" : "Бенефические баллы по планетам (BAV)");
+    h(3, isEn ? "Benefic points by zodiac sign (BAV)" : "Бенефические баллы по знакам зодиака (BAV)");
     blank();
-    row(isEn ? "Planet" : "Планета", ...HOUSES_12.map(String), isEn ? "Total" : "Итого");
+    row(isEn ? "Planet" : "Планета", ...ZODIAC_SIGNS.map(sname), isEn ? "Total" : "Итого");
     sep(14);
-    for (const pk of CLASSICAL) {
+    for (const pk of CLASSICAL_PLANETS) {
       const scores = av.bav?.[pk] || [];
       const total = av.planet_totals?.[pk] ?? scores.reduce((s, v) => s + v, 0);
       row(PLANET_NAMES[pk], ...scores.map(String), String(total));
@@ -1383,21 +1431,31 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     row(`**${isEn ? "SAV (total)" : "SAV (итого)"}**`, ...(av.sav || []).map(String), String((av.sav || []).reduce((s, v) => s + v, 0)));
     blank();
 
-    // Strength summary
-    h(3, isEn ? "Planet strength (total BAV points)" : "Сила планет (сумма BAV)");
+    // Natal-position planet strength
+    h(3, isEn ? "Planet strength at natal position (BAV)" : "Сила планет в натальном положении (BAV)");
     blank();
-    const sorted = CLASSICAL.slice().sort((a, b) => (av.planet_totals?.[b] ?? 0) - (av.planet_totals?.[a] ?? 0));
-    sorted.forEach((pk) => {
-      const total = av.planet_totals?.[pk] ?? 0;
-      const bar = "█".repeat(Math.round(total / 56 * 10));
-      lines.push(`- **${PLANET_NAMES[pk]}**: ${total}/56 ${bar}`);
+    natalPlanetBav
+      .slice()
+      .sort((a, b) => b.score - a.score)
+      .forEach(({ planet, sign, house, score }) => {
+        const bar = "█".repeat(Math.round(score / 8 * 10));
+        lines.push(`- **${PLANET_NAMES[planet]}**: ${score}/8 · ${sname(sign)} · ${isEn ? "house" : "дом"} ${house} ${bar}`);
+      });
+    blank();
+
+    // House strength by lagna
+    h(3, isEn ? "House strength (SAV by house from lagna)" : "Сила домов (SAV по домам от лагны)");
+    blank();
+    row(isEn ? "House" : "Дом", isEn ? "Sign" : "Знак", "SAV");
+    sep(3);
+    houseSav.forEach(({ number, sign, score }) => {
+      row(String(number), sname(sign), score == null ? "—" : String(score));
     });
     blank();
 
     // Strong/weak houses by SAV
-    const sav = av.sav || [];
-    const strongHouses = HOUSES_12.filter((h) => sav[h - 1] >= 28);
-    const weakHouses = HOUSES_12.filter((h) => sav[h - 1] < 25);
+    const strongHouses = houseSav.filter((item) => item.score !== null && item.score >= 28).map((item) => item.number);
+    const weakHouses = houseSav.filter((item) => item.score !== null && item.score < 25).map((item) => item.number);
     if (strongHouses.length) lines.push(`${isEn ? "Strong houses (SAV ≥ 28)" : "Сильные дома (SAV ≥ 28):"} ${strongHouses.join(", ")}`);
     if (weakHouses.length) lines.push(`${isEn ? "Weak houses (SAV < 25)" : "Слабые дома (SAV < 25):"} ${weakHouses.join(", ")}`);
     blank();
