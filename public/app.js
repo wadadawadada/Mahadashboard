@@ -75,6 +75,8 @@ const t = {
     exportTitle: "Export для AI",
     exportDesc: "Единый Markdown-файл с полными данными карты, интерпретациями и периодами — готов к загрузке в любой AI-ассистент.",
     exportDownload: "Скачать гороскоп .md",
+    exportCopy: "Копировать Markdown",
+    exportCopied: "Markdown скопирован",
     exportContents1: "Данные рождения и настройки расчёта",
     exportContents2: "Лагна, планеты, дома, аспекты, D9",
     exportContents3: "Интерпретации по каждому элементу карты",
@@ -319,6 +321,8 @@ const t = {
     exportTitle: "Export for AI",
     exportDesc: "A single Markdown file with full chart data, interpretations, and periods — ready to upload to any AI assistant.",
     exportDownload: "Download horoscope .md",
+    exportCopy: "Copy Markdown",
+    exportCopied: "Markdown copied",
     exportContents1: "Birth data and calculation settings",
     exportContents2: "Lagna, planets, houses, aspects, D9",
     exportContents3: "Interpretations for each chart element",
@@ -3994,15 +3998,41 @@ function renderReport(run, markdown) {
         <li data-i18n="exportContents4">${escapeHtml(tr("exportContents4"))}</li>
       </ul>
     </div>
-    <a class="export-download-btn" id="exportDownloadBtn" href="/api/export/${run.id}?lang=${state.lang}" download="${escapeHtml(name)}_astro_report.md">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M5 16l7 5 7-5M3 21h18"/></svg>
-      <span>${escapeHtml(tr("exportDownload"))}</span>
-    </a>
+    <div class="export-actions">
+      <a class="export-download-btn" id="exportDownloadBtn" href="/api/export/${run.id}?lang=${state.lang}" download="${escapeHtml(name)}_astro_report.md">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M5 16l7 5 7-5M3 21h18"/></svg>
+        <span>${escapeHtml(tr("exportDownload"))}</span>
+      </a>
+      <button class="export-copy-btn" id="exportCopyBtn" type="button" title="${escapeHtml(tr("exportCopy"))}" aria-label="${escapeHtml(tr("exportCopy"))}">
+        ${icon("copy")}
+      </button>
+    </div>
   `;
   const btn = $("#exportDownloadBtn");
   if (!btn) return;
   btn.href = `/api/export/${run.id}?lang=${state.lang}`;
   btn.download = `${name}_astro_report.md`;
+  const copyBtn = $("#exportCopyBtn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async function () {
+      if (!String(markdown || "").trim()) return;
+      try {
+        await navigator.clipboard.writeText(markdown);
+        this.innerHTML = icon("check");
+        this.classList.add("copied");
+        this.title = tr("exportCopied");
+        this.setAttribute("aria-label", tr("exportCopied"));
+        setTimeout(() => {
+          this.innerHTML = icon("copy");
+          this.classList.remove("copied");
+          this.title = tr("exportCopy");
+          this.setAttribute("aria-label", tr("exportCopy"));
+        }, 1500);
+      } catch (_) {
+        this.classList.remove("copied");
+      }
+    });
+  }
   const meta = $("#exportMeta");
   if (meta && chart) {
     const b = chart.birth || {};

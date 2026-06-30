@@ -1238,6 +1238,7 @@ function buildExportMarkdown(chart, context, lang = "ru") {
   const b = chart.birth || {};
   const meta = chart.meta || {};
   const interp = Object.fromEntries((context.items || []).map((i) => [i.key, isEn ? (i.text_en || i.text || "") : (i.text_ru || i.text || "")]));
+  const signLabel = (sign) => String(sign || "");
 
   const lines = [];
 
@@ -1420,7 +1421,7 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     // BAV table
     h(3, isEn ? "Benefic points by zodiac sign (BAV)" : "Бенефические баллы по знакам зодиака (BAV)");
     blank();
-    row(isEn ? "Planet" : "Планета", ...ZODIAC_SIGNS.map(sname), isEn ? "Total" : "Итого");
+    row(isEn ? "Planet" : "Планета", ...ZODIAC_SIGNS.map(signLabel), isEn ? "Total" : "Итого");
     sep(14);
     for (const pk of CLASSICAL_PLANETS) {
       const scores = av.bav?.[pk] || [];
@@ -1439,7 +1440,7 @@ function buildExportMarkdown(chart, context, lang = "ru") {
       .sort((a, b) => b.score - a.score)
       .forEach(({ planet, sign, house, score }) => {
         const bar = "█".repeat(Math.round(score / 8 * 10));
-        lines.push(`- **${PLANET_NAMES[planet]}**: ${score}/8 · ${sname(sign)} · ${isEn ? "house" : "дом"} ${house} ${bar}`);
+        lines.push(`- **${PLANET_NAMES[planet]}**: ${score}/8 · ${signLabel(sign)} · ${isEn ? "house" : "дом"} ${house} ${bar}`);
       });
     blank();
 
@@ -1449,7 +1450,7 @@ function buildExportMarkdown(chart, context, lang = "ru") {
     row(isEn ? "House" : "Дом", isEn ? "Sign" : "Знак", "SAV");
     sep(3);
     houseSav.forEach(({ number, sign, score }) => {
-      row(String(number), sname(sign), score == null ? "—" : String(score));
+      row(String(number), signLabel(sign), score == null ? "—" : String(score));
     });
     blank();
 

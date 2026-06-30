@@ -6081,6 +6081,13 @@ td {
   color: var(--muted);
 }
 
+.export-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .export-download-btn {
   display: inline-flex;
   align-items: center;
@@ -6111,6 +6118,37 @@ td {
   stroke-linecap: round;
   stroke-linejoin: round;
   flex-shrink: 0;
+}
+
+.export-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(216,183,100,0.28);
+  background: rgba(255,255,255,0.02);
+  color: var(--accent, #c9a84c);
+  cursor: pointer;
+  transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.export-copy-btn:hover {
+  opacity: 0.92;
+  border-color: rgba(216,183,100,0.5);
+  background: rgba(216,183,100,0.08);
+}
+
+.export-copy-btn.copied {
+  color: #6dbf8b;
+  border-color: rgba(109,191,139,0.45);
+  background: rgba(109,191,139,0.08);
+}
+
+.export-copy-btn .icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* ── Tables redesign ─────────────────────────────────────── */
