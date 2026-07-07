@@ -1986,9 +1986,14 @@ async function openSettingsModal(setupMode = false) {
   const modelInput = $("#openrouterModel");
   try {
     const data = await api("/api/settings");
-    const settings = data.settings || {};
-    if (apiKeyInput) apiKeyInput.value = settings.openrouter_api_key || "";
-    if (modelInput) modelInput.value = settings.openrouter_model || "";
+    const settings = data || {};
+    if (apiKeyInput) {
+      apiKeyInput.value = "";
+      apiKeyInput.placeholder = settings.has_key
+        ? "••••••••••••  (a key is saved — type a new one to replace it)"
+        : "";
+    }
+    if (modelInput) modelInput.value = settings.model || "";
     setSettingsModalStatus("");
   } catch (error) {
     setSettingsModalStatus(error.message || "Could not load settings.", "error");
@@ -2011,9 +2016,12 @@ async function saveSettings(event) {
         openrouter_model: modelInput.value,
       }),
     });
-    const settings = data.settings || {};
-    apiKeyInput.value = settings.openrouter_api_key || "";
-    modelInput.value = settings.openrouter_model || "";
+    const settings = data || {};
+    apiKeyInput.value = "";
+    apiKeyInput.placeholder = settings.has_key
+      ? "••••••••••••  (a key is saved — type a new one to replace it)"
+      : "";
+    modelInput.value = settings.model || "";
     setSettingsModalStatus(tr("settingsSaved"));
     setStatus(tr("settingsSaved"));
     if (_settingsSetupMode) {
@@ -2128,262 +2136,6 @@ function risingSignArtwork(sign, title, subtitle, note = "") {
       </div>
     </div>
   `;
-}
-
-function renderOverviewLegacy(chart, context) {
-  const isRu = state.lang === "ru";
-  const current = chart.dashas?.current || {};
-  const lagna = chart.lagna || {};
-  const planets = chart.planets || {};
-  const items = context.items || [];
-
-  const SIGN_RU = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак", Leo:"Лев",
-    Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
-    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
-  const signRu = (s) => (isRu && SIGN_RU[s]) ? SIGN_RU[s] : (s || "");
-
-  const PLANET_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
-    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
-  const PLANET_GLYPH = { sun:"☉", moon:"☽", mars:"♂", mercury:"☿", jupiter:"♃",
-    venus:"♀", saturn:"♄", rahu:"☊", ketu:"☋" };
-  const PLANET_COLOR = { sun:"#f0b84a", moon:"#a8d8ea", mars:"#e07060", mercury:"#7dcfbb",
-    jupiter:"#c097ff", venus:"#f9a8c9", saturn:"#8899aa", rahu:"#9988cc", ketu:"#cc9966" };
-  const DIGNITY_RU = { exalted:"экзальтация", debilitated:"падение", own_sign:"свой знак" };
-  const DIGNITY_EN = { exalted:"exalted", debilitated:"debilitated", own_sign:"own sign" };
-  const ELEM_ICON = { Fire:"🔥", Earth:"🌿", Air:"💨", Water:"🌊" };
-  const ELEM_RU   = { Fire:"Огонь", Earth:"Земля", Air:"Воздух", Water:"Вода" };
-
-  const planetRu = (p) => (isRu && PLANET_RU[p]) ? PLANET_RU[p] : (p || "");
-  const dignityLabel = (d) => d && d !== "neutral"
-    ? (isRu ? DIGNITY_RU[d] : DIGNITY_EN[d]) || d : "";
-
-  // формат даты дд.мм.гг
-  const formatDate = (iso) => {
-    if (!iso) return "";
-    const [y, m, d] = iso.split("-");
-    return `${d}.${m}.${y?.slice(2)}`;
-  };
-
-  // ── Шапка: рождение ────────────────────────────────────
-  const birthDate = formatDate(chart.birth.local_date);
-  const birthTime = chart.birth.local_time || "";
-  const birthPlace = `${chart.birth.city}, ${chart.birth.country}`;
-
-  // ── Карточки планет ────────────────────────────────────
-  const MAIN_PLANETS = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
-  const planetCardsHtml = MAIN_PLANETS.filter(k => planets[k]).map(k => {
-    const p = planets[k];
-    const col = PLANET_COLOR[k] || "#aaa";
-    const dig = dignityLabel(p.dignity);
-    const ret = p.retrograde ? " ℞" : "";
-    const score = scorePlanet(k, chart);
-    const pct = score * 10;
-    const scoreColor = score >= 7.5 ? "#8ec97a" : score >= 5 ? "#f0b84a" : "#e07060";
-    const digColor = p.dignity === "exalted" ? "#8ec97a" : p.dignity === "debilitated" ? "#e07060" : "#aaa";
-    return `<div class="ov-planet-card">
-      <div class="ov-planet-head" style="--pcol:${col}">
-        <span class="ov-planet-glyph" style="color:${col}">${PLANET_GLYPH[k]}</span>
-        <span class="ov-planet-name">${escapeHtml(planetRu(k))}${ret}</span>
-      </div>
-      <div class="ov-planet-sign">${escapeHtml(signRu(p.sign))}</div>
-      <div class="ov-planet-meta">
-        ${isRu?"дом":"H"}${p.house}
-        ${dig ? `<span class="ov-planet-dig" style="color:${digColor}">${escapeHtml(dig)}</span>` : ""}
-      </div>
-      <div class="ov-planet-score-row">
-        <div class="ov-planet-score-track"><div class="ov-planet-score-fill" style="width:${pct}%;background:${scoreColor}"></div></div>
-        <span class="ov-planet-score-num" style="color:${scoreColor}">${score.toFixed(1)}</span>
-      </div>
-    </div>`;
-  }).join("");
-
-  // ── Лагна ──────────────────────────────────────────────
-  const lagnaHtml = lagna.sign ? `
-    <div class="ov-lagna">
-      <span class="ov-lagna-icon">⬆</span>
-      <div>
-        <div class="ov-lagna-label">${isRu?"Лагна (Асцендент)":"Lagna (Ascendant)"}</div>
-        <div class="ov-lagna-value">${escapeHtml(signRu(lagna.sign))}${lagna.nakshatra ? ` · ${escapeHtml(lagna.nakshatra)}` : ""}${lagna.pada ? ` пада ${lagna.pada}` : ""}</div>
-      </div>
-    </div>` : "";
-
-  // ── Текущий период дашей ───────────────────────────────
-  const dashaStr = [current.mahadasha, current.antardasha, current.pratyantardasha]
-    .filter(Boolean).map(planetRu).join(" → ");
-
-  // ── Элементы (по всем планетам D1) ────────────────────
-  const ELEM_ORDER = ["Fire","Earth","Air","Water"];
-  const elemCount = { Fire:0, Earth:0, Air:0, Water:0 };
-  MAIN_PLANETS.filter(k => planets[k]).forEach(k => {
-    const el = SIGN_META[planets[k].sign]?.element;
-    if (el && el in elemCount) elemCount[el]++;
-  });
-  // учитываем лагну
-  if (lagna.sign) {
-    const el = SIGN_META[lagna.sign]?.element;
-    if (el && el in elemCount) elemCount[el]++;
-  }
-  const elemTotal = Object.values(elemCount).reduce((a,b)=>a+b,0) || 1;
-  const elemHtml = ELEM_ORDER.map(el => {
-    const n = elemCount[el];
-    const pct = Math.round((n / elemTotal) * 100);
-    const ELEM_COLOR = { Fire:"#e07060", Earth:"#8ec97a", Air:"#7db3ff", Water:"#7dcfbb" };
-    return `<div class="ov-elem-row">
-      <span class="ov-elem-icon">${ELEM_ICON[el]}</span>
-      <span class="ov-elem-name">${isRu?(ELEM_RU[el]||el):el}</span>
-      <div class="ov-elem-track"><div class="ov-elem-fill" style="width:${pct}%;background:${ELEM_COLOR[el]}"></div></div>
-      <span class="ov-elem-num">${n}</span>
-    </div>`;
-  }).join("");
-
-  // ── Интерпретации ──────────────────────────────────────
-  const pick = (prefix, exclude=[]) => items.find(i =>
-    i.key.startsWith(prefix) && !exclude.some(x => i.key.includes(x)));
-  const interps = [
-    { icon:"⬆", label: isRu?"Лагна":"Lagna",   item: pick("lagna:", [":nakshatra:",":sign:",":pada:"]) },
-    { icon:"☽", label: isRu?"Луна":"Moon",      item: pick("planet:moon:", [":sign:",":nakshatra:",":lord:"]) },
-    { icon:"☉", label: isRu?"Солнце":"Sun",     item: pick("planet:sun:", [":sign:",":nakshatra:",":lord:"]) },
-    { icon:"⏳", label: isRu?"Период":"Period", item: items.find(i => i.key.includes("mahadasha")) },
-  ].filter(x => x.item);
-
-  const interpsHtml = interps.map(x => `
-    <div class="ov-interp">
-      <div class="ov-interp-head">
-        <span class="ov-interp-icon">${x.icon}</span>
-        <span class="ov-interp-label">${escapeHtml(x.label)}</span>
-      </div>
-      <div class="ov-interp-text">${escapeHtml(itemText(x.item))}</div>
-    </div>`).join("");
-
-  $("#overviewPanel").innerHTML = `
-    <div class="ov-wrap">
-
-      <div class="ov-header">
-        <div class="ov-header-birth">
-          <div>
-            <div class="ov-birth-date">${escapeHtml(birthDate)} <span class="ov-birth-time">${escapeHtml(birthTime)}</span></div>
-            <div class="ov-birth-place">${escapeHtml(birthPlace)}</div>
-          </div>
-        </div>
-        ${lagnaHtml}
-        ${dashaStr ? `<div class="ov-dasha">
-          <span class="ov-dasha-label">${isRu?"Текущий период":"Current period"}</span>
-          <span class="ov-dasha-value">${escapeHtml(dashaStr)}</span>
-        </div>` : ""}
-        <div class="ov-elems">${elemHtml}</div>
-      </div>
-
-      <div class="ov-planets-title">${isRu?"Планеты":"Planets"}</div>
-      <div class="ov-planets">${planetCardsHtml}</div>
-
-      <div class="ov-interps-title">${isRu?"Ключевые темы":"Key themes"}</div>
-      <div class="ov-interps">${interpsHtml}</div>
-
-    </div>
-  `;
-}
-
-function renderTablesLegacy(chart) {
-  const isRu = state.lang === "ru";
-  const PLANET_NAMES_RU = { sun:"Солнце", moon:"Луна", mars:"Марс", mercury:"Меркурий",
-    jupiter:"Юпитер", venus:"Венера", saturn:"Сатурн", rahu:"Раху", ketu:"Кету" };
-  const SIGN_RU_T = { Aries:"Овен", Taurus:"Телец", Gemini:"Близнецы", Cancer:"Рак",
-    Leo:"Лев", Virgo:"Дева", Libra:"Весы", Scorpio:"Скорпион", Sagittarius:"Стрелец",
-    Capricorn:"Козерог", Aquarius:"Водолей", Pisces:"Рыбы" };
-  const DIGNITY_RU = { neutral:"нейтр.", exalted:"экзальт.", debilitated:"падение", own_sign:"свой знак" };
-  const ELEMENT = { Aries:"fire", Taurus:"earth", Gemini:"air", Cancer:"water",
-    Leo:"fire", Virgo:"earth", Libra:"air", Scorpio:"water",
-    Sagittarius:"fire", Capricorn:"earth", Aquarius:"air", Pisces:"water" };
-
-  const sl = (s) => (isRu && SIGN_RU_T[s]) ? SIGN_RU_T[s] : (s || "");
-  const dl = (d) => (isRu && DIGNITY_RU[d]) ? DIGNITY_RU[d] : (d || "");
-
-  // ── Planet cards ─────────────────────────────────────────
-  const PLANET_ORDER_T = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
-  const planetCardsHtml = PLANET_ORDER_T.map((key) => {
-    const p = chart.planets?.[key];
-    if (!p) return "";
-    const meta = PLANET_META[key] || { glyph: "?", color: "#888" };
-    const name = isRu ? (PLANET_NAMES_RU[key] || p.name) : p.name;
-    const elem = ELEMENT[p.sign] || "";
-    const dignityClass = p.dignity === "exalted" ? "tbl-dignity--exalted"
-      : p.dignity === "debilitated" ? "tbl-dignity--debilitated"
-      : p.dignity === "own_sign" ? "tbl-dignity--own" : "tbl-dignity--neutral";
-    const rulerHtml = (p.ruler_of_houses || []).map(h =>
-      `<span class="tbl-ruler-badge">${h}</span>`).join("");
-
-    return `<div class="tbl-planet-card" style="--pcol:${meta.color}">
-      <div class="tbl-pc-top">
-        <span class="tbl-pc-glyph">${meta.glyph}</span>
-        <span class="tbl-pc-name">${escapeHtml(name)}</span>
-        ${p.retrograde ? `<span class="tbl-retro">R</span>` : ""}
-        <span class="tbl-pc-deg">${escapeHtml(p.degree_formatted)}</span>
-      </div>
-      <div class="tbl-pc-sign tbl-elem--${elem}">
-        <span>${escapeHtml(sl(p.sign))}</span>
-        <span class="tbl-pc-house">${isRu ? "дом" : "house"} ${p.house}</span>
-      </div>
-      <div class="tbl-pc-nk">${escapeHtml(p.nakshatra)} <span class="tbl-pc-pada">${isRu ? "п." : "p."}${p.pada}</span></div>
-      <div class="tbl-pc-bottom">
-        <span class="tbl-dignity ${dignityClass}">${escapeHtml(dl(p.dignity))}</span>
-        ${rulerHtml ? `<span class="tbl-ruler-label">${isRu?"упр.":"rules"}</span>${rulerHtml}` : ""}
-      </div>
-    </div>`;
-  }).join("");
-
-  $("#planetTable").innerHTML = `<div class="tbl-planet-grid">${planetCardsHtml}</div>`;
-
-  // ── House rows ────────────────────────────────────────────
-  const houseRowsHtml = Object.values(chart.houses || {})
-    .sort((a, b) => a.number - b.number)
-    .map((h) => {
-      const elem = ELEMENT[h.sign] || "";
-      const planetsInHouse = (h.planets || []);
-      const planetBadges = planetsInHouse.map((pn) => {
-        const pk = pn.toLowerCase();
-        const m = PLANET_META[pk] || { glyph: pn[0], color: "#888" };
-        return `<span class="tbl-house-planet" style="--pcol:${m.color}">${m.glyph}</span>`;
-      }).join("");
-      return `<div class="tbl-house-row${planetsInHouse.length ? " tbl-house-row--occupied" : ""}">
-        <div class="tbl-house-num">${h.number}</div>
-        <div class="tbl-house-sign tbl-elem--${elem}">${escapeHtml(sl(h.sign))}</div>
-        <div class="tbl-house-lord">${escapeHtml(isRu ? (PLANET_NAMES_RU[h.lord?.toLowerCase()] || h.lord) : h.lord)}</div>
-        <div class="tbl-house-planets">${planetBadges || '<span class="tbl-empty">—</span>'}</div>
-      </div>`;
-    }).join("");
-
-  $("#houseTable").innerHTML = `
-    <div class="tbl-house-header">
-      <span>${isRu?"Дом":"House"}</span>
-      <span>${isRu?"Знак":"Sign"}</span>
-      <span>${isRu?"Управитель":"Lord"}</span>
-      <span>${isRu?"Планеты":"Planets"}</span>
-    </div>
-    <div class="tbl-house-list">${houseRowsHtml}</div>`;
-
-  // ── Aspect rows ───────────────────────────────────────────
-  const aspectRowsHtml = (chart.aspects || []).map((asp) => {
-    const fromKey = asp.from_planet?.toLowerCase();
-    const meta = PLANET_META[fromKey] || { glyph: "?", color: "#888" };
-    const fromName = isRu ? (PLANET_NAMES_RU[fromKey] || asp.from_planet) : asp.from_planet;
-    const toSign = sl(asp.to_sign);
-    const elem = ELEMENT[asp.to_sign] || "";
-    return `<div class="tbl-aspect-row">
-      <div class="tbl-asp-from" style="--pcol:${meta.color}">
-        <span class="tbl-asp-glyph">${meta.glyph}</span>
-        <span class="tbl-asp-name">${escapeHtml(fromName)}</span>
-        <span class="tbl-asp-house">${asp.from_house}</span>
-      </div>
-      <div class="tbl-asp-arrow">→</div>
-      <div class="tbl-asp-type">${escapeHtml(asp.aspect)}</div>
-      <div class="tbl-asp-to">
-        <span class="tbl-asp-house">${asp.to_house}</span>
-        <span class="tbl-asp-sign tbl-elem--${elem}">${escapeHtml(toSign)}</span>
-      </div>
-    </div>`;
-  }).join("");
-
-  $("#aspectTable").innerHTML = `<div class="tbl-aspect-list">${aspectRowsHtml}</div>`;
 }
 
 function renderOverview(chart, context) {

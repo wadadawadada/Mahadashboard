@@ -4,6 +4,8 @@ const fsp = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
 const { spawn } = require("child_process");
+const { writeJsonAtomic, withFileLock } = require("./lib/store");
+const { runPyLimited } = require("./lib/pylimit");
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
@@ -21,7 +23,35 @@ const CELEBRITIES_CSV = path.join(DATA_DIR, "celebrities", "PersonList-15k.csv")
 loadEnv(ENV_PATH);
 
 const PORT = Number(process.env.PORT || 7860);
+const HOST = process.env.HOST || "127.0.0.1";
 const PYTHON_BIN = process.env.PYTHON_BIN || "python";
+const PY_TIMEOUT_MS = Math.max(1, Number(process.env.PY_TIMEOUT_MS) || 30000);
+const OPENROUTER_FETCH_TIMEOUT_MS = 60000;
+
+// Security headers applied to every response (FR10). Leaflet and three.js are now
+// self-hosted under /vendor (S5.2), so no CDN origins are allow-listed. 'unsafe-inline'
+// remains required by the inline <script type="importmap"> and the SPA's inline styles;
+// the client geocodes via nominatim/timeapi and loads map tiles from OSM. Verified in a
+// headless-Chromium smoke (zero CSP violations). Next tightening step: give the importmap
+// a nonce so script-src can drop 'unsafe-inline'.
+const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "same-origin",
+  "content-security-policy": [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "img-src 'self' data: https://*.tile.openstreetmap.org",
+    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self' https://nominatim.openstreetmap.org https://timeapi.io",
+  ].join("; "),
+};
+
+function withSecurity(headers) {
+  return { ...SECURITY_HEADERS, ...headers };
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -200,21 +230,20 @@ async function readJson(filePath, fallback = null) {
 }
 
 async function writeJson(filePath, value) {
-  await fsp.mkdir(path.dirname(filePath), { recursive: true });
-  await fsp.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  await writeJsonAtomic(filePath, value);
 }
 
 function sendJson(res, status, data) {
   const body = JSON.stringify(data);
-  res.writeHead(status, {
+  res.writeHead(status, withSecurity({
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
-  });
+  }));
   res.end(body);
 }
 
 function sendText(res, status, body, contentType = "text/plain; charset=utf-8") {
-  res.writeHead(status, { "content-type": contentType, "cache-control": "no-store" });
+  res.writeHead(status, withSecurity({ "content-type": contentType, "cache-control": "no-store" }));
   res.end(body);
 }
 
@@ -244,6 +273,13 @@ class ApiError extends Error {
 
 function normalizeKey(city, country) {
   return `${String(city || "").trim().toLowerCase()},${String(country || "").trim().toLowerCase()}`;
+}
+
+// Allow-list the language param before it touches any path join (FR3), so a
+// value like "../../x" cannot escape the per-run directory.
+function safeLang(x) {
+  if (x === "ru" || x === "en") return x;
+  throw new ApiError(400, "Unsupported language.");
 }
 
 function validateBirthInput(input) {
@@ -280,15 +316,26 @@ function validateBirthInput(input) {
 }
 
 function resolveIanaTimezone(lat, lon) {
-  return new Promise((resolve) => {
+  return runPyLimited(() => new Promise((resolve) => {
     const py = spawn(PYTHON_BIN, ["-c",
       `from timezonefinder import TimezoneFinder; tf = TimezoneFinder(); print(tf.timezone_at(lat=${lat}, lng=${lon}) or "")`
     ]);
     let out = "";
+    let done = false;
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => {
+      py.kill("SIGKILL");
+      finish(null);
+    }, PY_TIMEOUT_MS);
     py.stdout.on("data", d => { out += d; });
-    py.on("close", () => resolve(out.trim() || null));
-    py.on("error", () => resolve(null));
-  });
+    py.on("close", () => finish(out.trim() || null));
+    py.on("error", () => finish(null));
+  }));
 }
 
 function isUtcOffset(tz) {
@@ -308,7 +355,6 @@ async function maybeUpsertPlace(birth, place) {
   }
   if (!timezone) return null;
 
-  const places = await readJson(PLACES_PATH, {});
   const key = normalizeKey(birth.city, birth.country);
   const entry = {
     name: String(place.display_name || `${birth.city}, ${birth.country}`).trim(),
@@ -316,8 +362,11 @@ async function maybeUpsertPlace(birth, place) {
     lon,
     timezone,
   };
-  places[key] = entry;
-  await writeJson(PLACES_PATH, places);
+  await withFileLock(PLACES_PATH, async () => {
+    const places = await readJson(PLACES_PATH, {});
+    places[key] = entry;
+    await writeJsonAtomic(PLACES_PATH, places);
+  });
   return { key, ...entry };
 }
 
@@ -428,64 +477,72 @@ async function loadProfiles() {
 }
 
 async function saveProfile(birth, place, existingId = null) {
-  const data = await loadProfiles();
-  const now = new Date().toISOString();
-  let profile = existingId ? data.profiles.find((item) => item.id === existingId) : null;
-  if (!profile) {
-    profile = {
-      id: existingId || crypto.randomUUID(),
-      created_at: now,
-      reports: [],
-    };
-    data.profiles.unshift(profile);
-  }
-  profile.name = birth.name || "Unnamed profile";
-  profile.birth = birth;
-  profile.place = place || profile.place || null;
-  profile.updated_at = now;
-  await writeJson(PROFILES_PATH, data);
-  return profile;
+  return withFileLock(PROFILES_PATH, async () => {
+    const data = await loadProfiles();
+    const now = new Date().toISOString();
+    let profile = existingId ? data.profiles.find((item) => item.id === existingId) : null;
+    if (!profile) {
+      profile = {
+        id: existingId || crypto.randomUUID(),
+        created_at: now,
+        reports: [],
+      };
+      data.profiles.unshift(profile);
+    }
+    profile.name = birth.name || "Unnamed profile";
+    profile.birth = birth;
+    profile.place = place || profile.place || null;
+    profile.updated_at = now;
+    await writeJsonAtomic(PROFILES_PATH, data);
+    return profile;
+  });
 }
 
 async function attachRunToProfile(profileId, run) {
-  const data = await loadProfiles();
-  const profile = data.profiles.find((item) => item.id === profileId);
-  if (!profile) return;
-  profile.last_run_id = run.id;
-  profile.last_summary = run.summary;
-  profile.updated_at = new Date().toISOString();
-  profile.reports = Array.isArray(profile.reports) ? profile.reports : [];
-  profile.reports.unshift({
-    id: run.id,
-    created_at: run.created_at,
-    summary: run.summary,
-    files: run.files,
+  return withFileLock(PROFILES_PATH, async () => {
+    const data = await loadProfiles();
+    const profile = data.profiles.find((item) => item.id === profileId);
+    if (!profile) return;
+    profile.last_run_id = run.id;
+    profile.last_summary = run.summary;
+    profile.updated_at = new Date().toISOString();
+    profile.reports = Array.isArray(profile.reports) ? profile.reports : [];
+    profile.reports.unshift({
+      id: run.id,
+      created_at: run.created_at,
+      summary: run.summary,
+      files: run.files,
+    });
+    profile.reports = profile.reports.slice(0, 50);
+    await writeJsonAtomic(PROFILES_PATH, data);
   });
-  profile.reports = profile.reports.slice(0, 50);
-  await writeJson(PROFILES_PATH, data);
 }
 
 async function appendChatMessages(profileId, messages) {
   if (!profileId) return [];
-  const data = await loadProfiles();
-  const profile = data.profiles.find((item) => item.id === profileId);
-  if (!profile) return [];
-  profile.chat_history = Array.isArray(profile.chat_history) ? profile.chat_history : [];
-  profile.chat_history.push(...messages);
-  profile.chat_history = profile.chat_history.slice(-200);
-  profile.updated_at = new Date().toISOString();
-  await writeJson(PROFILES_PATH, data);
-  return profile.chat_history;
+  return withFileLock(PROFILES_PATH, async () => {
+    const data = await loadProfiles();
+    const profile = data.profiles.find((item) => item.id === profileId);
+    if (!profile) return [];
+    profile.chat_history = Array.isArray(profile.chat_history) ? profile.chat_history : [];
+    profile.chat_history.push(...messages);
+    profile.chat_history = profile.chat_history.slice(-200);
+    profile.updated_at = new Date().toISOString();
+    await writeJsonAtomic(PROFILES_PATH, data);
+    return profile.chat_history;
+  });
 }
 
 async function clearProfileChat(profileId) {
   if (!/^[a-f0-9-]{36}$/.test(profileId)) throw new ApiError(400, "Invalid profile id.");
-  const data = await loadProfiles();
-  const profile = data.profiles.find((item) => item.id === profileId);
-  if (!profile) throw new ApiError(404, "Profile not found.");
-  profile.chat_history = [];
-  profile.updated_at = new Date().toISOString();
-  await writeJson(PROFILES_PATH, data);
+  return withFileLock(PROFILES_PATH, async () => {
+    const data = await loadProfiles();
+    const profile = data.profiles.find((item) => item.id === profileId);
+    if (!profile) throw new ApiError(404, "Profile not found.");
+    profile.chat_history = [];
+    profile.updated_at = new Date().toISOString();
+    await writeJsonAtomic(PROFILES_PATH, data);
+  });
 }
 
 async function resolveChatProfileId(body, loaded) {
@@ -501,14 +558,17 @@ async function resolveChatProfileId(body, loaded) {
 
 async function deleteProfile(profileId) {
   if (!/^[a-f0-9-]{36}$/.test(profileId)) throw new ApiError(400, "Invalid profile id.");
-  const data = await loadProfiles();
-  const profile = data.profiles.find((item) => item.id === profileId);
-  if (!profile) throw new ApiError(404, "Profile not found.");
+  const runs = await withFileLock(PROFILES_PATH, async () => {
+    const data = await loadProfiles();
+    const profile = data.profiles.find((item) => item.id === profileId);
+    if (!profile) throw new ApiError(404, "Profile not found.");
 
-  const runs = new Set((profile.reports || []).map((report) => report.id).filter(Boolean));
-  if (profile.last_run_id) runs.add(profile.last_run_id);
-  data.profiles = data.profiles.filter((item) => item.id !== profileId);
-  await writeJson(PROFILES_PATH, data);
+    const ids = new Set((profile.reports || []).map((report) => report.id).filter(Boolean));
+    if (profile.last_run_id) ids.add(profile.last_run_id);
+    data.profiles = data.profiles.filter((item) => item.id !== profileId);
+    await writeJsonAtomic(PROFILES_PATH, data);
+    return ids;
+  });
 
   for (const runId of runs) {
     if (/^[a-f0-9-]{36}$/.test(runId)) {
@@ -540,42 +600,36 @@ async function runReport(profile, birth, language = "ru") {
   const runId = crypto.randomUUID();
   const runDir = path.join(RUNS_DIR, runId);
   const serviceInput = path.join(runDir, "input.json");
-  const globalInput = path.join(INPUT_DIR, "birth.json");
-  const globalChart = path.join(REPORTS_DIR, "latest.chart.json");
-  const globalContext = path.join(REPORTS_DIR, "latest.context.json");
-  const globalReport = path.join(REPORTS_DIR, "latest.report.md");
+  const chartPath = path.join(runDir, "chart.json");
+  const contextPath = path.join(runDir, "context.json");
+  const reportPath = path.join(runDir, "report.md");
 
   try {
     await fsp.mkdir(runDir, { recursive: true });
     await writeJson(serviceInput, birth);
-    await writeJson(globalInput, birth);
 
+    // All inputs/outputs live inside this run's directory — no shared
+    // data/input/birth.json or data/reports/latest.* writes (FR5), so
+    // concurrent reports cannot clobber each other.
     await runPython([
       "-m",
       "jyotish.cli",
       "report",
       "--input",
-      globalInput,
+      serviceInput,
       "--out-json",
-      globalChart,
+      chartPath,
       "--out-context",
-      globalContext,
+      contextPath,
       "--out-md",
-      globalReport,
+      reportPath,
       "--language",
       language,
     ]);
 
-    const chart = await readJson(globalChart);
-    const context = await readJson(globalContext);
-    const markdown = await fsp.readFile(globalReport, "utf8");
-
-    const chartPath = path.join(runDir, "chart.json");
-    const contextPath = path.join(runDir, "context.json");
-    const reportPath = path.join(runDir, "report.md");
-    await writeJson(chartPath, chart);
-    await writeJson(contextPath, context);
-    await fsp.writeFile(reportPath, markdown, "utf8");
+    const chart = await readJson(chartPath);
+    const context = await readJson(contextPath);
+    const markdown = await fsp.readFile(reportPath, "utf8");
 
     const run = {
       id: runId,
@@ -587,12 +641,19 @@ async function runReport(profile, birth, language = "ru") {
         chart: path.relative(ROOT, chartPath).replaceAll("\\", "/"),
         context: path.relative(ROOT, contextPath).replaceAll("\\", "/"),
         markdown: path.relative(ROOT, reportPath).replaceAll("\\", "/"),
-        latest_chart: "data/reports/latest.chart.json",
-        latest_context: "data/reports/latest.context.json",
-        latest_markdown: "data/reports/latest.report.md",
       },
     };
     await writeJson(path.join(runDir, "manifest.json"), run);
+
+    // "Latest" pointer for the UI, written once post-success outside the hot
+    // path via an atomic write (never read back during a request).
+    await writeJsonAtomic(path.join(REPORTS_DIR, "latest.json"), {
+      run_id: runId,
+      profile_id: profile.id,
+      created_at: run.created_at,
+      summary: run.summary,
+    }).catch(() => {});
+
     return { run, chart, context, markdown };
   } catch (error) {
     await fsp.rm(runDir, { recursive: true, force: true }).catch(() => {});
@@ -601,22 +662,37 @@ async function runReport(profile, birth, language = "ru") {
 }
 
 function runPython(args) {
-  return new Promise((resolve, reject) => {
+  // Gate every spawn through the shared semaphore (FR8) so fan-outs queue
+  // instead of forking dozens of processes at once.
+  return runPyLimited(() => new Promise((resolve, reject) => {
     const child = spawn(PYTHON_BIN, args, { cwd: ROOT, windowsHide: true });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    const settle = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn(value);
+    };
+    // Timeout + hard kill (FR7) so a hung child cannot leak or stall a request.
+    const timer = setTimeout(() => {
+      if (settled) return;
+      child.kill("SIGKILL");
+      settle(reject, new ApiError(504, "Report engine timed out.", `Python timed out after ${PY_TIMEOUT_MS}ms`));
+    }, PY_TIMEOUT_MS);
     child.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
     });
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
     });
-    child.on("error", (error) => reject(new ApiError(500, "Could not start Python report engine.", error.message)));
+    child.on("error", (error) => settle(reject, new ApiError(500, "Could not start Python report engine.", error.message)));
     child.on("close", (code) => {
-      if (code === 0) resolve(stdout);
-      else reject(new ApiError(500, "Report engine failed.", stderr || stdout || `Exit code ${code}`));
+      if (code === 0) settle(resolve, stdout);
+      else settle(reject, new ApiError(500, "Report engine failed.", stderr || stdout || `Exit code ${code}`));
     });
-  });
+  }));
 }
 
 async function loadRun(runId) {
@@ -843,16 +919,25 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
   });
   console.log(`[OpenRouter] model=${model} payload_bytes=${bodyStr.length}`);
 
-  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": process.env.OPENROUTER_SITE_URL || `http://localhost:${PORT}`,
-      "X-Title": process.env.OPENROUTER_APP_NAME || "Jyotish Service",
-    },
-    body: bodyStr,
-  });
+  let response;
+  try {
+    response = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": process.env.OPENROUTER_SITE_URL || `http://localhost:${PORT}`,
+        "X-Title": process.env.OPENROUTER_APP_NAME || "Jyotish Service",
+      },
+      body: bodyStr,
+      signal: AbortSignal.timeout(OPENROUTER_FETCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      throw new ApiError(504, "OpenRouter request timed out.", error.message);
+    }
+    throw new ApiError(502, "OpenRouter request failed.", error && error.message);
+  }
 
   if (!response.ok) {
     const detail = await response.text();
@@ -878,14 +963,29 @@ async function route(req, res) {
 
   if (req.method === "GET" && pathname === "/api/settings") {
     const settings = await readOpenRouterSettings();
-    sendJson(res, 200, { settings, needs_setup: !settings.openrouter_api_key });
+    const hasKey = !!settings.openrouter_api_key;
+    // Never disclose the key (FR2) — only whether one is configured.
+    sendJson(res, 200, {
+      has_key: hasKey,
+      model: settings.openrouter_model || "",
+      base_url: process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+      needs_setup: !hasKey,
+    });
     return;
   }
 
   if (req.method === "POST" && pathname === "/api/settings") {
     const body = await parseBody(req);
-    const settings = await saveOpenRouterSettings(body || {});
-    sendJson(res, 200, { ok: true, settings });
+    const saved = await saveOpenRouterSettings(body || {});
+    const hasKey = !!saved.openrouter_api_key;
+    // Never echo the key back (NFR4) — return the same safe flat shape as GET.
+    sendJson(res, 200, {
+      ok: true,
+      has_key: hasKey,
+      model: saved.openrouter_model || "",
+      base_url: process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+      needs_setup: !hasKey,
+    });
     return;
   }
 
@@ -975,11 +1075,11 @@ async function route(req, res) {
     const urlParams = new URL("http://x" + req.url).searchParams;
     const lang = urlParams.get("lang") === "en" ? "en" : "ru";
     const md = buildExportMarkdown(chart, context, lang);
-    res.writeHead(200, {
+    res.writeHead(200, withSecurity({
       "content-type": "text/markdown; charset=utf-8",
       "content-disposition": `attachment; filename="${asciiName}_astro_report.md"; filename*=UTF-8''${encodedName}`,
       "cache-control": "no-store",
-    });
+    }));
     res.end(md);
     return;
   }
@@ -1032,7 +1132,7 @@ async function route(req, res) {
       : new Date().toISOString().slice(0, 10);
 
     const language = (await readJson(path.join(runDir, "chart.json"))).meta?.language || "ru";
-    const langParam = (new URL(req.url, "http://x").searchParams.get("lang") || language);
+    const langParam = safeLang(new URL(req.url, "http://x").searchParams.get("lang") || language);
     const methodParam = ["mix","jyotish"].includes(new URL(req.url, "http://x").searchParams.get("method"))
       ? new URL(req.url, "http://x").searchParams.get("method")
       : "mix";
@@ -1073,7 +1173,7 @@ async function route(req, res) {
     const params = new URL(req.url, "http://x").searchParams;
     const year  = parseInt(params.get("year")  || new Date().getFullYear(), 10);
     const month = parseInt(params.get("month") || new Date().getMonth() + 1, 10);
-    const lang  = params.get("lang") || "ru";
+    const lang  = safeLang(params.get("lang") || "ru");
     const method = ["mix","jyotish"].includes(params.get("method")) ? params.get("method") : "mix";
 
     if (isNaN(year) || isNaN(month) || month < 1 || month > 12) throw new ApiError(400, "Invalid year/month.");
@@ -1088,33 +1188,28 @@ async function route(req, res) {
       return `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     });
 
-    // Run forecasts in parallel (max 8 at a time), use cache if available
-    const CONCURRENCY = 8;
-    const results = [];
-    for (let i = 0; i < dates.length; i += CONCURRENCY) {
-      const chunk = dates.slice(i, i + CONCURRENCY);
-      const chunkResults = await Promise.all(chunk.map(async (dateStr) => {
-        const forecastPath = path.join(runDir, `forecast_${dateStr}_${lang}_${method}.json`);
-        try {
-          const cached = await fsp.readFile(forecastPath, "utf8");
-          const data = JSON.parse(cached);
-          return compactDayForecast(dateStr, data);
-        } catch (e) {
-          if (e.code !== "ENOENT") throw e;
-        }
-        await runPython([
-          "-m", "jyotish.cli", "forecast",
-          "--input", inputFile,
-          "--out-forecast", forecastPath,
-          "--forecast-date", dateStr,
-          "--language", lang,
-          "--score-method", method,
-        ]);
-        const data = await readJson(forecastPath);
-        return compactDayForecast(dateStr, data);
-      }));
-      results.push(...chunkResults);
-    }
+    // Fan out every day; each Python spawn is gated by the shared semaphore
+    // (FR8), so the ~31 sub-calls queue at PY_MAX_CONCURRENCY instead of all
+    // spawning at once. Cache hits resolve without spawning.
+    const results = await Promise.all(dates.map(async (dateStr) => {
+      const forecastPath = path.join(runDir, `forecast_${dateStr}_${lang}_${method}.json`);
+      try {
+        const cached = await fsp.readFile(forecastPath, "utf8");
+        return compactDayForecast(dateStr, JSON.parse(cached));
+      } catch (e) {
+        if (e.code !== "ENOENT") throw e;
+      }
+      await runPython([
+        "-m", "jyotish.cli", "forecast",
+        "--input", inputFile,
+        "--out-forecast", forecastPath,
+        "--forecast-date", dateStr,
+        "--language", lang,
+        "--score-method", method,
+      ]);
+      const data = await readJson(forecastPath);
+      return compactDayForecast(dateStr, data);
+    }));
 
     sendJson(res, 200, { year, month, days: results });
     return;
@@ -1156,26 +1251,43 @@ async function route(req, res) {
   await serveStatic(pathname, res);
 }
 
+const VENDOR_CACHE = "public, max-age=31536000, immutable";
+const STATIC_CACHE = "public, max-age=0, must-revalidate";
+
+// Stream a file to the client (FR22) instead of buffering it fully, applying
+// security + cache headers. Headers are only written once the stream opens, so
+// a missing file maps cleanly to 404 before any header is sent.
+function streamFile(res, filePath, contentType, cacheControl, extraHeaders = {}) {
+  const stream = fs.createReadStream(filePath);
+  stream.once("open", () => {
+    res.writeHead(200, withSecurity({
+      "content-type": contentType,
+      "cache-control": cacheControl,
+      ...extraHeaders,
+    }));
+    stream.pipe(res);
+  });
+  stream.on("error", (error) => {
+    if (res.headersSent) {
+      res.destroy(error);
+      return;
+    }
+    if (error.code === "ENOENT") sendText(res, 404, "Not found");
+    else if (error.code === "EISDIR") sendText(res, 404, "Not found");
+    else sendText(res, 500, "Internal server error");
+  });
+}
+
 async function serveStatic(pathname, res) {
   if (pathname === "/vendor/three.module.js") {
-    const threePath = path.join(ROOT, "node_modules", "three", "build", "three.module.js");
-    const body = await fsp.readFile(threePath);
-    res.writeHead(200, {
-      "content-type": "application/javascript; charset=utf-8",
-      "cache-control": "no-store",
-    });
-    res.end(body);
+    streamFile(res, path.join(ROOT, "node_modules", "three", "build", "three.module.js"),
+      "application/javascript; charset=utf-8", VENDOR_CACHE);
     return;
   }
 
   if (pathname === "/vendor/three.core.js") {
-    const threeCorePath = path.join(ROOT, "node_modules", "three", "build", "three.core.js");
-    const body = await fsp.readFile(threeCorePath);
-    res.writeHead(200, {
-      "content-type": "application/javascript; charset=utf-8",
-      "cache-control": "no-store",
-    });
-    res.end(body);
+    streamFile(res, path.join(ROOT, "node_modules", "three", "build", "three.core.js"),
+      "application/javascript; charset=utf-8", VENDOR_CACHE);
     return;
   }
 
@@ -1183,54 +1295,42 @@ async function serveStatic(pathname, res) {
     const addonRel = pathname.slice("/vendor/three/addons/".length);
     const addonsRoot = path.join(ROOT, "node_modules", "three", "examples", "jsm");
     const filePath = path.resolve(addonsRoot, addonRel);
-    if (!filePath.startsWith(addonsRoot)) {
+    if (!filePath.startsWith(addonsRoot + path.sep)) {
       sendText(res, 403, "Forbidden");
       return;
     }
-    try {
-      const body = await fsp.readFile(filePath);
-      res.writeHead(200, {
-        "content-type": "application/javascript; charset=utf-8",
-        "cache-control": "no-store",
-      });
-      res.end(body);
-    } catch (error) {
-      if (error.code === "ENOENT") sendText(res, 404, "Not found");
-      else throw error;
-    }
+    streamFile(res, filePath, "application/javascript; charset=utf-8", VENDOR_CACHE);
     return;
   }
 
   if (pathname === "/chart3d.mjs" || pathname === "/chart3d.js" || pathname === "/public/chart3d.mjs") {
-    const body = await fsp.readFile(path.join(PUBLIC_DIR, "chart3d.mjs"));
-    res.writeHead(200, { "content-type": "application/javascript; charset=utf-8", "cache-control": "no-store" });
-    res.end(body);
+    streamFile(res, path.join(PUBLIC_DIR, "chart3d.mjs"),
+      "application/javascript; charset=utf-8", STATIC_CACHE);
     return;
   }
 
   const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   const filePath = path.resolve(PUBLIC_DIR, relative);
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  if (filePath !== PUBLIC_DIR && !filePath.startsWith(PUBLIC_DIR + path.sep)) {
     sendText(res, 403, "Forbidden");
     return;
   }
+  let stat;
   try {
-    const stat = await fsp.stat(filePath);
-    if (stat.isDirectory()) {
-      sendText(res, 404, "Not found");
-      return;
-    }
-    const ext = path.extname(filePath);
-    const body = await fsp.readFile(filePath);
-    res.writeHead(200, {
-      "content-type": MIME[ext] || "application/octet-stream",
-      "cache-control": "no-store",
-    });
-    res.end(body);
+    stat = await fsp.stat(filePath);
   } catch (error) {
     if (error.code === "ENOENT") sendText(res, 404, "Not found");
     else throw error;
+    return;
   }
+  if (stat.isDirectory()) {
+    sendText(res, 404, "Not found");
+    return;
+  }
+  const ext = path.extname(filePath);
+  streamFile(res, filePath, MIME[ext] || "application/octet-stream", STATIC_CACHE, {
+    "last-modified": stat.mtime.toUTCString(),
+  });
 }
 
 function buildExportMarkdown(chart, context, lang = "ru") {
@@ -1564,45 +1664,93 @@ async function sendRunFile(res, runId, kind) {
   const [fileName, contentType] = files[kind];
   const filePath = path.join(RUNS_DIR, runId, fileName);
   const body = await fsp.readFile(filePath);
-  res.writeHead(200, {
+  res.writeHead(200, withSecurity({
     "content-type": contentType,
     "content-disposition": `attachment; filename="${fileName}"`,
     "cache-control": "no-store",
-  });
+  }));
   res.end(body);
+}
+
+// Centralized error -> HTTP mapping (FR9). Maps known error shapes to status
+// codes, never leaks raw detail (e.g. Python stderr) to the client, and guards
+// against writing after headers were already sent.
+function toHttpStatus(error) {
+  if (error instanceof ApiError) return error.status || 500;
+  if (error instanceof URIError) return 400;
+  if (error && error.code === "ENOENT") return 404;
+  return (error && error.status) || 500;
+}
+
+function clientMessage(error, status) {
+  if (status >= 500) return "Internal server error.";
+  if (error instanceof ApiError) return error.message || "Request failed.";
+  if (error instanceof URIError) return "Malformed request URL.";
+  if (error && error.code === "ENOENT") return "Not found.";
+  return "Request failed.";
+}
+
+function sendError(res, error) {
+  const status = toHttpStatus(error);
+  // Full detail is logged server-side only.
+  console.error(`[error] ${status} ${(error && error.message) || error}`, (error && (error.detail || error.stack)) || "");
+  if (res.headersSent) {
+    try { res.end(); } catch { /* socket already gone */ }
+    return;
+  }
+  sendJson(res, status, { error: clientMessage(error, status) });
+}
+
+let _processGuardsInstalled = false;
+function installProcessGuards() {
+  if (_processGuardsInstalled) return;
+  _processGuardsInstalled = true;
+  // Log and keep serving rather than crashing the single process (FR9).
+  process.on("unhandledRejection", (reason) => {
+    console.error("[unhandledRejection]", reason);
+  });
+  process.on("uncaughtException", (error) => {
+    console.error("[uncaughtException]", error);
+  });
 }
 
 function createHttpServer() {
   return http.createServer((req, res) => {
-    route(req, res).catch((error) => {
-      const status = error.status || 500;
-      sendJson(res, status, {
-        error: error.message || "Internal server error",
-        detail: error.detail || undefined,
-      });
-    });
+    route(req, res).catch((error) => sendError(res, error));
   });
 }
 
 async function startServer(options = {}) {
   const port = Number(options.port || PORT);
+  const host = options.host || HOST;
   const shouldOpenBrowser =
     options.openBrowser === undefined ? String(process.env.OPEN_BROWSER || "true").toLowerCase() !== "false" : Boolean(options.openBrowser);
   const shouldLog = options.log === undefined ? true : Boolean(options.log);
 
+  installProcessGuards();
   await ensureStorage();
+
+  // Prewarm the celebrities CSV cache off the request path (FR22) so the first
+  // /api/celebrities call doesn't parse a 15k-row file on the event loop.
+  searchCelebrities("").catch((error) => {
+    if (shouldLog) console.warn(`Celebrity cache warm failed: ${error.message}`);
+  });
+
   const server = createHttpServer();
 
   await new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(port, () => {
+    // Bind to HOST (default 127.0.0.1, loopback-only); set HOST=0.0.0.0 to
+    // expose on all interfaces (FR1).
+    server.listen(port, host, () => {
       server.off("error", reject);
       resolve();
     });
   });
 
-  const url = `http://localhost:${port}`;
-  if (shouldLog) console.log(`Jyotish service: ${url}`);
+  const displayHost = host === "0.0.0.0" || host === "::" ? "localhost" : host;
+  const url = `http://${displayHost}:${port}`;
+  if (shouldLog) console.log(`Jyotish service: ${url} (bound to ${host})`);
   if (shouldOpenBrowser) openBrowser(url);
   return server;
 }
