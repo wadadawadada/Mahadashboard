@@ -166,8 +166,13 @@ async function readOpenRouterSettings() {
 }
 
 async function saveOpenRouterSettings(input) {
-  const apiKey = String(input.openrouter_api_key ?? "").replace(/\r?\n/g, " ").trim();
+  const rawKey = String(input.openrouter_api_key ?? "").replace(/\r?\n/g, " ").trim();
   const model = String(input.openrouter_model ?? "").replace(/\r?\n/g, " ").trim();
+
+  // If the UI sends an empty key (placeholder mode), keep the existing key.
+  const existing = await readOpenRouterSettings();
+  const apiKey = rawKey || existing.openrouter_api_key;
+
   const updates = new Map([
     ["OPENROUTER_API_KEY", apiKey],
     ["OPENROUTER_MODEL", model],
