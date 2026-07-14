@@ -13,7 +13,10 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=22" />
+    <link rel="stylesheet" href="/styles.css?v=23" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400&family=Noto+Sans+Symbols+2:wght@400&display=swap" />
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
   </head>
   <body>
@@ -216,6 +219,7 @@
               <button class="tab" type="button" data-tab="geo" title="Geo"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 2c-2.8 3-4 6-4 10s1.2 7 4 10M12 2c2.8 3 4 6 4 10s-1.2 7-4 10M2 12h20"/></svg><span data-i18n="geoTab">Geo</span></button>
               <button class="tab" type="button" data-tab="report" title="Report"><svg class="icon"><use href="#i-file"></use></svg><span data-i18n="report">Отчет</span></button>
               <button class="tab" type="button" data-tab="synastry" title="Synastry"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg><span data-i18n="synastryTab">Синастрия</span></button>
+              <button class="tab" type="button" data-tab="content" data-i18n-title="contentTab" title="Content"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg><span data-i18n="contentTab">Контент</span></button>
             </nav>
 
             <div class="tab-content">
@@ -583,6 +587,109 @@
                 </div>
               </section><!-- /tab-synastry -->
 
+              <section class="tab-view" id="tab-content">
+                <div class="cards-shell">
+                  <div class="cards-toolbar">
+                    <div class="cards-toolbar-left">
+                      <select class="cards-select" id="cardsFormat">
+                        <option value="day_report" data-i18n="cardsDayReport">📅 Отчёт дня</option>
+                        <option value="personal" data-i18n="cardsPersonal">👤 Личный гороскоп</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="cards-row" id="cardsRow">
+                    <div class="cards-slot" id="cardsSlot0">
+                      <div class="cards-preview-card">
+                        <div class="cards-preview-head">
+                          <div class="cards-preview-copy">
+                            <span class="cards-preview-kicker">Card 1</span>
+                            <strong class="cards-preview-title" id="cardsSlotTitle0">Preview</strong>
+                          </div>
+                          <span class="cards-preview-ratio" id="cardsSlotRatio0">9:16</span>
+                        </div>
+                      <div class="cards-wrap">
+                        <canvas class="cards-canvas" id="cardsCanvas0" width="1080" height="1920"></canvas>
+                        <div class="cards-overlay">
+                          <button class="cards-action-btn" data-slot="0" data-action="download" data-i18n-title="cardsDownloadPng" title="Скачать PNG">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          </button>
+                          <button class="cards-action-btn" data-slot="0" data-action="copy" data-i18n-title="cardsCopyImage" title="Скопировать">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    <div class="cards-slot" id="cardsSlot1">
+                      <div class="cards-preview-card">
+                        <div class="cards-preview-head">
+                          <div class="cards-preview-copy">
+                            <span class="cards-preview-kicker">Card 2</span>
+                            <strong class="cards-preview-title" id="cardsSlotTitle1">Preview</strong>
+                          </div>
+                          <span class="cards-preview-ratio" id="cardsSlotRatio1">9:16</span>
+                        </div>
+                      <div class="cards-wrap">
+                        <canvas class="cards-canvas" id="cardsCanvas1" width="1080" height="1920"></canvas>
+                        <div class="cards-overlay">
+                          <button class="cards-action-btn" data-slot="1" data-action="download" data-i18n-title="cardsDownloadPng" title="Скачать PNG">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          </button>
+                          <button class="cards-action-btn" data-slot="1" data-action="copy" data-i18n-title="cardsCopyImage" title="Скопировать">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    <div class="cards-slot" id="cardsSlot2">
+                      <div class="cards-preview-card">
+                        <div class="cards-preview-head">
+                          <div class="cards-preview-copy">
+                            <span class="cards-preview-kicker">Card 3</span>
+                            <strong class="cards-preview-title" id="cardsSlotTitle2">Preview</strong>
+                          </div>
+                          <span class="cards-preview-ratio" id="cardsSlotRatio2">9:16</span>
+                        </div>
+                      <div class="cards-wrap">
+                        <canvas class="cards-canvas" id="cardsCanvas2" width="1080" height="1920"></canvas>
+                        <div class="cards-overlay">
+                          <button class="cards-action-btn" data-slot="2" data-action="download" data-i18n-title="cardsDownloadPng" title="Скачать PNG">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          </button>
+                          <button class="cards-action-btn" data-slot="2" data-action="copy" data-i18n-title="cardsCopyImage" title="Скопировать">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    <div class="cards-slot hidden" id="cardsSlot3">
+                      <div class="cards-preview-card">
+                        <div class="cards-preview-head">
+                          <div class="cards-preview-copy">
+                            <span class="cards-preview-kicker">Card 4</span>
+                            <strong class="cards-preview-title" id="cardsSlotTitle3">Preview</strong>
+                          </div>
+                          <span class="cards-preview-ratio" id="cardsSlotRatio3">9:16</span>
+                        </div>
+                      <div class="cards-wrap">
+                        <canvas class="cards-canvas" id="cardsCanvas3" width="1080" height="1920"></canvas>
+                        <div class="cards-overlay">
+                          <button class="cards-action-btn" data-slot="3" data-action="download" data-i18n-title="cardsDownloadPng" title="Скачать PNG">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          </button>
+                          <button class="cards-action-btn" data-slot="3" data-action="copy" data-i18n-title="cardsCopyImage" title="Скопировать">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section><!-- /tab-content -->
+
               <section class="tab-view" id="tab-ai">
                 <div class="panel ai-panel">
                   <div class="ai-header">
@@ -620,6 +727,22 @@
         <button class="planet-modal-close" type="button" id="planetModalClose" aria-label="Close">×</button>
         <h3 id="planetModalTitle"></h3>
         <div id="planetModalBody"></div>
+      </article>
+    </div>
+
+    <div class="cards-lightbox hidden" id="cardsLightbox" role="dialog" aria-modal="true" aria-labelledby="cardsLightboxTitle">
+      <div class="cards-lightbox-backdrop" id="cardsLightboxBackdrop"></div>
+      <article class="cards-lightbox-card">
+        <div class="cards-lightbox-head">
+          <div class="cards-lightbox-copy">
+            <span class="cards-lightbox-kicker" id="cardsLightboxRatio">9:16</span>
+            <h3 id="cardsLightboxTitle">Preview</h3>
+          </div>
+          <button class="cards-lightbox-close" type="button" id="cardsLightboxClose" aria-label="Close">×</button>
+        </div>
+        <div class="cards-lightbox-stage">
+          <canvas class="cards-lightbox-canvas" id="cardsLightboxCanvas" width="1080" height="1920"></canvas>
+        </div>
       </article>
     </div>
 
@@ -733,5 +856,6 @@
 
     <script src="/vendor/leaflet/leaflet.js"></script>
     <script src="/app.js?v=26"></script>
+    <script src="/cards.js?v=4"></script>
   </body>
 </html>

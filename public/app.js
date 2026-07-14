@@ -205,6 +205,13 @@ const t = {
     forecastPlanet: "Планета",
     forecastAspectTo: "Аспект",
     forecastOrb: "Орб",
+    contentTab: "Контент",
+    cardsDayReport: "📅 Отчёт дня",
+    cardsPersonal: "👤 Личный гороскоп",
+    cardsAspectStory: "9:16 · История",
+    cardsAspectPost: "4:5 · Пост",
+    cardsDownloadPng: "Скачать PNG",
+    cardsCopyImage: "Скопировать изображение",
     synastryTab: "Синастрия",
     synastryTitle: "Сравнение профилей",
     synastrySubtitle: "Совместимость, сильные стороны и зоны риска",
@@ -451,6 +458,13 @@ const t = {
     forecastPlanet: "Planet",
     forecastAspectTo: "Aspect",
     forecastOrb: "Orb",
+    contentTab: "Content",
+    cardsDayReport: "📅 Day Report",
+    cardsPersonal: "👤 Personal Horoscope",
+    cardsAspectStory: "9:16 · Story",
+    cardsAspectPost: "4:5 · Post",
+    cardsDownloadPng: "Download PNG",
+    cardsCopyImage: "Copy image",
     synastryTab: "Synastry",
     synastryTitle: "Profile Comparison",
     synastrySubtitle: "Compatibility, strengths, and risk areas",
@@ -1065,6 +1079,7 @@ function applyReport(run, chart, context, markdown) {
   state.chart = chart;
   state.context = context;
   state.markdown = markdown;
+  window._cardsState = { chart, context };
   const wasVisible = !$("#resultLayout").classList.contains("hidden");
   const currentTab = wasVisible ? (document.querySelector(".tab.active")?.dataset.tab || "chart") : "chart";
   $("#emptyState").classList.add("hidden");
@@ -5583,13 +5598,12 @@ function initGeoMap() {
   });
 
   L.control.attribution({ prefix: '<a href="https://leafletjs.com">Leaflet</a>' })
-    .addAttribution("© CartoDB")
+    .addAttribution("© OpenStreetMap contributors")
     .addTo(map);
 
-  // Dark base tiles with labels
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "",
-    subdomains: "abcd",
+    subdomains: "abc",
     maxZoom: 19,
     maxNativeZoom: 19,
     pane: "tilePane",
@@ -7246,9 +7260,10 @@ function _initPickerMap(infoBox, confirmBtn) {
     attributionControl: false,
   });
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd",
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    subdomains: "abc",
     maxZoom: 19,
+    attribution: "",
   }).addTo(map);
 
   map.on("click", (e) => {

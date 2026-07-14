@@ -2995,7 +2995,7 @@ select:focus {
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   align-items: center;
   gap: 6px;
   min-height: 40px;
@@ -6477,10 +6477,8 @@ td {
 .geo-map {
   width: 100%;
   height: 100%;
-  background: #080614;
+  background: #dfe7ef;
 }
-
-/* CartoDB Dark Matter tiles are already dark — no filter needed */
 
 .leaflet-control-zoom {
   border: 1px solid rgba(216, 183, 100, 0.18) !important;
@@ -9098,3 +9096,389 @@ button.fc-dasha-pill-clickable:active { transform: scale(0.97); }
   font-size: 13px;
 }
 .celeb-rodden-aa { color: var(--gold, #d8b764); font-size: 10px; margin-left: 6px; }
+
+/* ── Content / Cards Tab ──────────────────────────────────────────────────── */
+.cards-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+  height: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(216, 183, 100, 0.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(108, 140, 255, 0.08), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(216, 183, 100, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(16, 12, 30, 0.94), rgba(7, 6, 15, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.cards-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 2px 2px 0;
+}
+
+.cards-toolbar-left,
+.cards-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cards-select {
+  min-height: 42px;
+  background: rgba(18, 15, 34, 0.92);
+  border: 1px solid rgba(216, 183, 100, 0.22);
+  color: var(--text, #f5ecd8);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.cards-select:focus {
+  border-color: var(--gold, #d8b764);
+  box-shadow: 0 0 0 3px rgba(216, 183, 100, 0.12);
+}
+
+.cards-row {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px 2px 18px;
+  scrollbar-gutter: stable;
+}
+
+.cards-slot {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.cards-slot.hidden { display: none; }
+
+.cards-preview-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(216, 183, 100, 0.12);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)),
+    rgba(10, 8, 20, 0.88);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.32);
+}
+
+.cards-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cards-preview-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cards-preview-kicker {
+  color: rgba(169, 163, 194, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cards-preview-title {
+  display: block;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.cards-preview-ratio {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 183, 100, 0.22);
+  background: rgba(216, 183, 100, 0.08);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cards-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(216, 183, 100, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+    rgba(7, 6, 15, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.02),
+    0 12px 30px rgba(0,0,0,0.42);
+  cursor: zoom-in;
+}
+
+.cards-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  box-shadow: 0 0 40px rgba(108,140,255,0.12), 0 16px 38px rgba(0,0,0,0.5);
+}
+
+.cards-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.cards-wrap:hover .cards-overlay,
+.cards-wrap:focus-within .cards-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cards-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(216,183,100,0.35);
+  background: rgba(7,6,15,0.86);
+  color: var(--gold, #d8b764);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  backdrop-filter: blur(6px);
+}
+
+.cards-action-btn:hover {
+  background: rgba(216,183,100,0.18);
+  border-color: rgba(216,183,100,0.65);
+  transform: translateY(-1px);
+}
+
+.cards-action-btn.copied {
+  color: var(--green, #4ade80);
+  border-color: rgba(74,222,128,0.5);
+}
+
+.cards-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.cards-lightbox.hidden {
+  display: none;
+}
+
+.cards-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 4, 12, 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.cards-lightbox-card {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 980px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(216, 183, 100, 0.16);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(22, 18, 40, 0.96), rgba(8, 7, 18, 0.98));
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+}
+
+.cards-lightbox-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cards-lightbox-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cards-lightbox-kicker {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cards-lightbox-copy h3 {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cards-lightbox-close {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(216, 183, 100, 0.24);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cards-lightbox-stage {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 0 12px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+}
+
+.cards-lightbox-canvas {
+  display: block;
+  width: min(100%, 820px);
+  max-height: none;
+  height: auto;
+  border-radius: 18px;
+  margin: 0 auto;
+}
+
+.cards-row[data-frame="story"] .cards-slot {
+  justify-content: flex-start;
+}
+
+.cards-row[data-frame="story"] .cards-preview-card {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.cards-row[data-frame="story"] .cards-wrap {
+  aspect-ratio: 9 / 16;
+}
+
+@media (max-width: 1200px) {
+  .cards-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .cards-shell {
+    padding: 14px;
+    gap: 14px;
+    border-radius: 16px;
+  }
+
+  .cards-toolbar {
+    align-items: stretch;
+  }
+
+  .cards-toolbar-left,
+  .cards-toolbar-right {
+    width: 100%;
+  }
+
+  .cards-select {
+    flex: 1 1 calc(50% - 6px);
+    width: calc(50% - 6px);
+    min-width: 0;
+  }
+
+  .cards-row,
+  .cards-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cards-preview-card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .cards-wrap,
+  .cards-canvas {
+    border-radius: 16px;
+  }
+
+  .cards-lightbox {
+    padding: 12px;
+  }
+
+  .cards-lightbox-card {
+    width: 100%;
+    max-height: 94vh;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .cards-lightbox-copy h3 {
+    font-size: 17px;
+  }
+
+  .cards-lightbox-canvas {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .cards-lightbox-stage {
+    padding-top: 0;
+  }
+}

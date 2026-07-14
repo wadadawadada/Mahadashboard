@@ -43,7 +43,8 @@ const SECURITY_HEADERS = {
     "base-uri 'self'",
     "object-src 'none'",
     "img-src 'self' data: https://*.tile.openstreetmap.org",
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "script-src 'self' 'unsafe-inline'",
     "connect-src 'self' https://nominatim.openstreetmap.org https://timeapi.io",
   ].join("; "),
@@ -1033,6 +1034,70 @@ async function route(req, res) {
     return;
   }
 
+  if (req.method === "GET" && pathname === "/api/transits/today") {
+    const urlParams = new URL("http://x" + req.url).searchParams;
+    const lang = safeLang(urlParams.get("lang") || "ru");
+    const today = new Date().toISOString().slice(0, 10);
+    const cacheFile = path.join(REPORTS_DIR, `transits_${today}_${lang}.json`);
+    // Serve cached result if it exists (transits don't change within a day)
+    try {
+      const cached = await fsp.readFile(cacheFile, "utf8");
+      sendJson(res, 200, JSON.parse(cached));
+      return;
+    } catch (e) {
+      if (e.code !== "ENOENT") throw e;
+    }
+    // Run Python to get today's transit positions (no natal chart needed)
+    const pyScript = [
+      "from datetime import date, datetime, timezone",
+      "from jyotish.engine.ephemeris import calculate_positions",
+      "from jyotish.engine.timezone import to_julian_day",
+      "from jyotish.engine.zodiac import get_sign, get_sign_degree",
+      "from jyotish.engine.nakshatra import get_nakshatra, get_pada",
+      "from jyotish.engine.dignity import get_dignity",
+      "import json, sys",
+      "lang = sys.argv[1]",
+      "today = date.today()",
+      "noon = datetime(today.year, today.month, today.day, 12, 0, 0, tzinfo=timezone.utc)",
+      "jd = to_julian_day(noon)",
+      "raw = calculate_positions(jd)",
+      "planets = []",
+      "for k, v in raw.items():",
+      "    lon = v['longitude_sidereal']",
+      "    sign = get_sign(lon)",
+      "    planets.append({'planet': k, 'sign': sign, 'degree': round(get_sign_degree(lon), 2), 'nakshatra': get_nakshatra(lon), 'pada': get_pada(lon), 'dignity': get_dignity(k, sign), 'retrograde': v['retrograde']})",
+      "# lunar phase",
+      "moon = next(p for p in planets if p['planet'] == 'moon')",
+      "sun  = next(p for p in planets if p['planet'] == 'sun')",
+      "import math",
+      "moon_lon = next(v['longitude_sidereal'] for k,v in raw.items() if k=='moon')",
+      "sun_lon  = next(v['longitude_sidereal'] for k,v in raw.items() if k=='sun')",
+      "elong = (moon_lon - sun_lon) % 360",
+      "tithi = int(elong / 12) + 1",
+      "illum = round(50 * (1 - math.cos(math.radians(elong))), 1)",
+      "paksha = 'shukla' if tithi <= 15 else 'krishna'",
+      "result = {'date': today.isoformat(), 'lang': lang, 'planets': planets, 'lunar': {'tithi': tithi, 'illumination': illum, 'paksha': paksha, 'elongation': round(elong, 2)}}",
+      "print(json.dumps(result))",
+    ].join("\n");
+    const stdout = await runPyLimited(() => new Promise((resolve, reject) => {
+      const child = spawn(PYTHON_BIN, ["-c", pyScript, lang], { cwd: ROOT, windowsHide: true });
+      let out = "", err = "", settled = false;
+      const settle = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
+      const timer = setTimeout(() => { child.kill("SIGKILL"); settle(reject, new ApiError(504, "Transit calculation timed out.")); }, PY_TIMEOUT_MS);
+      child.stdout.on("data", d => { out += d; });
+      child.stderr.on("data", d => { err += d; });
+      child.on("error", e => settle(reject, new ApiError(500, "Python error.", e.message)));
+      child.on("close", code => {
+        if (code === 0) settle(resolve, out.trim());
+        else settle(reject, new ApiError(500, "Transit calculation failed.", err || out));
+      });
+    }));
+    const data = JSON.parse(stdout);
+    await writeJsonAtomic(cacheFile, data).catch(() => {});
+    sendJson(res, 200, data);
+    return;
+  }
+
   if (req.method === "POST" && pathname === "/api/reports") {
     const body = await parseBody(req);
     const birth = validateBirthInput(body.birth || body);
@@ -1096,11 +1161,18 @@ async function route(req, res) {
     const runDir = path.join(RUNS_DIR, runId);
     const geoPath = path.join(runDir, "geo.json");
 
-    // Serve cached result if available
+    // Serve cached result if available. Older geo caches may not carry the
+    // current algorithm_version marker, but they are still structurally valid
+    // and preferable to failing a recomputation for legacy runs.
     try {
       const cached = await fsp.readFile(geoPath, "utf8");
       const parsed = JSON.parse(cached);
-      if (parsed?.meta?.algorithm_version === GEO_ALGORITHM_VERSION) {
+      const hasUsableGeoCache =
+        Array.isArray(parsed?.lines) &&
+        Array.isArray(parsed?.parans) &&
+        parsed?.meta &&
+        typeof parsed.meta === "object";
+      if (hasUsableGeoCache) {
         sendJson(res, 200, parsed);
         return;
       }
@@ -1110,7 +1182,16 @@ async function route(req, res) {
 
     // Load chart to get the input file path for geo calculation
     const manifest = await readJson(path.join(runDir, "manifest.json"));
-    const inputFile = path.join(ROOT, manifest.files.input);
+    const inputRelPath = manifest?.files?.input;
+    if (!inputRelPath) {
+      throw new ApiError(404, "Geo data is unavailable for this report.", "Missing manifest.files.input for geo run");
+    }
+    const inputFile = path.join(ROOT, inputRelPath);
+    try {
+      await fsp.access(inputFile, fs.constants.F_OK);
+    } catch {
+      throw new ApiError(404, "Geo data is unavailable for this report.", `Missing geo input file: ${inputFile}`);
+    }
     const language = (await readJson(path.join(runDir, "chart.json"))).meta?.language || "ru";
 
     await runPython([
