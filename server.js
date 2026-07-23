@@ -1037,8 +1037,11 @@ async function route(req, res) {
   if (req.method === "GET" && pathname === "/api/transits/today") {
     const urlParams = new URL("http://x" + req.url).searchParams;
     const lang = safeLang(urlParams.get("lang") || "ru");
-    const today = new Date().toISOString().slice(0, 10);
-    const cacheFile = path.join(REPORTS_DIR, `transits_${today}_${lang}.json`);
+    const rawDate = urlParams.get("date") || "";
+    const dateParam = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+      ? rawDate
+      : new Date().toISOString().slice(0, 10);
+    const cacheFile = path.join(REPORTS_DIR, `transits_${dateParam}_${lang}.json`);
     // Serve cached result if it exists (transits don't change within a day)
     try {
       const cached = await fsp.readFile(cacheFile, "utf8");
@@ -1047,7 +1050,7 @@ async function route(req, res) {
     } catch (e) {
       if (e.code !== "ENOENT") throw e;
     }
-    // Run Python to get today's transit positions (no natal chart needed)
+    // Run Python to get the requested day's transit positions (no natal chart needed)
     const pyScript = [
       "from datetime import date, datetime, timezone",
       "from jyotish.engine.ephemeris import calculate_positions",
@@ -1057,7 +1060,7 @@ async function route(req, res) {
       "from jyotish.engine.dignity import get_dignity",
       "import json, sys",
       "lang = sys.argv[1]",
-      "today = date.today()",
+      "today = date.fromisoformat(sys.argv[2])",
       "noon = datetime(today.year, today.month, today.day, 12, 0, 0, tzinfo=timezone.utc)",
       "jd = to_julian_day(noon)",
       "raw = calculate_positions(jd)",
@@ -1080,7 +1083,7 @@ async function route(req, res) {
       "print(json.dumps(result))",
     ].join("\n");
     const stdout = await runPyLimited(() => new Promise((resolve, reject) => {
-      const child = spawn(PYTHON_BIN, ["-c", pyScript, lang], { cwd: ROOT, windowsHide: true });
+      const child = spawn(PYTHON_BIN, ["-c", pyScript, lang, dateParam], { cwd: ROOT, windowsHide: true });
       let out = "", err = "", settled = false;
       const settle = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
       const timer = setTimeout(() => { child.kill("SIGKILL"); settle(reject, new ApiError(504, "Transit calculation timed out.")); }, PY_TIMEOUT_MS);

@@ -9133,6 +9133,12 @@ button.fc-dasha-pill-clickable:active { transform: scale(0.97); }
   flex-wrap: wrap;
 }
 
+.cards-toolbar-left {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+}
+
 .cards-select {
   min-height: 42px;
   background: rgba(18, 15, 34, 0.92);

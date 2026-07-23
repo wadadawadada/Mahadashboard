@@ -13,7 +13,7 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=23" />
+    <link rel="stylesheet" href="/styles.css?v=25" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400&family=Noto+Sans+Symbols+2:wght@400&display=swap" />
@@ -591,6 +591,12 @@
                 <div class="cards-shell">
                   <div class="cards-toolbar">
                     <div class="cards-toolbar-left">
+                      <button class="fc-nav-btn" id="cardsPrevDay" type="button" data-i18n="forecastPrev">← день</button>
+                      <button class="fc-today-btn" id="cardsToday" type="button" data-i18n="forecastToday">Сегодня</button>
+                      <input class="fc-date-input" type="date" id="cardsDateInput" />
+                      <button class="fc-nav-btn" id="cardsNextDay" type="button" data-i18n="forecastNext">день →</button>
+                    </div>
+                    <div class="cards-toolbar-right">
                       <select class="cards-select" id="cardsFormat">
                         <option value="day_report" data-i18n="cardsDayReport">📅 Отчёт дня</option>
                         <option value="personal" data-i18n="cardsPersonal">👤 Личный гороскоп</option>
@@ -856,6 +862,6 @@
 
     <script src="/vendor/leaflet/leaflet.js"></script>
     <script src="/app.js?v=26"></script>
-    <script src="/cards.js?v=4"></script>
+    <script src="/cards.js?v=5"></script>
   </body>
 </html>

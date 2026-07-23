@@ -310,6 +310,19 @@ const CARDS = (() => {
     return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
   }
 
+  // Format a "YYYY-MM-DD" date string (the selected card day) as "DD.MM.YYYY"
+  function fmtDateStr(dateStr) {
+    if (!dateStr) return todayStr();
+    const [y, m, d] = dateStr.split("-");
+    return `${d}.${m}.${y}`;
+  }
+
+  // 0=Sunday..6=Saturday for a "YYYY-MM-DD" date string
+  function dowOfDateStr(dateStr) {
+    if (!dateStr) return new Date().getDay();
+    return new Date(dateStr + "T12:00:00Z").getUTCDay();
+  }
+
   function pname(key, isRu) { return isRu ? (PLANET_NAME_RU[key] || key) : (PLANET_NAME_EN[key] || key); }
   function sname(sign, isRu) { return isRu ? (SIGN_RU[sign] || sign) : sign; }
 
@@ -364,7 +377,7 @@ const CARDS = (() => {
     ctx.restore();
   }
 
-  async function renderDayReport(ctx, lang, transits) {
+  async function renderDayReport(ctx, lang, transits, dateStr) {
     const isRu   = lang === "ru";
     const compact = isPostFrame();
     const planets = transits.planets || [];
@@ -481,7 +494,7 @@ const CARDS = (() => {
     };
 
     // ── Background ───────────────────────────────────────────────────────
-    drawStars(ctx, new Date().getDay() + 7);
+    drawStars(ctx, dowOfDateStr(dateStr) + 7);
     if (tone === "tense") {
       radialGlow(ctx, W*0.5, H*0.2, 0, W*0.8, "#d66b52", 0.10);
       radialGlow(ctx, W*0.5, H*0.75, 0, W*0.7, "#6c8cff", 0.07);
@@ -496,10 +509,10 @@ const CARDS = (() => {
     // ── TOP: date + weekday + tone ───────────────────────────────────────
     const WDAY_RU = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
     const WDAY_EN = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const dow = new Date().getDay();
+    const dow = dowOfDateStr(dateStr);
 
     t(ctx, (isRu ? WDAY_RU : WDAY_EN)[dow].toUpperCase(), W/2, reportLayout.weekdayY, { size: reportLayout.weekdaySize, color: C.muted, align: "center", weight: "300" });
-    t(ctx, todayStr(), W/2, reportLayout.dateY, { size: reportLayout.dateSize, color: C.textBr, align: "center", weight: "800", glow: C.gold });
+    t(ctx, fmtDateStr(dateStr), W/2, reportLayout.dateY, { size: reportLayout.dateSize, color: C.textBr, align: "center", weight: "800", glow: C.gold });
 
     const TONE_LABEL = {
       ru: { good:"Благоприятный день", tense:"Напряжённый день", neutral:"Нейтральный день" },
@@ -1091,7 +1104,7 @@ const CARDS = (() => {
 
   // ── Day Report Card 2: Warnings ───────────────────────────────────────────
 
-  function renderDayWarnings(ctx, lang, transits) {
+  function renderDayWarnings(ctx, lang, transits, dateStr) {
     const isRu   = lang === "ru";
     const compact = isPostFrame();
     const planets = transits.planets || [];
@@ -1162,7 +1175,7 @@ const CARDS = (() => {
     corners(ctx, 60, 60);
 
     // ── HEADER ───────────────────────────────────────────────────────────
-    t(ctx, todayStr(), W/2, warnLayout.dateY, { size: warnLayout.dateSize, color: C.muted, align: "center", weight: "300" });
+    t(ctx, fmtDateStr(dateStr), W/2, warnLayout.dateY, { size: warnLayout.dateSize, color: C.muted, align: "center", weight: "300" });
     badge(ctx, W/2, warnLayout.badgeY, 460, 54, C.amber, (isRu ? "На что обратить внимание" : "Points of Attention").toUpperCase(), C.amber, 20);
     hline(ctx, warnLayout.dividerY, 0.25);
 
@@ -1367,7 +1380,7 @@ const CARDS = (() => {
 
   // ── Day Report Card 3: Energy of the Day ─────────────────────────────────
 
-  function renderDayEnergy(ctx, lang, transits) {
+  function renderDayEnergy(ctx, lang, transits, dateStr) {
     const isRu   = lang === "ru";
     const compact = isPostFrame();
     const planets = transits.planets || [];
@@ -1500,7 +1513,7 @@ const CARDS = (() => {
     corners(ctx, 60, 60);
 
     // ── HEADER ───────────────────────────────────────────────────────────
-    t(ctx, todayStr(), W/2, energyLayout.dateY, { size: energyLayout.dateSize, color: C.muted, align: "center", weight: "300" });
+    t(ctx, fmtDateStr(dateStr), W/2, energyLayout.dateY, { size: energyLayout.dateSize, color: C.muted, align: "center", weight: "300" });
     badge(ctx, W/2, energyLayout.badgeY, 340, 54, C.violet, (isRu ? "Энергия дня" : "Day Energy").toUpperCase(), C.violet, 22);
 
     const phaseName = waxing ? (isRu ? "Растущая · " : "Waxing · ") : (isRu ? "Убывающая · " : "Waning · ");
@@ -2049,7 +2062,7 @@ const CARDS = (() => {
 
   // ── Personal Card 3: Today's Forecast (transits + natal) ────────────────
 
-  async function renderPersonalForecast(ctx, chart, lang, transits) {
+  async function renderPersonalForecast(ctx, chart, lang, transits, dateStr) {
     if (!chart) return false;
     const isRu   = lang === "ru";
     const compact = isPostFrame();
@@ -2124,7 +2137,7 @@ const CARDS = (() => {
 
     // ── HEADER ───────────────────────────────────────────────────────────
     t(ctx, name || (isRu ? "Прогноз" : "Forecast"), W/2, forecastLayout.nameY, { size: forecastLayout.nameSize, color: C.textBr, align: "center", weight: "800", glow: C.indigo });
-    t(ctx, isRu ? "Прогноз на сегодня  ·  " + todayStr() : "Today's Forecast  ·  " + todayStr(), W/2, forecastLayout.subY, { size: forecastLayout.subSize, color: C.gold, align: "center" });
+    t(ctx, isRu ? "Прогноз на  ·  " + fmtDateStr(dateStr) : "Forecast for  ·  " + fmtDateStr(dateStr), W/2, forecastLayout.subY, { size: forecastLayout.subSize, color: C.gold, align: "center" });
 
     hline(ctx, forecastLayout.lineY, 0.22);
 
@@ -2282,29 +2295,29 @@ const CARDS = (() => {
 
   // ── Public ────────────────────────────────────────────────────────────────
 
-  async function generateAll(format, chart, lang) {
-    const date = new Date().toISOString().slice(0, 10);
+  async function generateAll(format, chart, lang, dateStr) {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : new Date().toISOString().slice(0, 10);
 
     if (format === "day_report") {
-      const res = await fetch(`/api/transits/today?lang=${lang}`);
+      const res = await fetch(`/api/transits/today?lang=${lang}&date=${date}`);
       if (!res.ok) throw new Error("Transit API: " + res.status);
       const transits = await res.json();
 
-      const ctx0 = makeCtxForSlot(0); clearBg(ctx0); await renderDayReport(ctx0, lang, transits);
-      const ctx1 = makeCtxForSlot(1); clearBg(ctx1); renderDayWarnings(ctx1, lang, transits);
-      const ctx2 = makeCtxForSlot(2); clearBg(ctx2); renderDayEnergy(ctx2, lang, transits);
+      const ctx0 = makeCtxForSlot(0); clearBg(ctx0); await renderDayReport(ctx0, lang, transits, date);
+      const ctx1 = makeCtxForSlot(1); clearBg(ctx1); renderDayWarnings(ctx1, lang, transits, date);
+      const ctx2 = makeCtxForSlot(2); clearBg(ctx2); renderDayEnergy(ctx2, lang, transits, date);
       return { count: 3, labels: [isRu(lang)?"отчёт":"report", isRu(lang)?"предупреждения":"warnings", isRu(lang)?"энергия":"energy"], date };
     }
 
     if (format === "personal") {
       if (!chart) return null;
-      const res = await fetch(`/api/transits/today?lang=${lang}`);
+      const res = await fetch(`/api/transits/today?lang=${lang}&date=${date}`);
       if (!res.ok) throw new Error("Transit API: " + res.status);
       const transits = await res.json();
 
       const ctx0 = makeCtxForSlot(0); clearBg(ctx0); renderPersonalNatal(ctx0, chart, lang);
       const ctx1 = makeCtxForSlot(1); clearBg(ctx1); renderPersonalDasha(ctx1, chart, lang);
-      const ctx2 = makeCtxForSlot(2); clearBg(ctx2); await renderPersonalForecast(ctx2, chart, lang, transits);
+      const ctx2 = makeCtxForSlot(2); clearBg(ctx2); await renderPersonalForecast(ctx2, chart, lang, transits, date);
       document.getElementById("cardsSlot3")?.classList.add("hidden");
       return { count: 3, labels: [isRu(lang)?"натал":"natal", isRu(lang)?"даша":"dasha", isRu(lang)?"прогноз":"forecast"], date };
     }
@@ -2343,11 +2356,36 @@ const CARDS = (() => {
   const lightboxCanvas = document.getElementById("cardsLightboxCanvas");
   const lightboxTitle = document.getElementById("cardsLightboxTitle");
   const lightboxRatio = document.getElementById("cardsLightboxRatio");
+  const dateInput = document.getElementById("cardsDateInput");
+  const prevDayBtn = document.getElementById("cardsPrevDay");
+  const nextDayBtn = document.getElementById("cardsNextDay");
+  const todayBtn = document.getElementById("cardsToday");
   if (!fmtSel) return;
 
   // Use app's global language (document.documentElement.lang set by applyI18n)
   function getLang() {
     return document.documentElement.lang === "en" ? "en" : "ru";
+  }
+
+  function cardsTodayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function cardsShiftDate(dateStr, days) {
+    const d = new Date(dateStr + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() + days);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+  }
+
+  let cardsDate = cardsTodayStr();
+  if (dateInput) dateInput.value = cardsDate;
+
+  function setCardsDate(dateStr) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+    cardsDate = dateStr;
+    if (dateInput) dateInput.value = dateStr;
+    autoGenerate();
   }
 
   function updatePreviewChrome(result = null) {
@@ -2434,7 +2472,7 @@ const CARDS = (() => {
     generating = true;
     fmtSel.disabled = true;
     try {
-      lastResult = await CARDS.generateAll(format, chart, lang);
+      lastResult = await CARDS.generateAll(format, chart, lang, cardsDate);
       if (lastResult) {
         for (let i = 0; i < 4; i++) {
           const slot = document.getElementById(`cardsSlot${i}`);
@@ -2453,6 +2491,11 @@ const CARDS = (() => {
   }
 
   fmtSel.addEventListener("change", autoGenerate);
+
+  prevDayBtn?.addEventListener("click", () => setCardsDate(cardsShiftDate(cardsDate, -1)));
+  nextDayBtn?.addEventListener("click", () => setCardsDate(cardsShiftDate(cardsDate, 1)));
+  todayBtn?.addEventListener("click", () => setCardsDate(cardsTodayStr()));
+  dateInput?.addEventListener("change", (e) => setCardsDate(e.target.value));
 
   // Re-generate when app language changes (observer on html[lang])
   new MutationObserver(() => {
