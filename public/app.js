@@ -4886,7 +4886,7 @@ async function loadForecast(dateStr) {
 
 function renderForecast(data) {
   _renderFcScore(data.score || 0);
-  _renderFcMoon(data.lunar_phase, data.transit_planets || []);
+  _renderFcMoon(data.lunar_phase, data.transit_planets || [], data.moon_distance || null, data.moon_events || null, data.context || null);
   _renderFcIndicators(data.indicators || []);
   _renderFcTips(data.tips || []);
   _renderFcDasha(data.active_dasha || {});
@@ -4924,7 +4924,31 @@ function _renderFcScore(score) {
   }
 }
 
-function _renderFcMoon(phase, transitPlanets) {
+// Realistic lunar-disc silhouette: an SVG path where the illuminated region
+// is bounded by the true circular limb on one side and a terminator ellipse
+// (radius shrinking/growing with illuminated fraction) on the other.
+function _moonPhasePath(illumFrac, waxing, r) {
+  const f = 1 - illumFrac; // fraction of disc still in shadow
+  const rx = Math.abs(1 - 2 * f) * r;
+  const sweepOuter = waxing ? 1 : 0;
+  const sweepInner = f < 0.5 ? (waxing ? 1 : 0) : (waxing ? 0 : 1);
+  return `M ${r},0 A ${r},${r} 0 0,${sweepOuter} ${r},${2 * r} A ${rx},${r} 0 0,${sweepInner} ${r},0 Z`;
+}
+
+function _moonPhaseSvg(illumPct, waxing, size) {
+  const r = size / 2;
+  const path = _moonPhasePath(Math.min(1, Math.max(0, illumPct / 100)), waxing, r);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">` +
+    `<circle cx="${r}" cy="${r}" r="${r - 1}" fill="var(--bg-2)" stroke="var(--line-cool)" stroke-width="1"/>` +
+    `<path d="${path}" fill="var(--gold-bright)"/>` +
+  `</svg>`;
+}
+
+// Physical Earth-Moon distance extremes (km), for gauge scaling only.
+const MOON_GAUGE_MIN_KM = 356500;
+const MOON_GAUGE_MAX_KM = 406700;
+
+function _renderFcMoon(phase, transitPlanets, moonDistance, moonEvents, context) {
   const el = $("#fcMoon");
   if (!el) return;
   if (!phase) { el.innerHTML = ""; return; }
@@ -4935,21 +4959,20 @@ function _renderFcMoon(phase, transitPlanets) {
   const isRu = state.lang === "ru";
   const phaseName = isRu ? phase.phase_name_ru : phase.phase_name_en;
   const paksha = phase.paksha === "shukla" ? (isRu ? "Шукла" : "Shukla") : (isRu ? "Кришна" : "Krishna");
+  const waxing = phase.paksha === "shukla";
 
-  // Moon emoji by phase
-  const moonEmoji = tithi <= 2 ? "🌑" : tithi <= 7 ? "🌒" : tithi <= 10 ? "🌓"
-    : tithi <= 14 ? "🌔" : tithi === 15 ? "🌕" : tithi <= 20 ? "🌖"
-    : tithi <= 24 ? "🌗" : tithi <= 28 ? "🌘" : "🌑";
-
-  // Illumination arc (simple CSS variable approach)
   const arcPct = Math.round(illum);
 
   const nkText = moonTp ? `${moonTp.nakshatra} ${moonTp.pada}` : "";
   const houseText = moonTp ? `${isRu ? "дом" : "H"}${moonTp.house}` : "";
 
+  const distText = moonDistance
+    ? `${Math.round(moonDistance.km).toLocaleString(isRu ? "ru-RU" : "en-US")} ${isRu ? "км" : "km"}`
+    : "";
+
   el.innerHTML =
     `<div class="fc-moon-row">` +
-      `<span class="fc-moon-emoji">${moonEmoji}</span>` +
+      `<span class="fc-moon-icon">${_moonPhaseSvg(illum, waxing, 30)}</span>` +
       `<div class="fc-moon-info">` +
         `<div class="fc-moon-top">` +
           `<span class="fc-moon-phase">${phaseName}</span>` +
@@ -4962,6 +4985,45 @@ function _renderFcMoon(phase, transitPlanets) {
         `</div>` +
       `</div>` +
     `</div>`;
+
+  if (moonDistance) {
+    const catLabel = {
+      near: isRu ? "Близко (перигей)" : "Close (perigee)",
+      average: isRu ? "Среднее" : "Average",
+      far: isRu ? "Далеко (апогей)" : "Far (apogee)",
+    }[moonDistance.category] || "";
+    const pct = Math.round(Math.min(100, Math.max(0,
+      (moonDistance.km - MOON_GAUGE_MIN_KM) / (MOON_GAUGE_MAX_KM - MOON_GAUGE_MIN_KM) * 100)));
+
+    el.innerHTML +=
+      `<div class="fc-moon-dist">` +
+        `<div class="fc-moon-dist-head">` +
+          `<span class="fc-moon-dist-val">${distText}</span>` +
+          `<span class="fc-moon-dist-cat">${catLabel}</span>` +
+        `</div>` +
+        `<div class="fc-moon-dist-track">` +
+          `<div class="fc-moon-dist-marker" style="left:${pct}%"></div>` +
+        `</div>` +
+        `<div class="fc-moon-dist-labels">` +
+          `<span>${isRu ? "Перигей" : "Perigee"}</span>` +
+          `<span>${isRu ? "Апогей" : "Apogee"}</span>` +
+        `</div>` +
+      `</div>`;
+  }
+
+  const interpItem = (context && context.items || []).find(it => it.key.startsWith("transit:moon:distance:"));
+  if (interpItem) {
+    el.innerHTML += `<p class="fc-moon-interp">${escapeHtml(interpItem.text)}</p>`;
+  }
+
+  if (moonEvents && (moonEvents.next_perigee || moonEvents.next_apogee || moonEvents.next_full_moon || moonEvents.next_new_moon)) {
+    const rows = [];
+    if (moonEvents.next_perigee) rows.push(`<span>${isRu ? "След. перигей" : "Next perigee"}: ${formatDate(moonEvents.next_perigee.date)}</span>`);
+    if (moonEvents.next_apogee) rows.push(`<span>${isRu ? "След. апогей" : "Next apogee"}: ${formatDate(moonEvents.next_apogee.date)}</span>`);
+    if (moonEvents.next_full_moon) rows.push(`<span>${isRu ? "Полнолуние" : "Full moon"}: ${formatDate(moonEvents.next_full_moon)}</span>`);
+    if (moonEvents.next_new_moon) rows.push(`<span>${isRu ? "Новолуние" : "New moon"}: ${formatDate(moonEvents.next_new_moon)}</span>`);
+    el.innerHTML += `<div class="fc-moon-events">${rows.join("")}</div>`;
+  }
 }
 
 // Single shared tooltip element for indicators

@@ -12,13 +12,13 @@ Returns a structured ForecastOutput containing:
 """
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from jyotish.engine.ashtakavarga import _CLASSICAL_PLANETS, calculate_ashtakavarga
 from jyotish.engine.dashas import _find_current
 from jyotish.engine.dignity import get_dignity
-from jyotish.engine.ephemeris import calculate_positions
+from jyotish.engine.ephemeris import AU_KM, calculate_moon_distance_km, calculate_positions
 from jyotish.engine.nakshatra import get_nakshatra, get_pada
 from jyotish.engine.timezone import to_julian_day
 from jyotish.engine.utils import SIGNS, format_degree, normalize_key
@@ -74,6 +74,93 @@ _HOUSE_MOD: dict[int, float] = {
     11: 1.2,
     12: -0.7,
 }
+
+# Moon geocentric distance thresholds (km) — round splits around the mean
+# distance (~384,400 km); true perigee/apogee extremes are ~356,500-406,700 km.
+_MOON_DIST_NEAR_MAX_KM = 370_000.0
+_MOON_DIST_FAR_MIN_KM = 400_000.0
+
+_KENDRA_HOUSES = {1, 4, 7, 10}
+_TRIKONA_HOUSES = {1, 5, 9}
+_DUSTHANA_HOUSES = {6, 8, 12}
+
+
+def _moon_distance_category(distance_km: float) -> str:
+    if distance_km <= _MOON_DIST_NEAR_MAX_KM:
+        return "near"
+    if distance_km >= _MOON_DIST_FAR_MIN_KM:
+        return "far"
+    return "average"
+
+
+def _natal_moon_strength_bucket(natal_chart) -> str:
+    natal_moon = natal_chart.planets.get("moon")
+    if natal_moon is None:
+        return "average"
+    dignity_score = {"exalted": 2.0, "own_sign": 1.0,
+                      "neutral": 0.0, "debilitated": -2.0}.get(natal_moon.dignity, 0.0)
+    house = natal_moon.house
+    house_score = 1.0 if (house in _KENDRA_HOUSES or house in _TRIKONA_HOUSES) \
+        else (-1.0 if house in _DUSTHANA_HOUSES else 0.0)
+    total = dignity_score + house_score
+    if total >= 1.5:
+        return "strong"
+    if total <= -1.0:
+        return "weak"
+    return "average"
+
+
+_SYNODIC_DAYS = 29.530588
+_ELONGATION_RATE_DEG = 360.0 / _SYNODIC_DAYS  # mean deg/day Moon gains on Sun
+
+
+def _find_next_moon_apsis(jd_noon: float, forecast_date: date, search_days: int = 40) -> dict:
+    """Scan forward from forecast_date for the next perigee (local min) and
+    apogee (local max) in the Moon's geocentric distance curve."""
+    offsets = list(range(-1, search_days + 1))
+    distances = [calculate_moon_distance_km(jd_noon + off) for off in offsets]
+
+    next_perigee: Optional[tuple[int, float]] = None
+    next_apogee: Optional[tuple[int, float]] = None
+    for i in range(1, len(offsets) - 1):
+        off = offsets[i]
+        if off < 0:
+            continue
+        prev_d, cur_d, next_d = distances[i - 1], distances[i], distances[i + 1]
+        if next_perigee is None and cur_d <= prev_d and cur_d <= next_d:
+            next_perigee = (off, cur_d)
+        if next_apogee is None and cur_d >= prev_d and cur_d >= next_d:
+            next_apogee = (off, cur_d)
+        if next_perigee and next_apogee:
+            break
+
+    result: dict = {}
+    if next_perigee:
+        off, km = next_perigee
+        result["next_perigee"] = {
+            "date": (forecast_date + timedelta(days=off)).isoformat(),
+            "km": round(km),
+        }
+    if next_apogee:
+        off, km = next_apogee
+        result["next_apogee"] = {
+            "date": (forecast_date + timedelta(days=off)).isoformat(),
+            "km": round(km),
+        }
+    return result
+
+
+def _find_next_syzygies(elongation_deg: float, forecast_date: date) -> dict:
+    """Estimate the next full moon (elongation=180) and new moon
+    (elongation=0/360) from the current Sun-Moon elongation and the mean
+    synodic rate. Precision is on the order of hours, adequate for display."""
+    days_to_full = ((180.0 - elongation_deg) % 360.0) / _ELONGATION_RATE_DEG
+    days_to_new = ((360.0 - elongation_deg) % 360.0) / _ELONGATION_RATE_DEG
+    return {
+        "next_full_moon": (forecast_date + timedelta(days=round(days_to_full))).isoformat(),
+        "next_new_moon": (forecast_date + timedelta(days=round(days_to_new))).isoformat(),
+    }
+
 
 # Aspect quality modifiers
 _ASPECT_QUALITY: dict[str, float] = {
@@ -293,7 +380,7 @@ def calculate_forecast(
         retrograde = raw["retrograde"]
         house = _house_from_sign(sign, natal_lagna_sign)
 
-        transit_planets.append({
+        entry = {
             "planet": pk,
             "sign": sign,
             "house": house,
@@ -303,7 +390,10 @@ def calculate_forecast(
             "dignity": dignity,
             "retrograde": retrograde,
             "longitude_sidereal": round(lon, 4),
-        })
+        }
+        if "distance_au" in raw:
+            entry["distance_km"] = raw["distance_au"] * AU_KM
+        transit_planets.append(entry)
 
     # ── 2b. Lunar phase + Panchanga ──────────────────────────────────────
     moon_tp = next((t for t in transit_planets if t["planet"] == "moon"), None)
@@ -415,6 +505,22 @@ def calculate_forecast(
         interp_keys.append(f"transit:{pk}:nakshatra:{nk_key}")
         if tp["dignity"] != "neutral":
             interp_keys.append(f"transit:{pk}:dignity:{tp['dignity']}")
+    moon_distance: Optional[dict] = None
+    if moon_tp and "distance_km" in moon_tp:
+        moon_dist_cat = _moon_distance_category(moon_tp["distance_km"])
+        natal_moon_bucket = _natal_moon_strength_bucket(natal_chart)
+        moon_distance = {
+            "km": round(moon_tp["distance_km"]),
+            "category": moon_dist_cat,
+            "natal_moon_bucket": natal_moon_bucket,
+        }
+        interp_keys.append(f"transit:moon:distance:{moon_dist_cat}:{natal_moon_bucket}")
+
+    moon_events: dict = {}
+    moon_events.update(_find_next_moon_apsis(jd, forecast_date))
+    if lunar_phase:
+        moon_events.update(_find_next_syzygies(lunar_phase["elongation_deg"], forecast_date))
+
     interp_keys.extend(active_dasha["interp_keys"])
     interp_keys.extend([f"dasha:{maha.lower()}:mahadasha"])
     if antar:
@@ -440,6 +546,8 @@ def calculate_forecast(
         "score_method": score_method,
         "active_dasha": active_dasha,
         "lunar_phase": lunar_phase,
+        "moon_distance": moon_distance,
+        "moon_events": moon_events,
         "panchanga": panchanga,
         "transit_planets": transit_planets,
         "transit_aspects": transit_aspects,
@@ -634,12 +742,22 @@ def _calculate_daily_score(
         # Tithi quality — additive, independent of moon strength
         tithi_bonus = _TITHI_MOD.get(tithi, 0.0) * 5.0
 
+        # Distance: secondary modifier — amplified/damped by natal Moon strength
+        distance_bonus = 0.0
+        if "distance_km" in moon_tp:
+            dist_mod = {"near": +1.0, "average": 0.0, "far": -1.0}
+            natal_scale = {"strong": 1.5, "average": 1.0, "weak": 0.6}
+            moon_dist_cat = _moon_distance_category(moon_tp["distance_km"])
+            natal_moon_bucket = _natal_moon_strength_bucket(natal_chart)
+            distance_bonus = dist_mod[moon_dist_cat] * natal_scale[natal_moon_bucket] * 1.5
+
         moon_score = (moon_strength * 12.0
                       + nk_nature * 8.0
                       + bav_mod * 5.0
                       + dignity_bonus * 3.0
                       + house_bonus
-                      + tithi_bonus)
+                      + tithi_bonus
+                      + distance_bonus)
         score += moon_score
 
     # ── B. Transit planets in natal houses ───────────────────────────────

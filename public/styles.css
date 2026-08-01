@@ -7697,10 +7697,9 @@ td {
   align-items: center;
   gap: 10px;
 }
-.fc-moon-emoji {
-  font-size: 28px;
+.fc-moon-icon {
   flex-shrink: 0;
-  line-height: 1;
+  line-height: 0;
 }
 .fc-moon-info {
   flex: 1;
@@ -7750,6 +7749,64 @@ td {
   font-size: 10px;
   color: var(--muted);
   flex-shrink: 0;
+}
+.fc-moon-interp {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.fc-moon-dist {
+  margin: 8px 0 0;
+}
+.fc-moon-dist-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.fc-moon-dist-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.fc-moon-dist-cat {
+  font-size: 10px;
+  color: var(--muted);
+}
+.fc-moon-dist-track {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(92, 211, 194, 0.5), rgba(108, 140, 255, 0.15), rgba(216, 183, 100, 0.5));
+}
+.fc-moon-dist-marker {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-bright);
+  box-shadow: 0 0 0 2px var(--bg-2);
+  transform: translate(-50%, -50%);
+}
+.fc-moon-dist-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.fc-moon-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
 }
 
 /* Activity indicators — header bar */

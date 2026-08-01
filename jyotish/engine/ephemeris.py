@@ -4,6 +4,8 @@ import swisseph as swe
 
 from jyotish.engine.utils import normalize_longitude
 
+AU_KM = 149_597_870.7
+
 PLANET_IDS: dict[str, int] = {
     "sun": swe.SUN,
     "moon": swe.MOON,
@@ -33,6 +35,7 @@ def calculate_positions(jd: float) -> dict[str, dict]:
         results[key] = {
             "longitude_sidereal": sidereal_lon,
             "retrograde": speed < 0,
+            "distance_au": pos[2],
         }
 
     rahu_lon = results["rahu"]["longitude_sidereal"]
@@ -42,6 +45,12 @@ def calculate_positions(jd: float) -> dict[str, dict]:
     }
 
     return results
+
+
+def calculate_moon_distance_km(jd: float) -> float:
+    _setup()
+    pos, _ = swe.calc_ut(jd, swe.MOON, swe.FLG_SPEED)
+    return pos[2] * AU_KM
 
 
 def calculate_lagna(jd: float, lat: float, lon: float) -> float:
