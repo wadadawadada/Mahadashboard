@@ -26,7 +26,7 @@ const PORT = Number(process.env.PORT || 7860);
 const HOST = process.env.HOST || "127.0.0.1";
 const PYTHON_BIN = process.env.PYTHON_BIN || "python";
 const PY_TIMEOUT_MS = Math.max(1, Number(process.env.PY_TIMEOUT_MS) || 30000);
-const OPENROUTER_FETCH_TIMEOUT_MS = 60000;
+const OPENROUTER_FETCH_TIMEOUT_MS = 300000;
 
 // Security headers applied to every response (FR10). Leaflet and three.js are now
 // self-hosted under /vendor (S5.2), so no CDN origins are allow-listed. 'unsafe-inline'
@@ -1774,8 +1774,8 @@ function toHttpStatus(error) {
 }
 
 function clientMessage(error, status) {
-  if (status >= 500) return "Internal server error.";
   if (error instanceof ApiError) return error.message || "Request failed.";
+  if (status >= 500) return "Internal server error.";
   if (error instanceof URIError) return "Malformed request URL.";
   if (error && error.code === "ENOENT") return "Not found.";
   return "Request failed.";
