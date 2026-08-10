@@ -926,6 +926,7 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
   console.log(`[OpenRouter] model=${model} payload_bytes=${bodyStr.length}`);
 
   let response;
+  let data;
   try {
     response = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
@@ -938,18 +939,19 @@ async function askOpenRouter({ question, chart, context, language, forecast_data
       body: bodyStr,
       signal: AbortSignal.timeout(OPENROUTER_FETCH_TIMEOUT_MS),
     });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new ApiError(response.status, "OpenRouter request failed.", detail);
+    }
+    data = await response.json();
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     if (error && (error.name === "TimeoutError" || error.name === "AbortError")) {
       throw new ApiError(504, "OpenRouter request timed out.", error.message);
     }
     throw new ApiError(502, "OpenRouter request failed.", error && error.message);
   }
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new ApiError(response.status, "OpenRouter request failed.", detail);
-  }
-  const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     console.error("[OpenRouter] Empty content. finish_reason:", data.choices?.[0]?.finish_reason, "| usage:", JSON.stringify(data.usage));
