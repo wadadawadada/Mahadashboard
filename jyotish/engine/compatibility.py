@@ -450,7 +450,7 @@ def _mangal_profile(chart: dict[str, Any]) -> dict[str, Any]:
         house = _house_from(ref_sign, mars_sign)
         if house in MANGAL_HOUSES:
             hits.append({"from": ref_name, "house": house})
-    mitigated = mars.get("dignity") in {"own", "exalted", "moolatrikona"}
+    mitigated = mars.get("dignity") in {"own_sign", "exalted", "moolatrikona"}
     level = max(0, len(hits) - (1 if mitigated else 0))
     return {
         "has_dosha": level > 0,

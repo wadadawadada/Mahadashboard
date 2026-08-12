@@ -40,7 +40,9 @@ def test_adjacent_compatible_moon_stars_score_high():
 
 
 def test_mangal_mismatch_adds_readable_warning_and_penalty():
-    chart_a = _chart(mars_sign="Aries", mars_dignity="own")
+    # Uses "own_sign" — the value get_dignity() actually emits — not the
+    # synthetic "own" the engine never produces (S4.2 / FR12).
+    chart_a = _chart(mars_sign="Aries", mars_dignity="own_sign")
     chart_b = _chart(mars_sign="Virgo")
 
     result = calculate_compatibility(chart_a, chart_b, language="ru")
@@ -48,6 +50,30 @@ def test_mangal_mismatch_adds_readable_warning_and_penalty():
     assert result["mangal"]["status"] == "mismatch"
     assert result["mangal"]["penalty"] == 10
     assert any("конфликт" in flag["text"].lower() for flag in result["flags"])
+
+
+def test_own_sign_mars_mitigates_dosha():
+    # Mars in its own sign (Scorpio) with exactly one Mangal house hit (1st from
+    # lagna). With mitigation the single hit is cancelled (no dosha); without it
+    # the dosha stands. Exercises the real emitted dignity value "own_sign" —
+    # this assertion FAILS against the pre-fix {"own", ...} mitigation set.
+    base = dict(
+        lagna_sign="Scorpio",
+        moon_sign="Virgo",
+        moon_nakshatra="Hasta",
+        venus_sign="Cancer",
+        mars_sign="Scorpio",
+    )
+    mitigated = _chart(mars_dignity="own_sign", **base)
+    not_mitigated = _chart(mars_dignity="neutral", **base)
+
+    res_mit = calculate_compatibility(mitigated, mitigated, language="ru")
+    res_unmit = calculate_compatibility(not_mitigated, not_mitigated, language="ru")
+
+    assert res_mit["mangal"]["a"]["mitigated"] is True
+    assert res_mit["mangal"]["a"]["has_dosha"] is False
+    assert res_unmit["mangal"]["a"]["mitigated"] is False
+    assert res_unmit["mangal"]["a"]["has_dosha"] is True
 
 
 def test_context_changes_focus_and_percent_without_changing_base_points():

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import re
+from datetime import date
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_TIME_RE = re.compile(r"^\d{2}:\d{2}(:\d{2})?$")
 
 
 class JyotishSettings(BaseModel):
@@ -24,6 +29,29 @@ class BirthInput(BaseModel):
     country: str
     language: str = "ru"
     settings: JyotishSettings = JyotishSettings()
+
+    @field_validator("birth_date")
+    @classmethod
+    def _validate_birth_date(cls, value: str) -> str:
+        if not _DATE_RE.match(value):
+            raise ValueError("birth_date must be in YYYY-MM-DD format")
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError(f"birth_date is not a valid calendar date: {value}") from exc
+        return value
+
+    @field_validator("birth_time")
+    @classmethod
+    def _validate_birth_time(cls, value: str) -> str:
+        if not _TIME_RE.match(value):
+            raise ValueError("birth_time must be in HH:MM or HH:MM:SS format")
+        parts = [int(p) for p in value.split(":")]
+        hour, minute = parts[0], parts[1]
+        second = parts[2] if len(parts) > 2 else 0
+        if not (0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59):
+            raise ValueError(f"birth_time is out of range: {value}")
+        return value
 
 
 class ResolvedLocation(BaseModel):
@@ -80,7 +108,7 @@ class MahadashaEntry(BaseModel):
     planet: str
     start: str
     end: str
-    duration_years: int
+    duration_years: float
     clickable_key: str
 
 

@@ -6,8 +6,11 @@ from zoneinfo import ZoneInfo
 
 def local_to_utc(birth_date: str, birth_time: str, timezone_str: str) -> datetime:
     year, month, day = (int(x) for x in birth_date.split("-"))
-    hour, minute = (int(x) for x in birth_time.split(":"))
-    local_dt = datetime(year, month, day, hour, minute, tzinfo=ZoneInfo(timezone_str))
+    time_parts = [int(x) for x in birth_time.split(":")]
+    hour = time_parts[0]
+    minute = time_parts[1] if len(time_parts) > 1 else 0
+    second = time_parts[2] if len(time_parts) > 2 else 0
+    local_dt = datetime(year, month, day, hour, minute, second, tzinfo=ZoneInfo(timezone_str))
     return local_dt.astimezone(timezone.utc)
 
 

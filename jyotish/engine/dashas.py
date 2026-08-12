@@ -61,6 +61,8 @@ def calculate_dashas(
     balance_years = remaining_fraction * DASHA_YEARS[birth_dasha_lord]
     balance_days = balance_years * YEAR_DAYS
 
+    elapsed_first_years = fraction_traversed * DASHA_YEARS[birth_dasha_lord]
+
     start_idx = DASHA_ORDER.index(birth_dasha_lord)
     mahadashas: list[MahadashaEntry] = []
     antardashas: list[AntardashaEntry] = []
@@ -71,50 +73,39 @@ def calculate_dashas(
     for i in range(9):
         lord_idx = (start_idx + i) % 9
         lord = DASHA_ORDER[lord_idx]
-        duration_years = DASHA_YEARS[lord] if i > 0 else balance_years
-        maha_end = current_start + _years_to_td(duration_years)
+        full_maha_years = DASHA_YEARS[lord]
+
+        # The first mahadasha is only partially remaining at birth: only the
+        # balance is shown. Its antardashas/pratyantardashas must therefore
+        # *resume mid-sequence* from the sub-period running at birth rather than
+        # restarting from the mahadasha lord's first sub-period. We model this by
+        # computing the sub-period tree from the mahadasha's true ("notional")
+        # start — which precedes birth by the elapsed portion — and omitting any
+        # sub-period that has already finished before birth; the sub-period
+        # straddling birth is clipped to start at birth. Later mahadashas start
+        # in the future, so the same clip-at-birth logic leaves them unchanged.
+        if i == 0:
+            notional_start = birth_utc - _years_to_td(elapsed_first_years)
+        else:
+            notional_start = current_start
+        # The mahadasha always spans its full length from the notional start; the
+        # displayed (balance) span is what remains from birth. Deriving maha_end
+        # from the notional start keeps it consistent with the sub-period tiling.
+        maha_end = notional_start + _years_to_td(full_maha_years)
+        span_years = round((maha_end - current_start).total_seconds() / 86400 / YEAR_DAYS, 2)
 
         mahadashas.append(MahadashaEntry(
             planet=lord.capitalize(),
             start=_dt_to_iso(current_start),
             end=_dt_to_iso(maha_end),
-            duration_years=DASHA_YEARS[lord],
+            duration_years=span_years,
             clickable_key=f"dasha:{lord}:mahadasha",
         ))
 
-        antar_start = current_start
-        for j in range(9):
-            antar_lord_idx = (lord_idx + j) % 9
-            antar_lord = DASHA_ORDER[antar_lord_idx]
-            antar_years = (DASHA_YEARS[antar_lord] / 120.0) * duration_years
-            antar_end = antar_start + _years_to_td(antar_years)
-
-            antardashas.append(AntardashaEntry(
-                mahadasha=lord.capitalize(),
-                antardasha=antar_lord.capitalize(),
-                start=_dt_to_iso(antar_start),
-                end=_dt_to_iso(antar_end),
-                clickable_key=f"dasha:{lord}:{antar_lord}",
-            ))
-
-            pratya_start = antar_start
-            for k in range(9):
-                pratya_lord_idx = (antar_lord_idx + k) % 9
-                pratya_lord = DASHA_ORDER[pratya_lord_idx]
-                pratya_years = (DASHA_YEARS[pratya_lord] / 120.0) * antar_years
-                pratya_end = pratya_start + _years_to_td(pratya_years)
-
-                pratyantardashas.append(PratyantardashaEntry(
-                    mahadasha=lord.capitalize(),
-                    antardasha=antar_lord.capitalize(),
-                    pratyantardasha=pratya_lord.capitalize(),
-                    start=_dt_to_iso(pratya_start),
-                    end=_dt_to_iso(pratya_end),
-                    clickable_key=f"dasha:{lord}:{antar_lord}:{pratya_lord}",
-                ))
-                pratya_start = pratya_end
-
-            antar_start = antar_end
+        _build_subperiods(
+            lord_idx, lord, full_maha_years, notional_start, birth_utc,
+            antardashas, pratyantardashas,
+        )
 
         current_start = maha_end
 
@@ -137,6 +128,65 @@ def calculate_dashas(
         antardashas=antardashas,
         pratyantardashas=pratyantardashas,
     )
+
+
+def _build_subperiods(
+    maha_lord_idx: int,
+    maha_lord: str,
+    full_maha_years: float,
+    notional_start: datetime,
+    birth_utc: datetime,
+    antardashas: list[AntardashaEntry],
+    pratyantardashas: list[PratyantardashaEntry],
+) -> None:
+    """Append the antardasha + pratyantardasha entries for one mahadasha.
+
+    ``notional_start`` is the mahadasha's true start. For every mahadasha except
+    the first it equals the displayed start (>= birth), so nothing is clipped and
+    all nine antardashas are emitted from the mahadasha lord. For the first
+    mahadasha it precedes birth, so sub-periods that finish before birth are
+    skipped and the one running at birth is clipped to start at ``birth_utc`` —
+    i.e. the sequence resumes mid-stream (Vimshottari balance rule).
+    """
+    maha_name = maha_lord.capitalize()
+
+    antar_start = notional_start
+    for j in range(9):
+        antar_lord_idx = (maha_lord_idx + j) % 9
+        antar_lord = DASHA_ORDER[antar_lord_idx]
+        antar_years = (DASHA_YEARS[antar_lord] / 120.0) * full_maha_years
+        antar_end = antar_start + _years_to_td(antar_years)
+
+        if antar_end > birth_utc:
+            antar_display_start = max(antar_start, birth_utc)
+            antardashas.append(AntardashaEntry(
+                mahadasha=maha_name,
+                antardasha=antar_lord.capitalize(),
+                start=_dt_to_iso(antar_display_start),
+                end=_dt_to_iso(antar_end),
+                clickable_key=f"dasha:{maha_lord}:{antar_lord}",
+            ))
+
+            pratya_start = antar_start
+            for k in range(9):
+                pratya_lord_idx = (antar_lord_idx + k) % 9
+                pratya_lord = DASHA_ORDER[pratya_lord_idx]
+                pratya_years = (DASHA_YEARS[pratya_lord] / 120.0) * antar_years
+                pratya_end = pratya_start + _years_to_td(pratya_years)
+
+                if pratya_end > birth_utc:
+                    pratya_display_start = max(pratya_start, birth_utc)
+                    pratyantardashas.append(PratyantardashaEntry(
+                        mahadasha=maha_name,
+                        antardasha=antar_lord.capitalize(),
+                        pratyantardasha=pratya_lord.capitalize(),
+                        start=_dt_to_iso(pratya_display_start),
+                        end=_dt_to_iso(pratya_end),
+                        clickable_key=f"dasha:{maha_lord}:{antar_lord}:{pratya_lord}",
+                    ))
+                pratya_start = pratya_end
+
+        antar_start = antar_end
 
 
 def _find_current(
